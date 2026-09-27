@@ -30,12 +30,14 @@ export { isPrivateAddress } from './egress.js';
  * @returns {Promise<{ status: number, json: any }>}
  */
 export async function fetchJson(url, opts = {}) {
-  let origin = url;
+  /** @type {URL} */
+  let parsed;
   try {
-    origin = new URL(url).origin;
+    parsed = new URL(url);
   } catch {
     throw new Error(`not a URL: ${url}`);
   }
+  const origin = parsed.origin;
   const body = opts.form ? new URLSearchParams(opts.form).toString() : undefined;
   let res;
   try {
@@ -54,7 +56,7 @@ export async function fetchJson(url, opts = {}) {
     // Keep the wording callers and their tests already rely on.
     const m = /** @type {Error} */ (err).message;
     if (m.endsWith(' must be https')) throw new Error(`${origin} is not https`);
-    if (m.endsWith(' is a private address')) throw new Error(`${new URL(url).hostname.replace(/^\[|\]$/g, '')} is a private address`);
+    if (m.endsWith(' is a private address')) throw new Error(`${parsed.hostname.replace(/^\[|\]$/g, '')} is a private address`);
     throw err;
   }
   if (res.text && res.json === null) {
