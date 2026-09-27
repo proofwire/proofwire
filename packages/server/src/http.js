@@ -309,7 +309,7 @@ export function sendHtml(res, status, html, headers = {}) {
     'content-security-policy':
       "default-src 'none'; style-src 'unsafe-inline'; img-src data:; form-action 'self'; frame-ancestors 'none'",
     'x-content-type-options': 'nosniff',
-    'referrer-policy': 'no-referrer',
+    'referrer-policy': 'same-origin',
     ...headers,
   });
   res.end(body);

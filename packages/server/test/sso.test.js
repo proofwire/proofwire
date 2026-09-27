@@ -324,7 +324,7 @@ test('when SSO is required, a password session loses the organization and an SSO
   // Machines are unaffected.
   assert.equal((await api('GET', '/v1/me', { token: acme.admin })).status, 200);
 
-  const html = (await api('GET', '/settings', { cookie: sso.cookie })).text;
+  const html = (await api('GET', '/settings/integrations', { cookie: sso.cookie })).text;
   assert.match(html, /Single sign-on/);
   assert.match(html, /required/);
 });

@@ -219,15 +219,17 @@ test("the console's settings show Slack as connected, and never the credentials"
     redirect: 'manual',
   });
   const cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(';')[0]).join('; ');
-  const html = await (await fetch(base + '/settings', { headers: { cookie } })).text();
+  const html = await (await fetch(base + '/settings/integrations', { headers: { cookie } })).text();
   assert.match(html, /Slack approvals/);
   assert.match(html, /connected/);
   assert.match(html, /U024BE7LH/);
   assert.ok(!html.includes(SECRET), 'the signing secret is on the page');
   assert.ok(!html.includes('/webhook/acme'), 'the webhook URL is on the page');
-  // The retention panel renders beside it.
-  assert.match(html, /<h2>Retention<\/h2>/);
-  assert.match(html, /kept on the hub<\/dt><dd><b>forever<\/b>/);
+  // Retention stays on the general tab.
+  const general = await (await fetch(base + '/settings', { headers: { cookie } })).text();
+  assert.match(general, /<h2>Retention<\/h2>/);
+  assert.match(general, /kept on the hub<\/dt><dd><b>forever<\/b>/);
+  assert.match(general, /href="\/settings\/integrations"/);
 });
 
 // ── the flow ───────────────────────────────────────────────────────────────

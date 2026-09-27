@@ -53,6 +53,9 @@ import { discover, fetchJson, verifyIdToken, pkce } from './oidc.js';
 /** This package's version, as published — read, not typed, so it cannot drift. */
 export const VERSION = createRequire(import.meta.url)('../package.json').version;
 
+/** Shown with a generated webhook secret, when the page renders instead of redirecting. */
+const DONE_ADDED = 'Destination added. New events go to it within a second.';
+
 export const DEFAULT_CONFIG = {
   port: 8787,
   host: '0.0.0.0',
@@ -168,6 +171,12 @@ export class Hub {
     this._witnessQueues = new Map();
     /** Background work `close` waits for. @type {Set<Promise<unknown>>} */
     this._background = new Set();
+    /**
+     * How each outside witness last answered, per organisation, for the
+     * console. In memory: it describes this process's attempts, not history.
+     * @type {Map<string, { lastOkAt?: string, lastSize?: number, lastError?: string, lastErrorAt?: string, alarming?: boolean }>}
+     */
+    this._witnessStatus = new Map();
 
     /** Event streaming to each organisation's SIEM. See `streams.js`. */
     this.streams = new Streams({
@@ -1231,58 +1240,7 @@ export class Hub {
 
     r.put('/v1/integrations/witnesses', async (ctx) => {
       requireScope(ctx.principal, 'admin');
-      const list = ctx.body?.witnesses;
-      if (!Array.isArray(list) || list.length > 5) {
-        throw new StoreError(400, 'bad_witnesses', 'body must be { witnesses: [{ name, url, token }] }, at most 5');
-      }
-      const previous = this.store.integration(ctx.principal.orgId, 'witnesses')?.config.witnesses ?? [];
-      const names = new Set();
-      const checked = [];
-      for (const w of list) {
-        const name = String(w?.name ?? '');
-        if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(name) || names.has(name)) {
-          throw new StoreError(400, 'bad_witness_name', `witness names must be unique, lowercase letters, digits and dashes: "${name}"`);
-        }
-        names.add(name);
-        const url = trimSlashes(String(w?.url ?? ''));
-        const problem = destinationProblem(url, { allowPrivate: this.config.egressAllowPrivate });
-        if (problem) throw new StoreError(400, 'bad_witness_url', `${name}: url ${problem}`);
-        // Left out, the stored token stays, but only for the same name at the
-        // same URL: a token is write-only, and must not be sendable to a new
-        // address by anyone who can edit this list.
-        const kept = previous.find((/** @type {any} */ p) => p.name === name && p.url === url)?.token;
-        const token = w?.token === undefined ? String(kept ?? '') : String(w.token);
-        if (!token || token.length > 512 || /[\r\n]/.test(token)) {
-          throw new StoreError(400, 'bad_witness_token', `${name}: a token is required`);
-        }
-        // Reach it now, so a typo is refused here and not discovered as a
-        // silent failure on every later checkpoint. The key it names is used
-        // only to label its signatures in bundles; auditors pin keys they
-        // obtained elsewhere.
-        let key;
-        try {
-          const res = await guardedRequest(`${url}/v1/witness/key`, {
-            allowPrivate: this.config.egressAllowPrivate, headers: { accept: 'application/json' },
-          });
-          key = res.status === 200 ? identityFromPublicKey(String(res.json?.publicKey ?? '')) : null;
-        } catch {
-          key = null;
-        }
-        if (!key) throw new StoreError(422, 'witness_unreachable', `${name}: no witness answered at ${url}/v1/witness/key`);
-        checked.push({ name, url, token, kid: key.kid, publicKey: key.publicKey });
-      }
-
-      this.store.setIntegration(ctx.principal.orgId, 'witnesses', { witnesses: checked });
-      for (const w of checked) this.store.rememberWitnessKey(ctx.principal.orgId, w);
-      this.store.recordEvent({
-        orgId: ctx.principal.orgId,
-        actor: ctx.principal.label,
-        actorKind: ctx.principal.kind,
-        action: 'integration.witnesses.set',
-        subject: 'witnesses',
-        meta: { witnesses: checked.map((w) => ({ name: w.name, host: new URL(w.url).host, kid: w.kid })) },
-      });
-      return { witnesses: checked.map((w) => ({ name: w.name, url: w.url, kid: w.kid, publicKey: w.publicKey })) };
+      return this._saveWitnesses(ctx, ctx.body?.witnesses);
     });
 
     r.delete('/v1/integrations/witnesses', (ctx) => {
@@ -1306,39 +1264,12 @@ export class Hub {
       return { destinations: this.streams.status(ctx.principal.orgId) };
     });
 
-    /**
-     * @param {import('./http.js').Ctx} ctx
-     * @param {unknown[]} input  The whole list, as the admin wants it.
-     */
-    const saveStreams = (ctx, input) => {
-      const orgId = ctx.principal.orgId;
-      const { destinations, generated } = parseDestinations(input, this.streams.destinations(orgId), {
-        allowPrivate: Boolean(this.config.egressAllowPrivate),
-      });
-      const backfill = new Set(
-        input.filter((d) => /** @type {any} */ (d)?.backfill === true).map((d) => String(/** @type {any} */ (d).name)),
-      );
-      this.streams.save(orgId, destinations, backfill);
-      this.store.recordEvent({
-        orgId,
-        actor: ctx.principal.label,
-        actorKind: ctx.principal.kind,
-        action: 'integration.streams.set',
-        subject: 'streams',
-        meta: { destinations: destinations.map((d) => ({ name: d.name, type: d.type, host: new URL(d.url).host })) },
-      });
-      return {
-        destinations: destinations.map(describeDestination),
-        // A webhook secret made here is shown this once, like an API key.
-        ...(Object.keys(generated).length ? { secrets: generated } : {}),
-      };
-    };
 
     r.put('/v1/integrations/streams', (ctx) => {
       requireScope(ctx.principal, 'admin');
       const input = ctx.body?.destinations;
       if (!Array.isArray(input)) throw new StoreError(400, 'bad_destinations', 'body must be { destinations: [...] }');
-      return saveStreams(ctx, input);
+      return this._saveStreams(ctx, input);
     });
 
     /** Add or replace one destination, leaving the others as they are. */
@@ -1346,7 +1277,7 @@ export class Hub {
       requireScope(ctx.principal, 'admin');
       const name = ctx.params.name;
       const others = this.streams.destinations(ctx.principal.orgId).filter((d) => d.name !== name);
-      return saveStreams(ctx, [...others, { ...(ctx.body ?? {}), name }]);
+      return this._saveStreams(ctx, [...others, { ...(ctx.body ?? {}), name }]);
     });
 
     r.delete('/v1/integrations/streams/:name', (ctx) => {
@@ -1355,7 +1286,7 @@ export class Hub {
       if (!all.some((d) => d.name === ctx.params.name)) {
         throw new StoreError(404, 'no_such_destination', `no destination named "${ctx.params.name}"`);
       }
-      return saveStreams(ctx, all.filter((d) => d.name !== ctx.params.name));
+      return this._saveStreams(ctx, all.filter((d) => d.name !== ctx.params.name));
     });
 
     r.delete('/v1/integrations/streams', (ctx) => {
@@ -1737,7 +1668,7 @@ export class Hub {
 
     // ── console ─────────────────────────────────────────────────────────
     for (const page of [
-      '/', '/logs/:log', '/approvals', '/policies', '/settings', '/events',
+      '/', '/logs/:log', '/approvals', '/policies', '/settings', '/settings/integrations', '/events',
       '/login', '/forgot', '/accept', '/reset',
     ]) {
       r.get(page, (ctx) => renderConsole(this, ctx, page));
@@ -1838,6 +1769,132 @@ export class Hub {
       });
       return { __redirect: '/settings' };
     });
+
+    // ── console: integrations ───────────────────────────────────────────
+    //
+    // The same checks as the API (they call the same methods). A refusal is
+    // shown on the page rather than answered as JSON, and what was done is
+    // named by a fixed code in the redirect, so nothing a request sent is
+    // reflected into the page.
+    /**
+     * @param {string} path
+     * @param {(ctx: import('./http.js').Ctx) => Promise<string | import('./console.js').Extra> | string | import('./console.js').Extra} fn
+     *   A done code to redirect with, or something to show once on the page.
+     */
+    const integrationAction = (path, fn) => r.post(path, async (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      try {
+        const out = await fn(ctx);
+        if (typeof out === 'string') return { __redirect: `/settings/integrations?done=${encodeURIComponent(out)}` };
+        return renderConsole(this, ctx, '/settings/integrations', out);
+      } catch (err) {
+        if (!(err instanceof StoreError)) throw err;
+        const page = renderConsole(this, ctx, '/settings/integrations', { flash: { kind: 'bad', text: err.message } });
+        return { ...page, status: err.status };
+      }
+    });
+    const form = (/** @type {import('./http.js').Ctx} */ ctx, /** @type {string} */ k) => {
+      const v = ctx.body?.[k];
+      return typeof v === 'string' && v.trim() !== '' ? v.trim() : undefined;
+    };
+
+    integrationAction('/settings/integrations/witnesses/add', async (ctx) => {
+      const name = form(ctx, 'name') ?? '';
+      const current = this.store.integration(ctx.principal.orgId, 'witnesses')?.config.witnesses ?? [];
+      // The others go back without tokens: the hub keeps each for its URL.
+      await this._saveWitnesses(ctx, [
+        ...current.filter((/** @type {any} */ w) => w.name !== name).map((/** @type {any} */ w) => ({ name: w.name, url: w.url })),
+        { name, url: form(ctx, 'url') ?? '', token: form(ctx, 'token') ?? '' },
+      ]);
+      await this._witnessLatest(ctx.principal.orgId);
+      return 'witness-added';
+    });
+    integrationAction('/settings/integrations/witnesses/:name/remove', async (ctx) => {
+      const orgId = ctx.principal.orgId;
+      const current = this.store.integration(orgId, 'witnesses')?.config.witnesses ?? [];
+      const rest = current.filter((/** @type {any} */ w) => w.name !== ctx.params.name);
+      if (rest.length === current.length) throw new StoreError(404, 'no_such_witness', `no witness named "${ctx.params.name}"`);
+      if (rest.length) {
+        await this._saveWitnesses(ctx, rest.map((/** @type {any} */ w) => ({ name: w.name, url: w.url })));
+      } else {
+        this.store.deleteIntegration(orgId, 'witnesses');
+        this.store.recordEvent({
+          orgId, actor: ctx.principal.label, actorKind: ctx.principal.kind,
+          action: 'integration.witnesses.removed', subject: 'witnesses',
+        });
+      }
+      this._witnessStatus.delete(`${orgId}:${ctx.params.name}`);
+      return 'witness-removed';
+    });
+    integrationAction('/settings/integrations/witnesses/send', async (ctx) => {
+      await this._witnessLatest(ctx.principal.orgId);
+      return 'witnesses-sent';
+    });
+
+    integrationAction('/settings/integrations/streams/add', (ctx) => {
+      const orgId = ctx.principal.orgId;
+      const name = form(ctx, 'name') ?? '';
+      /** @type {any} */
+      const dest = {
+        name,
+        type: form(ctx, 'type') ?? '',
+        receipts: form(ctx, 'receipts') ?? 'all',
+        audit: ctx.body?.audit === '1',
+        backfill: ctx.body?.backfill === '1',
+      };
+      for (const k of ['url', 'token', 'secret']) if (form(ctx, k)) dest[k] = form(ctx, k);
+      const header = form(ctx, 'header');
+      if (header) {
+        const eq = header.indexOf('=');
+        if (eq < 1) throw new StoreError(400, 'bad_headers', 'a header is written name=value');
+        dest.headers = { [header.slice(0, eq).trim()]: header.slice(eq + 1).trim() };
+      }
+      const others = this.streams.destinations(orgId).filter((d) => d.name !== name);
+      const res = this._saveStreams(ctx, [...others, dest]);
+      const secret = res.secrets?.[name];
+      if (secret) return { flash: { kind: 'ok', text: DONE_ADDED }, secret: { name, secret } };
+      return 'stream-added';
+    });
+    integrationAction('/settings/integrations/streams/:name/remove', (ctx) => {
+      const all = this.streams.destinations(ctx.principal.orgId);
+      if (!all.some((d) => d.name === ctx.params.name)) {
+        throw new StoreError(404, 'no_such_destination', `no destination named "${ctx.params.name}"`);
+      }
+      this._saveStreams(ctx, all.filter((d) => d.name !== ctx.params.name));
+      return 'stream-removed';
+    });
+    integrationAction('/settings/integrations/streams/test', async (ctx) => ({
+      results: await this.streams.test(ctx.principal.orgId),
+    }));
+    integrationAction('/settings/integrations/streams/flush', async (ctx) => {
+      await this.streams.flush(ctx.principal.orgId);
+      return 'streams-flushed';
+    });
+    integrationAction('/settings/integrations/slack/test', async (ctx) => {
+      const found = this.store.integration(ctx.principal.orgId, 'slack');
+      if (!found) throw new StoreError(404, 'not_configured', 'Slack is not connected for this organization');
+      const res = await this._postToSlack(found.config.webhookUrl, {
+        text: 'Proofwire is connected. Escalated agent actions for this organization will appear here, with Approve and Deny buttons.',
+      });
+      if (!res.ok) throw new StoreError(502, 'slack_error', `Slack answered: ${res.error}`);
+      return 'slack-tested';
+    });
+  }
+
+  /**
+   * Send the latest checkpoint of each of an organisation's logs to its
+   * outside witnesses, and wait for them to answer.
+   *
+   * @param {string} orgId
+   */
+  async _witnessLatest(orgId) {
+    /** @type {Promise<void>[]} */
+    const tasks = [];
+    for (const log of this.store.logs(orgId)) {
+      const [cp] = this.store.checkpoints(orgId, log.id, 1);
+      if (cp) tasks.push(...this._witnessOutside(orgId, log.id, cp));
+    }
+    await Promise.allSettled(tasks);
   }
 
   /**
@@ -2120,6 +2177,98 @@ export class Hub {
   }
 
   /**
+   * Check and save an organisation's event-stream destinations: the API and
+   * the console both come through here.
+   *
+   * @param {import('./http.js').Ctx} ctx
+   * @param {unknown[]} input  The whole list, as the admin wants it.
+   */
+  _saveStreams(ctx, input) {
+    const orgId = ctx.principal.orgId;
+    const { destinations, generated } = parseDestinations(input, this.streams.destinations(orgId), {
+      allowPrivate: Boolean(this.config.egressAllowPrivate),
+    });
+    const backfill = new Set(
+      input.filter((d) => /** @type {any} */ (d)?.backfill === true).map((d) => String(/** @type {any} */ (d).name)),
+    );
+    this.streams.save(orgId, destinations, backfill);
+    this.store.recordEvent({
+      orgId,
+      actor: ctx.principal.label,
+      actorKind: ctx.principal.kind,
+      action: 'integration.streams.set',
+      subject: 'streams',
+      meta: { destinations: destinations.map((d) => ({ name: d.name, type: d.type, host: new URL(d.url).host })) },
+    });
+    return {
+      destinations: destinations.map(describeDestination),
+      // A webhook secret made here is shown this once, like an API key.
+      ...(Object.keys(generated).length ? { secrets: generated } : {}),
+    };
+  }
+
+  /**
+   * Check and save an organisation's outside witnesses: the API and the
+   * console both come through here. Each is reached before it is saved.
+   *
+   * @param {import('./http.js').Ctx} ctx
+   * @param {unknown} list
+   */
+  async _saveWitnesses(ctx, list) {
+    if (!Array.isArray(list) || list.length > 5) {
+      throw new StoreError(400, 'bad_witnesses', 'body must be { witnesses: [{ name, url, token }] }, at most 5');
+    }
+    const previous = this.store.integration(ctx.principal.orgId, 'witnesses')?.config.witnesses ?? [];
+    const names = new Set();
+    const checked = [];
+    for (const w of list) {
+      const name = String(w?.name ?? '');
+      if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(name) || names.has(name)) {
+        throw new StoreError(400, 'bad_witness_name', `witness names must be unique, lowercase letters, digits and dashes: "${name}"`);
+      }
+      names.add(name);
+      const url = trimSlashes(String(w?.url ?? ''));
+      const problem = destinationProblem(url, { allowPrivate: this.config.egressAllowPrivate });
+      if (problem) throw new StoreError(400, 'bad_witness_url', `${name}: url ${problem}`);
+      // Left out, the stored token stays, but only for the same name at the
+      // same URL: a token is write-only, and must not be sendable to a new
+      // address by anyone who can edit this list.
+      const kept = previous.find((/** @type {any} */ p) => p.name === name && p.url === url)?.token;
+      const token = w?.token === undefined ? String(kept ?? '') : String(w.token);
+      if (!token || token.length > 512 || /[\r\n]/.test(token)) {
+        throw new StoreError(400, 'bad_witness_token', `${name}: a token is required`);
+      }
+      // Reach it now, so a typo is refused here and not discovered as a
+      // silent failure on every later checkpoint. The key it names is used
+      // only to label its signatures in bundles; auditors pin keys they
+      // obtained elsewhere.
+      let key;
+      try {
+        const res = await guardedRequest(`${url}/v1/witness/key`, {
+          allowPrivate: this.config.egressAllowPrivate, headers: { accept: 'application/json' },
+        });
+        key = res.status === 200 ? identityFromPublicKey(String(res.json?.publicKey ?? '')) : null;
+      } catch {
+        key = null;
+      }
+      if (!key) throw new StoreError(422, 'witness_unreachable', `${name}: no witness answered at ${url}/v1/witness/key`);
+      checked.push({ name, url, token, kid: key.kid, publicKey: key.publicKey });
+    }
+
+    this.store.setIntegration(ctx.principal.orgId, 'witnesses', { witnesses: checked });
+    for (const w of checked) this.store.rememberWitnessKey(ctx.principal.orgId, w);
+    this.store.recordEvent({
+      orgId: ctx.principal.orgId,
+      actor: ctx.principal.label,
+      actorKind: ctx.principal.kind,
+      action: 'integration.witnesses.set',
+      subject: 'witnesses',
+      meta: { witnesses: checked.map((w) => ({ name: w.name, host: new URL(w.url).host, kid: w.kid })) },
+    });
+    return { witnesses: checked.map((w) => ({ name: w.name, url: w.url, kid: w.kid, publicKey: w.publicKey })) };
+  }
+
+  /**
    * Bring the witness's positions up to what its journal says it signed.
    *
    * After a restore the database is behind: the journal, which backups don't
@@ -2195,11 +2344,16 @@ export class Hub {
    * @param {string} orgId
    * @param {string} logId
    * @param {import('@proof_wire/core').Checkpoint} cp
+   * @returns {Promise<void>[]}  One per witness, for a caller that wants to wait.
    */
   _witnessOutside(orgId, logId, cp) {
-    if (this.config.witnessOnly) return;
+    /** @type {Promise<void>[]} */
+    const tasks = [];
+    if (this.config.witnessOnly) return tasks;
     const configured = this.store.integration(orgId, 'witnesses')?.config.witnesses ?? [];
     for (const w of configured) {
+      const status = this._witnessStatus.get(`${orgId}:${w.name}`) ?? {};
+      this._witnessStatus.set(`${orgId}:${w.name}`, status);
       const key = `${orgId}:${logId}:${w.name}`;
       const q = this._witnessQueues.get(key) ?? { chain: Promise.resolve(), size: 0 };
       this._witnessQueues.set(key, q);
@@ -2224,8 +2378,15 @@ export class Hub {
           this.store.rememberWitnessKey(orgId, { name: w.name, url: w.url, ...res.witness });
           this.store.addWitnessSignature(orgId, logId, cp.body.size, res.signature);
           q.size = cp.body.size;
+          status.lastOkAt = now();
+          status.lastSize = cp.body.size;
+          status.lastError = undefined;
+          status.alarming = false;
         } catch (err) {
           const e = /** @type {any} */ (err);
+          status.lastError = `${cp.body.log}: ${e.message}`;
+          status.lastErrorAt = now();
+          status.alarming = Boolean(e.alarming);
           console.error(JSON.stringify({
             level: e.alarming ? 'error' : 'warn', event: 'witness.failed', witness: w.name, code: e.code, message: e.message,
           }));
@@ -2242,7 +2403,9 @@ export class Hub {
       q.chain = task;
       this._background.add(task);
       task.finally(() => this._background.delete(task));
+      tasks.push(task);
     }
+    return tasks;
   }
 
   /**
@@ -2380,11 +2543,15 @@ export class Hub {
   /**
    * Whether a state-changing request originated from this hub's own pages.
    *
-   * `Origin` is set by the browser on every POST and cannot be forged by page
-   * script. `Referer` is the fallback for the handful of cases that omit
-   * Origin. A request carrying neither is refused rather than trusted: for a
-   * cookie-authenticated write, absence of evidence is not evidence of
-   * innocence.
+   * `Sec-Fetch-Site` comes first: every current browser sets it, page script
+   * can't, and it says directly whether the request came from this origin
+   * (`same-site`, a sibling subdomain, is not enough). Without it, `Origin`
+   * is set by the browser on every POST and cannot be forged by page script,
+   * and `Referer` is the fallback for the handful of cases that omit Origin.
+   * `Origin: null` is no evidence either way: a browser sends it when a
+   * referrer policy withholds the origin. A request carrying none of these is
+   * refused rather than trusted: for a cookie-authenticated write, absence of
+   * evidence is not evidence of innocence.
    *
    * @param {import('node:http').IncomingMessage} req
    * @returns {boolean}
@@ -2393,7 +2560,11 @@ export class Hub {
     const host = req.headers.host;
     if (!host) return false;
 
-    const stated = req.headers.origin ?? req.headers.referer;
+    const site = req.headers['sec-fetch-site'];
+    if (typeof site === 'string') return site === 'same-origin';
+
+    const origin = req.headers.origin && req.headers.origin !== 'null' ? req.headers.origin : undefined;
+    const stated = origin ?? req.headers.referer;
     if (typeof stated !== 'string' || stated === '') return false;
 
     try {
@@ -2413,7 +2584,11 @@ export class Hub {
     const requestId = newRequestId();
     res.setHeader('x-request-id', requestId);
     res.setHeader('x-content-type-options', 'nosniff');
-    res.setHeader('referrer-policy', 'no-referrer');
+    // Not no-referrer: under that, browsers send `Origin: null` on the
+    // console's own form posts, and the cross-site check refuses them. With
+    // same-origin, this hub sees its own origin and no other site sees
+    // anything, which is what keeps invite and reset tokens in URLs private.
+    res.setHeader('referrer-policy', 'same-origin');
     // Suppressed alongside Secure cookies, because a local HTTP development
     // hub that pins the browser to HTTPS for a year is a foot-gun.
     if (process.env.PROOFWIRE_INSECURE_COOKIES !== '1') {

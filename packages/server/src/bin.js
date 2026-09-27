@@ -582,8 +582,8 @@ async function witnessRelease() {
     }
     const kid = hub.witnessSigner.kid;
     const held = hub.db
-      .prepare('SELECT log_id FROM witness_holds WHERE witness_kid = ? AND log_id LIKE ?')
-      .all(kid, `${org.id}:%`)
+      .prepare('SELECT log_id FROM witness_holds WHERE witness_kid = ? AND substr(log_id, 1, length(?)) = ?')
+      .all(kid, `${org.id}:`, `${org.id}:`)
       .map((r) => String(r.log_id).slice(org.id.length + 1));
     const logs = all ? held : [log];
     if (!all && !held.includes(log)) {

@@ -73,7 +73,8 @@ person's profile → ⋯ → **Copy member ID**. Leave it out and anyone who can
 see the channel can decide, which is only reasonable for a private channel.
 
 `pw slack test` posts a plain message to confirm the webhook works. The
-console's **Settings** page shows the connection too.
+console's **Settings → Integrations** page shows the connection too, with a
+button to send a test message.
 
 ```bash
 pw slack status        # connected? who can approve?

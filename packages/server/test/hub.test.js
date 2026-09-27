@@ -879,9 +879,23 @@ test('a cookie-authenticated write from another origin is refused', async () => 
   });
   assert.equal(bare.status, 403);
 
-  // And no key was minted by either attempt.
+  // What a real browser sends. Sec-Fetch-Site decides when present: a form on
+  // this origin passes even with Origin: null, and a sibling subdomain or
+  // another site fails even when Origin is made to look right.
+  const post = (/** @type {Record<string,string>} */ h, /** @type {string} */ name) => fetch(base + '/v1/keys', {
+    method: 'POST',
+    headers: { cookie, 'content-type': 'application/json', ...h },
+    body: JSON.stringify({ name, scopes: ['logs:read'] }),
+  });
+  assert.equal((await post({ origin: 'null', 'sec-fetch-site': 'same-origin' }, 'browser-form')).status, 200);
+  assert.equal((await post({ origin: `http://${host}`, 'sec-fetch-site': 'same-site' }, 'sibling')).status, 403);
+  assert.equal((await post({ origin: `http://${host}`, 'sec-fetch-site': 'cross-site' }, 'cross')).status, 403);
+  // Origin: null alone is no evidence.
+  assert.equal((await post({ origin: 'null' }, 'null-origin')).status, 403);
+
+  // And no key was minted by any refused attempt.
   const keys = hub.auth.keys(acme.org);
-  assert.ok(!keys.some((k) => k.name === 'forged' || k.name === 'bare'));
+  assert.ok(!keys.some((k) => ['forged', 'bare', 'sibling', 'cross', 'null-origin'].includes(k.name)));
 });
 
 test('bearer-token writes are unaffected: no browser attaches those cross-site', async () => {
