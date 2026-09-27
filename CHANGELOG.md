@@ -26,9 +26,56 @@ release together at the same version.
 - **`pw check --witnesses abc` silently required no witnesses.** A NaN minimum
   compared false against every count. The CLI now refuses anything but a whole
   number, and `verifyBundle` fails a minimum that is not a non-negative integer.
+- **Outbound requests to tenant-chosen addresses share one guard.** SSO
+  discovery, outside witnesses and event streams all go through it: https
+  only, no private, loopback, link-local or metadata addresses (checked after
+  DNS, at connect time), no redirects, and a timeout and size cap.
+  `PROOFWIRE_EGRESS_ALLOW_PRIVATE=1` relaxes the address rules for a
+  self-hosted hub on its own network. A stored witness token or stream
+  credential is reused only for the same URL, so editing a destination can't
+  redirect a secret to a new address.
 
 ### Added
 
+- **Streaming to Splunk, Datadog, OpenTelemetry or a webhook.** A hub sends
+  each organisation's receipts (all, or only denials and escalations) and its
+  control-plane audit events to up to five destinations: Splunk HEC, Datadog
+  Logs v2, OTLP/HTTP JSON, or a webhook signed with HMAC-SHA256
+  (`proofwire-signature`). An action's parameters and result are never
+  streamed. Delivery is at least once and in each log's order: each
+  destination is a cursor into the database (migration `012_stream_cursors`), moved only when a
+  batch is accepted, so an outage or a restart loses nothing and a backlog
+  waits in the database, not in memory. Sending never touches the ingest
+  path. `pw streams list|add|remove|test|flush` and
+  `/v1/integrations/streams`; tokens and secrets are write-only. See
+  `docs/STREAMING.md`.
+- **Hub checkpoints witnessed automatically.** An organisation names up to
+  five outside witnesses (`pw witnesses add`, `/v1/integrations/witnesses`),
+  and every checkpoint of its logs is sent to each for co-signing in the
+  background, in order, with signatures landing on the checkpoint and in
+  bundles. A witness refusing because histories disagree is recorded as
+  `witness.refused` in the audit trail.
+- **Local logs witnessed automatically, by several witnesses.**
+  `"witnesses": [...]` in `proofwire.config.json` has every `pw proxy`
+  session end with each witness signing; `pw cosign --remote a,b` does it by
+  hand. `witnessCheckpoint` in `@proof_wire/core` is the shared client.
+- **Witnesses report their position** (`GET /v1/witness/position/:log`), so a
+  client proves growth from the size the witness actually last signed rather
+  than guessing. The old guess caused a false "history rewritten" refusal
+  whenever a witness had missed a checkpoint. The client also compares the
+  witness's root at that size against its own tree first, and stops with
+  `diverged` if they differ.
+- **Policy templates.** Eleven ready-made policies in the ordinary policy
+  language: `secrets`, `no-personal-data`, `destructive-sql`,
+  `sql-writes-need-approval`, `payments`, `outbound-messages`,
+  `outbound-rate-limit`, `shell-safety`, `production-guard`, `loop-guard` and
+  `read-only`. `pw policy templates` lists them, `pw policy template <id...>`
+  prints or writes (`--out`) a policy from any combination and explains each
+  one's assumptions (`--explain`), and `pw init --template a,b` starts a
+  project with them. `composePolicy` in `@proof_wire/core` does the same in
+  code; it puts refusals ahead of escalations ahead of allows, so one
+  template's allowlist can never let through what another refuses. Every
+  template is tested against calls it must stop and calls it must leave alone.
 - **Calls that never finished are found and reported.** Every allowed call
   writes an intent receipt before it runs and an outcome after; an intent with
   no outcome is what an agent killed mid-call leaves behind, and nothing

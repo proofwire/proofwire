@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, verifyCheckpoint, signCheckpoint, generateIdentity } from '@proof_wire/core';
+import { ProofLog, verifyCheckpoint, signCheckpoint, generateIdentity, witnessCheckpoint, MerkleTree, leafHash } from '@proof_wire/core';
 import { Hub, WITNESS_ONLY_ROUTES } from '../src/app.js';
 
 /**
@@ -236,6 +236,78 @@ test('two customers\' positions are independent, which is why each gets an organ
   const g2 = await cosign(globex.token, at(globexKey, '22'.repeat(32)), globexKey);
   assert.equal(g2.status, 409);
   assert.equal(g2.json.error.code, 'split_view');
+});
+
+/** A fresh local log with `n` receipts. */
+function localLog(/** @type {number} */ n) {
+  const log = ProofLog.create(fs.mkdtempSync(path.join(dir, 'client-')));
+  for (let i = 0; i < n; i++) grow(log, 1);
+  return log;
+}
+/** @param {ProofLog} log @param {number} n */
+function grow(log, n) {
+  for (let i = 0; i < n; i++) {
+    log.append({
+      actor: { agent: 'a', runtime: 'test', session: 's', principal: 'p@acme.test' },
+      action: { kind: 'tool_call', target: 'ops.x', params: { n: log.size } },
+      decision: { outcome: 'allow', policy: 'p', rules: [] },
+    });
+  }
+}
+/** @param {ProofLog} log @param {string} [token] */
+const witnessLog = (log, token = acme.token) => witnessCheckpoint({
+  url: base, token, checkpoint: log.checkpoint(), tree: log.tree, logPublicKey: log.identity.publicKey,
+});
+
+test('the witness says what it last signed for a log, and only to that log\'s own organization', async () => {
+  const log = localLog(3);
+  const first = await api('GET', `/v1/witness/position/${log.logId}`, { token: acme.token });
+  assert.equal(first.status, 404);
+  assert.equal(first.json.error.code, 'no_position');
+
+  const res = await witnessLog(log);
+  assert.equal(res.from, null, 'a first signing proves nothing about growth');
+  const pos = await api('GET', `/v1/witness/position/${log.logId}`, { token: acme.token });
+  assert.equal(pos.status, 200);
+  assert.deepEqual([pos.json.size, pos.json.root], [3, log.root]);
+  assert.equal((await api('GET', `/v1/witness/position/${log.logId}`, { token: globex.token })).status, 404);
+  assert.equal((await api('GET', `/v1/witness/position/${log.logId}`)).status, 401);
+});
+
+test('growth is proven from what the witness last signed, even when it missed a checkpoint', async () => {
+  // Before the position endpoint, the client proved growth from its own
+  // previous checkpoint. A witness that had not seen that one got a proof
+  // from the wrong size and reported a rewritten history.
+  const log = localLog(3);
+  await witnessLog(log);            // witnessed at 3
+  grow(log, 2);
+  log.checkpoint();                 // checkpointed at 5, never shown to the witness
+  grow(log, 3);
+  const res = await witnessLog(log); // at 8
+  assert.equal(res.from, 3);
+  const v = verifyCheckpoint({ body: log.checkpoints().at(-1).body, sigs: [...log.checkpoints().at(-1).sigs, res.signature] }, log.keyring, {
+    minWitnesses: 1, trustedWitnesses: { [acme.kid]: acme.publicKey },
+  });
+  assert.ok(v.ok, v.issues.join('; '));
+});
+
+test('a history that differs from what the witness signed is caught before anything is sent', async () => {
+  const log = localLog(3);
+  await witnessLog(log);
+  grow(log, 2);
+  // The same log, as someone who rewrote its first three entries would present it.
+  const rewritten = new MerkleTree([leafHash(Buffer.from('forged')), ...log.tree.leaves.slice(1)]);
+  await assert.rejects(
+    witnessCheckpoint({ url: base, token: acme.token, checkpoint: log.checkpoint(), tree: rewritten, logPublicKey: log.identity.publicKey }),
+    (/** @type {any} */ e) => e.code === 'diverged' && e.alarming === true,
+  );
+  // And a log shown to the witness at a size smaller than it already signed.
+  const small = new MerkleTree(log.tree.leaves.slice(0, 2));
+  const cp2 = signCheckpoint(log.identity, { ...log.checkpoint().body, size: 2, root: small.root.toString('hex') });
+  await assert.rejects(
+    witnessCheckpoint({ url: base, token: acme.token, checkpoint: cp2, tree: small, logPublicKey: log.identity.publicKey }),
+    (/** @type {any} */ e) => e.code === 'log_shrank' && e.alarming === true,
+  );
 });
 
 test('bootstrap refuses on a witness-only node and points at witness-key', () => {

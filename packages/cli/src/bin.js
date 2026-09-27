@@ -6,12 +6,15 @@ import { ProofLog, verifyBundle, Policy, verifyInclusion, unhex, generateIdentit
 import { McpProxy, auditPolicyMetrics } from '@proof_wire/proxy';
 import { cmdPolicyTest } from './policy-test.js';
 import { cmdReport } from './report.js';
+import { cmdPolicyTemplates, cmdPolicyTemplate, templatePolicyText } from './policy-templates.js';
 import { RemoteSink, hubApprover, fetchPolicy } from '@proof_wire/proxy/remote';
 import { approverFrom } from '@proof_wire/proxy/approve';
 import { c, out, err, ok, bad, warn, info, heading, kv, table, outcomeBadge, parseArgs } from './ui.js';
 import { witnessKeysFrom } from './witness-keys.js';
+import { cmdWitnesses, cmdStreams } from './hub-integrations.js';
 import {
   cmdRemote, cmdPush, cmdRemoteVerify, cmdPolicy, cmdCosign, cmdSlack, loadRemotes, resolveRemote,
+  witnessWith, explainRefusal,
 } from './remote-cmds.js';
 
 // Read from the package, not written here: a version typed into source is one
@@ -118,8 +121,10 @@ const STARTER_CONFIG = {
 function writeIfAbsent(file, text) {
   try {
     fs.writeFileSync(file, text, { flag: 'wx' });
+    return true;
   } catch (err) {
     if (/** @type {NodeJS.ErrnoException} */ (err).code !== 'EEXIST') throw err;
+    return false;
   }
 }
 
@@ -141,8 +146,10 @@ function cmdInit(args) {
     return 1;
   }
 
+  // Compose first: an unknown template name should fail before anything is created.
+  const policyText = args.template ? templatePolicyText(args.template) : STARTER_POLICY;
   const log = ProofLog.create(dir);
-  writeIfAbsent(POLICY, STARTER_POLICY);
+  const wrotePolicy = writeIfAbsent(POLICY, policyText);
   writeIfAbsent(CONFIG, JSON.stringify(STARTER_CONFIG, null, 2) + '\n');
 
   const gitignore = '.gitignore';
@@ -164,10 +171,14 @@ function cmdInit(args) {
     ['log', log.logId],
     ['key', log.identity.kid],
     ['dir', path.relative(process.cwd(), dir) || '.'],
-    ['policy', POLICY],
+    ['policy', `${POLICY}${wrotePolicy ? '' : c.grey(' (already there; left unchanged)')}`],
     ['config', CONFIG],
   ]);
   out('');
+  if (args.template && !wrotePolicy) {
+    info(`--template was not applied: ${POLICY} already exists. ${c.cyan('pw policy template <ids> --out <file>')} writes one elsewhere.`);
+    out('');
+  }
   info('Commit entries.jsonl and checkpoints.jsonl. Never commit key.pem or salts.jsonl.');
   out('');
   out(`  Next: wrap an MCP server so every call it makes gets a receipt.`);
@@ -285,10 +296,41 @@ async function cmdProxy(args) {
     }
   };
 
-  /** Flush the tail to the hub before the process goes away. */
+  /**
+   * Ask each configured witness to sign the checkpoint the session ended on.
+   * Best effort: the receipts are already durable, so a witness that is down
+   * costs a warning, never the session. Everything goes to stderr, because
+   * stdout is the MCP channel.
+   */
+  const witness = async () => {
+    const names = Array.isArray(config.witnesses) ? config.witnesses.map(String) : [];
+    if (names.length === 0 || log.size === 0) return;
+    const remotes = loadRemotes();
+    for (const name of names) {
+      const remote = remotes[name];
+      if (!remote) {
+        err(c.yellow(`proofwire: witness "${name}" is not a configured remote; pw remote add --name ${name} …`));
+        continue;
+      }
+      try {
+        const res = await witnessWith(log, { name, ...remote });
+        err(c.grey(`proofwire: witnessed by ${name} (${res.witness.kid}) at size ${res.checkpoint.body.size}`));
+      } catch (e) {
+        const refusal = /** @type {any} */ (e);
+        err((refusal.alarming ? c.red : c.yellow)(`proofwire: witness ${name} refused: ${refusal.message}`));
+        explainRefusal(refusal, log, (msg) => err(c.yellow(`proofwire: ${msg}`)));
+      }
+    }
+  };
+
+  /** Flush the tail to the hub, and have the end witnessed, before the process goes away. */
+  let drained = false;
   const drain = async () => {
+    if (drained) return;
+    drained = true;
     finish();
     if (sink) await sink.stop();
+    await witness();
   };
   for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]]) {
     process.on(signal, async () => {
@@ -787,7 +829,7 @@ function cmdHelp() {
   out(`  ${c.bold('proofwire')} ${c.grey(VERSION)} — tamper-evident receipts for AI agent actions`);
   out('');
   out(`  ${c.bold('Setup')}`);
-  out(`    ${c.cyan('pw init')}                        create a log, a starter policy, and a config`);
+  out(`    ${c.cyan('pw init')}                        create a log, a starter policy, and a config  ${c.grey('[--template a,b]')}`);
   out('');
   out(`  ${c.bold('Run')}`);
   out(`    ${c.cyan('pw proxy -- <cmd...>')}           wrap an MCP server; enforce policy, write receipts`);
@@ -801,6 +843,8 @@ function cmdHelp() {
   out(`  ${c.bold('Inspect')}`);
   out(`    ${c.cyan('pw log')}                         recent receipts  ${c.grey('[--tail N --denied --would-block --unfinished --target X --json]')}`);
   out(`    ${c.cyan('pw stats')}                       totals, spend, busiest tools`);
+  out(`    ${c.cyan('pw policy templates')}            ready-made policies: secrets, destructive SQL, payments…`);
+  out(`    ${c.cyan('pw policy template <id...>')}     print or write a policy from templates  ${c.grey('[--out file --explain]')}`);
   out(`    ${c.cyan('pw policy test [file]')}          replay the log against a policy  ${c.grey('[--since --fail-on-change --json]')}`);
   out(`    ${c.cyan('pw dash')}                        browsable dashboard  ${c.grey('[--port 7788]')}`);
   out('');
@@ -818,6 +862,8 @@ function cmdHelp() {
   out(`    ${c.cyan('pw policy push|pull|list')}       manage the org's shared policy`);
   out(`    ${c.cyan('pw cosign')}                      have the hub's witness counter-sign`);
   out(`    ${c.cyan('pw slack connect|status|test')}   approve escalations from Slack (admin key)`);
+  out(`    ${c.cyan('pw witnesses list|add|remove')}   outside witnesses for every hub checkpoint (admin key)`);
+  out(`    ${c.cyan('pw streams list|add|test')}       receipts and audit events to Splunk, Datadog, OTel, a webhook (admin key)`);
   out('');
   out(`  ${c.bold('Govern')}`);
   out(`    ${c.cyan('pw keys')}                        public keys to publish for verifiers`);
@@ -835,10 +881,17 @@ const COMMANDS = {
   remote: cmdRemote,
   push: cmdPush,
   'remote-verify': cmdRemoteVerify,
-  // `test` replays the local log and needs no hub; the rest talk to one.
-  policy: (/** @type {any} */ args) => (args._[1] === 'test' ? cmdPolicyTest(args, loadConfig(args)) : cmdPolicy(args)),
-  cosign: cmdCosign,
+  // `test` replays the local log and templates are built in, so neither
+  // needs a hub; the rest talk to one.
+  policy: (/** @type {any} */ args) =>
+    args._[1] === 'test' ? cmdPolicyTest(args, loadConfig(args))
+      : args._[1] === 'templates' ? cmdPolicyTemplates(args)
+        : args._[1] === 'template' ? cmdPolicyTemplate(args)
+          : cmdPolicy(args),
+  cosign: (/** @type {any} */ args) => cmdCosign(args, loadConfig(args)),
   slack: cmdSlack,
+  witnesses: cmdWitnesses,
+  streams: cmdStreams,
   report: (/** @type {any} */ args) => cmdReport(args, loadConfig(args), VERSION),
   proxy: cmdProxy,
   verify: cmdVerify,

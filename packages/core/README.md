@@ -58,6 +58,7 @@ adapters for LangChain and the OpenAI Agents SDK.
 | `redact.js` | Secret and PII detection |
 | `recorder.js` | `Recorder` and `recordTools`: check and record an agent's own tool calls |
 | `unfinished.js` | `findUnfinished`: calls that were sent and never answered |
+| `templates.js` | `POLICY_TEMPLATES` and `composePolicy`: ready-made policies for secrets, SQL, payments, messages, shell, loops |
 
 ## Verified against published vectors
 

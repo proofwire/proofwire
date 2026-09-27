@@ -193,6 +193,37 @@ Three defaults chosen so the failure modes are safe:
   pipelined refunds all evaluate against an empty ledger and every one passes a
   cap they collectively blow through.
 
+### Start from a template
+
+Eleven ready-made policies cover what nearly every deployment needs to stop:
+
+| Template | What it does |
+| --- | --- |
+| `secrets` | Refuses any call carrying an API key, token, private key, card number or IBAN |
+| `no-personal-data` | Also refuses emails, phone numbers and SSNs: for tools that must never see personal data |
+| `destructive-sql` | Refuses DROP, TRUNCATE, ALTER TABLE, GRANT/REVOKE, and DELETE or UPDATE with no WHERE |
+| `sql-writes-need-approval` | A person approves every INSERT, UPDATE, DELETE and MERGE |
+| `payments` | A person approves any payment over $500, or past $2,000 a day per person |
+| `outbound-messages` | A person approves every send, post, reply, forward and publish |
+| `outbound-rate-limit` | Messages go out unapproved, at most 30 a session per hour |
+| `shell-safety` | Refuses `rm -rf`, `mkfs`, force-pushes, `chmod 777` and `curl … \| sh`; file deletes need a person |
+| `production-guard` | A person approves anything whose environment is production |
+| `loop-guard` | Stops the same tool after 60 calls in 5 minutes |
+| `read-only` | An allowlist: lookups run, everything else is refused |
+
+```bash
+pw init --template secrets,destructive-sql,payments      # a new project
+pw policy template shell-safety loop-guard --out proofwire.policy.json
+pw policy template payments --explain                     # what it assumes
+```
+
+Combined, refusals are placed ahead of allows, so `read-only` can never let
+through something `destructive-sql` refuses. The output is ordinary policy:
+read it, edit it, push it to a hub with `pw policy push`, or load it in code
+with `new Policy(composePolicy(['secrets', 'payments']))`. Templates match the
+names most tools use (`send_email`, `params.sql`, `params.command`), which may
+not be yours, so check them against your own traffic first, as below.
+
 ### Try a policy before it can block anything
 
 ```bash
@@ -292,6 +323,26 @@ checkpoints. Only signatures from keys you pinned are counted, and asking for
 `--witnesses` without pinning any is refused rather than answered by counting
 whatever the bundle contains.
 
+Witnessing doesn't have to be a chore. Put `"witnesses": ["w1", "w2"]` in
+`proofwire.config.json` and every `pw proxy` session ends with each witness
+signing. On a hub, `pw witnesses add` has every hub checkpoint co-signed, and
+a witness refusing a checkpoint lands in the audit trail. See
+[the hub guide](docs/HUB.md#witnessing).
+
+### 5. Your SOC sees it where it already looks
+
+A hub streams receipts and its own audit trail to **Splunk, Datadog,
+OpenTelemetry or a signed webhook**. Delivery is at least once, with nothing
+lost while a destination is down, and an action's parameters never leave the
+hub:
+
+```bash
+PROOFWIRE_STREAM_TOKEN=<HEC token> pw streams add splunk --type splunk --url https://splunk.example.com:8088
+pw streams add soc --type webhook --url https://soc.example.com/hook --receipts blocked
+```
+
+See [streaming to your SIEM](docs/STREAMING.md).
+
 ---
 
 ## Commands
@@ -327,7 +378,10 @@ Hub
   pw push                        ship local receipts the hub is missing
   pw remote-verify <log>         verify a hosted log from outside
   pw policy push|pull|list       manage the org's shared policy
-  pw cosign                      have a witness counter-sign your latest root
+  pw cosign                      have witnesses counter-sign your latest root
+                                 (--remote a,b, or "witnesses" in the config)
+  pw witnesses list|add|remove   outside witnesses for every hub checkpoint (admin key)
+  pw streams list|add|test       events to Splunk, Datadog, OTel, a webhook (admin key)
 
 Govern
   pw keys                        public keys to publish for verifiers
@@ -438,6 +492,7 @@ not broken.
 [deploying a hub or witness](docs/DEPLOY.md) ·
 [Slack approvals](docs/SLACK.md) ·
 [single sign-on](docs/SSO.md) ·
+[streaming to your SIEM](docs/STREAMING.md) ·
 [evidence packs for auditors](docs/EVIDENCE.md) ·
 [the hub](docs/HUB.md) ·
 [threat model](docs/THREAT-MODEL.md)

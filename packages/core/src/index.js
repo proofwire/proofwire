@@ -62,3 +62,5 @@ export { Policy, History, parseWindow, globMatch } from './policy.js';
 export { redact, hasSecrets, DEFAULT_DETECTORS } from './redact.js';
 export { findUnfinished, DEFAULT_GRACE_MS } from './unfinished.js';
 export { Recorder, PolicyDenied, NO_POLICY, recordTools } from './recorder.js';
+export { POLICY_TEMPLATES, policyTemplate, composePolicy } from './templates.js';
+export { witnessCheckpoint, WitnessRefusal } from './witness-client.js';
