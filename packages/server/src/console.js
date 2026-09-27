@@ -113,6 +113,15 @@ label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:end}
 .filters .f{min-width:130px}
 .filters button{height:35px}
+.subnav{display:flex;gap:6px;margin:0 0 22px;flex-wrap:wrap}
+.subnav a{font-size:13px;text-decoration:none;color:var(--ink-2);padding:5px 11px;border:1px solid var(--line);border-radius:3px;background:var(--panel)}
+.subnav a.on{color:var(--ink);border-color:var(--verify);font-weight:600}
+.formgrid{display:grid;gap:10px 14px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));padding:16px;align-items:end}
+.formgrid .field{margin:0}
+.check{display:flex;gap:7px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink-2);margin:0}
+.check input{width:auto}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+.secret{font-family:var(--mono);font-size:12.5px;background:var(--ground);border:1px solid var(--line);padding:6px 9px;border-radius:3px;overflow-wrap:anywhere;display:block;margin-top:6px}
 .args{font-family:var(--mono);font-size:11px;background:var(--ground);border:1px solid var(--line);
       border-radius:3px;padding:8px 10px;margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;max-height:130px;overflow:auto}
 `;
@@ -133,7 +142,7 @@ function layout(args) {
     ['/events', 'Activity'],
     ['/settings', 'Settings'],
   ];
-  const here = args.path.startsWith('/logs') ? '/logs' : args.path;
+  const here = args.path.startsWith('/logs') ? '/logs' : args.path.startsWith('/settings') ? '/settings' : args.path;
 
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -165,8 +174,9 @@ const page = (html, status = 200, headers = {}) => ({ __html: html, status, head
  * @param {import('./app.js').Hub} hub
  * @param {import('./http.js').Ctx} ctx
  * @param {string} route
+ * @param {Extra} [extra]  What a form action wants shown once on the page it lands on.
  */
-export function renderConsole(hub, ctx, route) {
+export function renderConsole(hub, ctx, route, extra = {}) {
   if (route === '/login') return loginPage(hub, ctx);
   if (route === '/forgot') return forgotPage(hub, ctx);
   if (route === '/accept' || route === '/reset') return credentialPage(hub, ctx, route);
@@ -200,6 +210,8 @@ export function renderConsole(hub, ctx, route) {
     case '/policies': return page(layout({ ...common, title: 'Policies',  body: policies(hub, ctx) }));
     case '/events':   return page(layout({ ...common, title: 'Activity',  body: events(hub, ctx) }));
     case '/settings': return page(layout({ ...common, title: 'Settings',  body: settings(hub, ctx) }));
+    case '/settings/integrations':
+      return page(layout({ ...common, title: 'Integrations', body: integrations(hub, ctx, extra) }));
     default:          return page(layout({ ...common, title: 'Not found', body: '<h1>Not found</h1>' }), 404);
   }
 }
@@ -686,12 +698,14 @@ function settings(hub, ctx) {
   if (!isAdmin) {
     return `<h1>Settings</h1><p class="sub">${esc(org?.name ?? '')}</p>${identity}`;
   }
+  const tabs = settingsTabs('/settings');
 
   const keys = hub.auth.keys(ctx.principal.orgId);
   const members = hub.auth.members(ctx.principal.orgId);
 
   return `<h1>Settings</h1>
   <p class="sub">${esc(org?.name ?? '')} · <span class="mono">${esc(org?.id ?? '')}</span></p>
+  ${tabs}
 
   <h2>API keys</h2>
   <div class="panel scroll"><table>
@@ -734,13 +748,196 @@ function settings(hub, ctx) {
     hand an outside firm. Invite one with <span class="mono">POST /v1/invites</span>; the link is
     returned once and never stored.</p>
 
-  ${slackPanel(hub, ctx)}
-
   ${retentionPanel(hub, ctx)}
 
-  ${ssoPanel(hub, ctx)}
-
   ${identity}`;
+}
+
+/**
+ * @typedef {object} Extra
+ * @property {{ kind: 'ok' | 'bad', text: string } | undefined} [flash]
+ * @property {{ name: string, secret: string } | undefined} [secret]  A webhook secret, shown this once.
+ * @property {{ name: string, ok: boolean, error?: string }[] | undefined} [results]  Test deliveries.
+ */
+
+/** What a form action did, by code, so nothing a request sent is echoed into the page. */
+const DONE = {
+  'witness-added': 'Witness added. The latest checkpoint of each log has gone to it.',
+  'witness-removed': 'Witness removed. Checkpoints it already signed keep its signature.',
+  'witnesses-sent': 'Sent the latest checkpoint of each log to every witness.',
+  'stream-added': 'Destination added. New events go to it within a second.',
+  'stream-removed': 'Destination removed.',
+  'streams-flushed': 'Sent everything pending.',
+  'slack-tested': 'Sent a test message to Slack.',
+};
+
+/** @param {'/settings' | '/settings/integrations'} here */
+function settingsTabs(here) {
+  return `<div class="subnav">${[['/settings', 'General'], ['/settings/integrations', 'Integrations']]
+    .map(([href, label]) => `<a href="${esc(href)}"${href === here ? ' class="on"' : ''}>${esc(label)}</a>`)
+    .join('')}</div>`;
+}
+
+/**
+ * Where the organisation's evidence and events go: outside witnesses, event
+ * streams, Slack and single sign-on. Admins only, like the API behind it;
+ * credentials are shown as set, never as what they are.
+ *
+ * @param {import('./app.js').Hub} hub
+ * @param {import('./http.js').Ctx} ctx
+ * @param {Extra} extra
+ */
+function integrations(hub, ctx, extra) {
+  if (!ctx.principal.scopes.includes('admin')) {
+    return `<h1>Integrations</h1><p class="sub">Only admins can see and change integrations.</p>`;
+  }
+  const code = ctx.query.get('done') ?? '';
+  const done = Object.hasOwn(DONE, code) ? DONE[/** @type {keyof typeof DONE} */ (code)] : undefined;
+  const flash = extra.flash ?? (done ? { kind: 'ok', text: done } : undefined);
+  return `<h1>Settings</h1>
+  <p class="sub">Where this organisation's evidence and events go.</p>
+  ${settingsTabs('/settings/integrations')}
+  ${flash ? `<div class="banner${flash.kind === 'bad' ? ' bad' : ''}" role="status">${esc(flash.text)}</div>` : ''}
+  ${extra.secret ? `<div class="banner warn" role="status"><b>Webhook signing secret for ${esc(extra.secret.name)}, shown once.</b>
+    Copy it now: verify each delivery's <span class="mono">proofwire-signature</span> header with it (see docs/STREAMING.md).
+    <span class="secret">${esc(extra.secret.secret)}</span></div>` : ''}
+  ${extra.results ? `<div class="banner${extra.results.every((r) => r.ok) ? '' : ' bad'}" role="status">${extra.results.length
+    ? extra.results.map((r) => `<div><b>${esc(r.name)}</b>: ${r.ok ? 'delivered a test event' : esc(r.error ?? 'failed')}</div>`).join('')
+    : 'There are no destinations to test.'}</div>` : ''}
+  ${witnessesPanel(hub, ctx)}
+  ${streamsPanel(hub, ctx)}
+  ${slackPanel(hub, ctx)}
+  ${ssoPanel(hub, ctx)}`;
+}
+
+/**
+ * @param {import('./app.js').Hub} hub
+ * @param {import('./http.js').Ctx} ctx
+ */
+function witnessesPanel(hub, ctx) {
+  const orgId = ctx.principal.orgId;
+  /** @type {any[]} */
+  const configured = hub.store.integration(orgId, 'witnesses')?.config.witnesses ?? [];
+  const logs = hub.store.logs(orgId);
+  // The latest checkpoint each witness signed, from the stored signatures:
+  // it survives restarts, unlike the error state below.
+  const signed = (/** @type {string} */ kid) => {
+    let best = null;
+    for (const log of logs) {
+      for (const cp of hub.store.checkpoints(orgId, log.id, 20)) {
+        const sig = cp.sigs.find((/** @type {any} */ x) => x.role === 'witness' && x.kid === kid);
+        if (sig && (!best || String(sig.ts ?? '') > String(best.ts ?? ''))) best = { log: log.slug, size: cp.body.size, ts: sig.ts };
+        if (sig) break;
+      }
+    }
+    return best;
+  };
+  const held = hub.db
+    .prepare('SELECT log_id, reason, since FROM witness_holds WHERE witness_kid = ? AND substr(log_id, 1, length(?)) = ?')
+    .all(hub.witnessSigner.kid, `${orgId}:`, `${orgId}:`);
+
+  const rows = configured.map((w) => {
+    const st = hub._witnessStatus.get(`${orgId}:${w.name}`) ?? {};
+    const last = signed(w.kid);
+    const state = st.lastError
+      ? `<span class="pill ${st.alarming ? 'deny' : 'pending'}">${st.alarming ? 'refused' : 'failing'}</span>
+         <div class="dim" style="font-size:12px;margin-top:4px">${esc(st.lastError)} · ${esc(ago(st.lastErrorAt))}</div>`
+      : last ? '<span class="pill allow">signing</span>' : '<span class="pill pending">waiting</span>';
+    return `<tr>
+      <td><b>${esc(w.name)}</b></td>
+      <td class="mono">${esc(new URL(w.url).host)}</td>
+      <td class="mono dim">${short(w.kid, 14)}</td>
+      <td>${last ? `${esc(last.log)} at ${esc(last.size)} <span class="dim">· ${esc(ago(last.ts))}</span>` : '<span class="dim">nothing yet</span>'}</td>
+      <td>${state}</td>
+      <td><form class="inline" method="post" action="/settings/integrations/witnesses/${encodeURIComponent(w.name)}/remove">
+        <button class="no">Remove</button></form></td>
+    </tr>`;
+  }).join('');
+
+  return `<h2>Outside witnesses</h2>
+  <p class="dim" style="font-size:13px;margin:-4px 0 10px">Every checkpoint of your logs goes to each of these for co-signing, so this
+  hub alone can't show two people two histories. Pick witnesses run by someone other than you; auditors pin their keys
+  from the witness operator, not from here.</p>
+  <div class="panel scroll"><table>
+    <thead><tr><th>Name</th><th>Witness</th><th>Key</th><th>Last signed</th><th>State</th><th></th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="6" class="empty">No outside witnesses. Checkpoints carry only this hub\'s signature.</td></tr>'}</tbody>
+  </table></div>
+  ${configured.length ? `<div class="actions"><form class="inline" method="post" action="/settings/integrations/witnesses/send">
+    <button>Send the latest checkpoints now</button></form></div>` : ''}
+  ${held.length ? `<div class="banner bad" style="margin-top:12px"><b>This hub's own witness is holding ${held.length} log(s)</b>
+    after a restore from backup, and co-signs nothing for them until its operator releases them on the host:
+    <span class="secret">proofwire-hub witness-release &lt;customer&gt; &lt;log&gt; --checkpoint latest.json</span>
+    ${held.map((h) => `<span class="mono">${esc(String(h.log_id).slice(orgId.length + 1))}</span>`).join(', ')}.
+    It is deliberately not a button here: a hold protects against the log's operator, which is this organisation.</div>` : ''}
+  ${configured.length < 5 ? `<div class="panel" style="margin-top:12px">
+    <form method="post" action="/settings/integrations/witnesses/add" class="formgrid">
+      <div class="field"><label for="w-name">Name</label>
+        <input id="w-name" name="name" required maxlength="32" pattern="[a-z0-9][a-z0-9\\-]{0,31}" placeholder="e.g. auditor"></div>
+      <div class="field"><label for="w-url">Witness URL</label>
+        <input id="w-url" name="url" type="url" required placeholder="https://witness.example.org"></div>
+      <div class="field"><label for="w-token">Key it issued you</label>
+        <input id="w-token" name="token" type="password" required autocomplete="off"></div>
+      <div class="field"><button class="go" type="submit">Add witness</button></div>
+    </form></div>` : ''}`;
+}
+
+/**
+ * @param {import('./app.js').Hub} hub
+ * @param {import('./http.js').Ctx} ctx
+ */
+function streamsPanel(hub, ctx) {
+  const status = hub.streams.status(ctx.principal.orgId);
+  const rows = status.map((d) => {
+    const sends = [d.receipts === 'none' ? '' : `receipts (${d.receipts})`, d.audit ? 'audit' : ''].filter(Boolean).join(', ') || 'nothing';
+    const state = d.retrying
+      ? `<span class="pill deny">retrying</span><div class="dim" style="font-size:12px;margin-top:4px">${esc(d.lastError ?? '')} · ${esc(ago(d.lastErrorAt))}</div>`
+      : d.lastOkAt ? `<span class="pill allow">delivering</span> <span class="dim">${esc(ago(d.lastOkAt))}</span>`
+        : '<span class="pill pending">waiting</span>';
+    return `<tr>
+      <td><b>${esc(d.name)}</b></td>
+      <td class="mono">${esc(d.type)}</td>
+      <td class="mono">${esc(d.host)}</td>
+      <td>${esc(sends)}</td>
+      <td class="mono">${esc(d.pending)}</td>
+      <td>${state}</td>
+      <td><form class="inline" method="post" action="/settings/integrations/streams/${encodeURIComponent(d.name)}/remove">
+        <button class="no">Remove</button></form></td>
+    </tr>`;
+  }).join('');
+
+  return `<h2>Event streams</h2>
+  <p class="dim" style="font-size:13px;margin:-4px 0 10px">Receipts and this hub's audit trail, sent to your SIEM. Nothing is lost
+  while a destination is down: it catches up when it's back. What an agent sent to a tool never leaves the hub.</p>
+  <div class="panel scroll"><table>
+    <thead><tr><th>Name</th><th>Type</th><th>Host</th><th>Sends</th><th>Pending</th><th>State</th><th></th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="7" class="empty">No destinations.</td></tr>'}</tbody>
+  </table></div>
+  ${status.length ? `<div class="actions">
+    <form class="inline" method="post" action="/settings/integrations/streams/test"><button>Send a test event</button></form>
+    <form class="inline" method="post" action="/settings/integrations/streams/flush"><button>Send pending now</button></form>
+  </div>` : ''}
+  ${status.length < 5 ? `<div class="panel" style="margin-top:12px">
+    <form method="post" action="/settings/integrations/streams/add" class="formgrid">
+      <div class="field"><label for="s-name">Name</label>
+        <input id="s-name" name="name" required maxlength="32" pattern="[a-z0-9][a-z0-9\\-]{0,31}" placeholder="e.g. splunk"></div>
+      <div class="field"><label for="s-type">Type</label>
+        <select id="s-type" name="type"><option value="splunk">Splunk HEC</option><option value="datadog">Datadog Logs</option>
+          <option value="otlp">OpenTelemetry (OTLP/HTTP)</option><option value="webhook">Signed webhook</option></select></div>
+      <div class="field"><label for="s-url">URL</label>
+        <input id="s-url" name="url" type="url" placeholder="https://splunk.example.com:8088"></div>
+      <div class="field"><label for="s-token">Token or API key</label>
+        <input id="s-token" name="token" type="password" autocomplete="off" placeholder="Splunk and Datadog"></div>
+      <div class="field"><label for="s-header">Header (OTLP)</label>
+        <input id="s-header" name="header" autocomplete="off" placeholder="authorization=Bearer …"></div>
+      <div class="field"><label for="s-receipts">Receipts</label>
+        <select id="s-receipts" name="receipts"><option value="all">All</option><option value="blocked">Only denied and escalated</option>
+          <option value="none">None</option></select></div>
+      <div class="field"><label class="check"><input type="checkbox" name="audit" value="1" checked> Audit trail too</label>
+        <label class="check"><input type="checkbox" name="backfill" value="1"> Send history first</label></div>
+      <div class="field"><button class="go" type="submit">Add destination</button></div>
+    </form>
+    <p class="dim" style="font-size:12px;margin:0;padding:0 16px 14px">Datadog's URL defaults to the US intake. A webhook gets a
+    signing secret, shown once after you add it.</p></div>` : ''}`;
 }
 
 /**
@@ -822,6 +1019,8 @@ function slackPanel(hub, ctx) {
           : '<span style="color:var(--hold)">anyone in the channel</span>'}</dd>
         <dt>since</dt><dd class="dim">${esc(ago(slack.updatedAt))}</dd>
       </dl>
+      <div class="actions"><form class="inline" method="post" action="/settings/integrations/slack/test">
+        <button>Send a test message</button></form></div>
     </div>`;
 }
 

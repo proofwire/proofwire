@@ -483,6 +483,12 @@ pw witnesses list
 pw witnesses remove notary
 ```
 
+An admin can also do this in the console, under **Settings → Integrations**,
+which shows the last checkpoint each witness signed and its last error, and
+sends the latest checkpoints on request. A log this hub's own witness is
+holding after a restore is listed there with the operator's command; there is
+no button to release it, because a hold protects against the log's owner.
+
 The hub checks the witness answers before saving it, never returns a token,
 and sends checkpoints to each witness in order. A witness that is down costs
 a missing signature, never an ingest. A witness refusing because two

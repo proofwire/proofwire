@@ -7,6 +7,15 @@ release together at the same version.
 
 ### Security
 
+- **The console's forms were refused in real browsers.** The hub sent
+  `Referrer-Policy: no-referrer`, under which browsers send `Origin: null` on
+  a form post, and the cross-site check refused every signed-in console
+  action: deciding an approval, revoking a key, signing out. Tests sent an
+  explicit Origin and never saw it. The policy is now `same-origin` (this hub
+  sees its own origin, and no other site sees anything, so tokens in invite and
+  reset links stay private), and `Sec-Fetch-Site: same-origin`, which page
+  script can't set, is accepted as proof directly; `same-site` and
+  `cross-site` are refused, and `Origin: null` alone is not evidence.
 - **A policy pattern could stall the policy check.** `matches` patterns run
   against tool arguments the agent chose, and a pattern like `(a+)+$` takes
   exponential time on a crafted argument; JavaScript can't interrupt a match.
@@ -58,6 +67,14 @@ release together at the same version.
 
 ### Added
 
+- **Integrations in the console.** Settings now has General and Integrations
+  tabs. An admin can add and remove outside witnesses and event-stream
+  destinations from the browser, send a test event, send what's pending, and
+  send the latest checkpoints to the witnesses, with each witness's last
+  signed checkpoint and last error and each destination's backlog and last
+  error. The same checks as the API; credentials are never shown back, and a
+  generated webhook secret is shown once. Slack (with a test button) and
+  single sign-on moved to the same tab.
 - **Streaming to Splunk, Datadog, OpenTelemetry or a webhook.** A hub sends
   each organisation's receipts (all, or only denials and escalations) and its
   control-plane audit events to up to five destinations: Splunk HEC, Datadog

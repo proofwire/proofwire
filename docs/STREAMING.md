@@ -28,6 +28,11 @@ Tokens and secrets can come from the environment
 `PROOFWIRE_STREAM_HEADERS` as a JSON object) to keep them out of shell
 history. The hub never hands them back: `list` says only that one is set.
 
+**Or from the console:** an admin can do all of this under
+**Settings → Integrations**: add or remove a destination, send a test event,
+send what's pending now, and see each one's backlog and last error. A webhook's
+generated secret is shown once, on the page it was made on.
+
 ## What is sent
 
 **Receipts**: what an agent did, or tried to, and what policy decided.
