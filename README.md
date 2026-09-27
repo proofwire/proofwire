@@ -193,6 +193,37 @@ Three defaults chosen so the failure modes are safe:
   pipelined refunds all evaluate against an empty ledger and every one passes a
   cap they collectively blow through.
 
+### Start from a template
+
+Eleven ready-made policies cover what nearly every deployment needs to stop:
+
+| Template | What it does |
+| --- | --- |
+| `secrets` | Refuses any call carrying an API key, token, private key, card number or IBAN |
+| `no-personal-data` | Also refuses emails, phone numbers and SSNs: for tools that must never see personal data |
+| `destructive-sql` | Refuses DROP, TRUNCATE, ALTER TABLE, GRANT/REVOKE, and DELETE or UPDATE with no WHERE |
+| `sql-writes-need-approval` | A person approves every INSERT, UPDATE, DELETE and MERGE |
+| `payments` | A person approves any payment over $500, or past $2,000 a day per person |
+| `outbound-messages` | A person approves every send, post, reply, forward and publish |
+| `outbound-rate-limit` | Messages go out unapproved, at most 30 a session per hour |
+| `shell-safety` | Refuses `rm -rf`, `mkfs`, force-pushes, `chmod 777` and `curl … \| sh`; file deletes need a person |
+| `production-guard` | A person approves anything whose environment is production |
+| `loop-guard` | Stops the same tool after 60 calls in 5 minutes |
+| `read-only` | An allowlist: lookups run, everything else is refused |
+
+```bash
+pw init --template secrets,destructive-sql,payments      # a new project
+pw policy template shell-safety loop-guard --out proofwire.policy.json
+pw policy template payments --explain                     # what it assumes
+```
+
+Combined, refusals are placed ahead of allows, so `read-only` can never let
+through something `destructive-sql` refuses. The output is ordinary policy:
+read it, edit it, push it to a hub with `pw policy push`, or load it in code
+with `new Policy(composePolicy(['secrets', 'payments']))`. Templates match the
+names most tools use (`send_email`, `params.sql`, `params.command`), which may
+not be yours, so check them against your own traffic first, as below.
+
 ### Try a policy before it can block anything
 
 ```bash

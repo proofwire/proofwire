@@ -29,6 +29,17 @@ release together at the same version.
 
 ### Added
 
+- **Policy templates.** Eleven ready-made policies in the ordinary policy
+  language: `secrets`, `no-personal-data`, `destructive-sql`,
+  `sql-writes-need-approval`, `payments`, `outbound-messages`,
+  `outbound-rate-limit`, `shell-safety`, `production-guard`, `loop-guard` and
+  `read-only`. `pw policy templates` lists them, `pw policy template <id...>`
+  prints or writes (`--out`) a policy from any combination and explains each
+  one's assumptions (`--explain`), and `pw init --template a,b` starts a
+  project with them. `composePolicy` in `@proof_wire/core` does the same in
+  code; it puts refusals ahead of escalations ahead of allows, so one
+  template's allowlist can never let through what another refuses. Every
+  template is tested against calls it must stop and calls it must leave alone.
 - **Calls that never finished are found and reported.** Every allowed call
   writes an intent receipt before it runs and an outcome after; an intent with
   no outcome is what an agent killed mid-call leaves behind, and nothing

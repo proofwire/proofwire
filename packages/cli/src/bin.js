@@ -6,6 +6,7 @@ import { ProofLog, verifyBundle, Policy, verifyInclusion, unhex, generateIdentit
 import { McpProxy, auditPolicyMetrics } from '@proof_wire/proxy';
 import { cmdPolicyTest } from './policy-test.js';
 import { cmdReport } from './report.js';
+import { cmdPolicyTemplates, cmdPolicyTemplate, templatePolicyText } from './policy-templates.js';
 import { RemoteSink, hubApprover, fetchPolicy } from '@proof_wire/proxy/remote';
 import { approverFrom } from '@proof_wire/proxy/approve';
 import { c, out, err, ok, bad, warn, info, heading, kv, table, outcomeBadge, parseArgs } from './ui.js';
@@ -118,8 +119,10 @@ const STARTER_CONFIG = {
 function writeIfAbsent(file, text) {
   try {
     fs.writeFileSync(file, text, { flag: 'wx' });
+    return true;
   } catch (err) {
     if (/** @type {NodeJS.ErrnoException} */ (err).code !== 'EEXIST') throw err;
+    return false;
   }
 }
 
@@ -141,8 +144,10 @@ function cmdInit(args) {
     return 1;
   }
 
+  // Compose first: an unknown template name should fail before anything is created.
+  const policyText = args.template ? templatePolicyText(args.template) : STARTER_POLICY;
   const log = ProofLog.create(dir);
-  writeIfAbsent(POLICY, STARTER_POLICY);
+  const wrotePolicy = writeIfAbsent(POLICY, policyText);
   writeIfAbsent(CONFIG, JSON.stringify(STARTER_CONFIG, null, 2) + '\n');
 
   const gitignore = '.gitignore';
@@ -164,10 +169,14 @@ function cmdInit(args) {
     ['log', log.logId],
     ['key', log.identity.kid],
     ['dir', path.relative(process.cwd(), dir) || '.'],
-    ['policy', POLICY],
+    ['policy', `${POLICY}${wrotePolicy ? '' : c.grey(' (already there; left unchanged)')}`],
     ['config', CONFIG],
   ]);
   out('');
+  if (args.template && !wrotePolicy) {
+    info(`--template was not applied: ${POLICY} already exists. ${c.cyan('pw policy template <ids> --out <file>')} writes one elsewhere.`);
+    out('');
+  }
   info('Commit entries.jsonl and checkpoints.jsonl. Never commit key.pem or salts.jsonl.');
   out('');
   out(`  Next: wrap an MCP server so every call it makes gets a receipt.`);
@@ -787,7 +796,7 @@ function cmdHelp() {
   out(`  ${c.bold('proofwire')} ${c.grey(VERSION)} — tamper-evident receipts for AI agent actions`);
   out('');
   out(`  ${c.bold('Setup')}`);
-  out(`    ${c.cyan('pw init')}                        create a log, a starter policy, and a config`);
+  out(`    ${c.cyan('pw init')}                        create a log, a starter policy, and a config  ${c.grey('[--template a,b]')}`);
   out('');
   out(`  ${c.bold('Run')}`);
   out(`    ${c.cyan('pw proxy -- <cmd...>')}           wrap an MCP server; enforce policy, write receipts`);
@@ -801,6 +810,8 @@ function cmdHelp() {
   out(`  ${c.bold('Inspect')}`);
   out(`    ${c.cyan('pw log')}                         recent receipts  ${c.grey('[--tail N --denied --would-block --unfinished --target X --json]')}`);
   out(`    ${c.cyan('pw stats')}                       totals, spend, busiest tools`);
+  out(`    ${c.cyan('pw policy templates')}            ready-made policies: secrets, destructive SQL, payments…`);
+  out(`    ${c.cyan('pw policy template <id...>')}     print or write a policy from templates  ${c.grey('[--out file --explain]')}`);
   out(`    ${c.cyan('pw policy test [file]')}          replay the log against a policy  ${c.grey('[--since --fail-on-change --json]')}`);
   out(`    ${c.cyan('pw dash')}                        browsable dashboard  ${c.grey('[--port 7788]')}`);
   out('');
@@ -835,8 +846,13 @@ const COMMANDS = {
   remote: cmdRemote,
   push: cmdPush,
   'remote-verify': cmdRemoteVerify,
-  // `test` replays the local log and needs no hub; the rest talk to one.
-  policy: (/** @type {any} */ args) => (args._[1] === 'test' ? cmdPolicyTest(args, loadConfig(args)) : cmdPolicy(args)),
+  // `test` replays the local log and templates are built in, so neither
+  // needs a hub; the rest talk to one.
+  policy: (/** @type {any} */ args) =>
+    args._[1] === 'test' ? cmdPolicyTest(args, loadConfig(args))
+      : args._[1] === 'templates' ? cmdPolicyTemplates(args)
+        : args._[1] === 'template' ? cmdPolicyTemplate(args)
+          : cmdPolicy(args),
   cosign: cmdCosign,
   slack: cmdSlack,
   report: (/** @type {any} */ args) => cmdReport(args, loadConfig(args), VERSION),
