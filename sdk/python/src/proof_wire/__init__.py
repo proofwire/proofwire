@@ -35,9 +35,11 @@ from .receipt import (
     verify_receipt,
 )
 from .remote import HubError, push
+from .unfinished import DEFAULT_GRACE_MS, find_unfinished
 
 __all__ = [
     "__version__",
+    "DEFAULT_GRACE_MS",
     "GENESIS_PREV",
     "HubError",
     "Identity",
@@ -53,6 +55,7 @@ __all__ = [
     "consistency_proof",
     "cosign",
     "entry_hash",
+    "find_unfinished",
     "generate_identity",
     "identity_from_pem",
     "identity_from_public_key",

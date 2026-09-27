@@ -29,6 +29,32 @@ release together at the same version.
 
 ### Added
 
+- **Calls that never finished are found and reported.** Every allowed call
+  writes an intent receipt before it runs and an outcome after; an intent with
+  no outcome is what an agent killed mid-call leaves behind, and nothing
+  looked for it. `findUnfinished` (`find_unfinished` in Python) returns those,
+  the ones a recorder gave up on at shutdown, calls still in flight (under
+  five minutes old), and outcomes that name no intent. `pw verify` lists them
+  (`--fail-on-unfinished` exits 3), `pw log --unfinished` filters to them, the
+  evidence report gains an "Actions that never finished" section, `pw dash`
+  and the hub console show a banner and a filter, and the hub serves
+  `GET /v1/logs/:log/unfinished`, answered by the database (migration
+  `011_receipt_links` adds an index) and working across pruned receipts.
+- **`Recorder` for JavaScript agents that don't use MCP** (`@proof_wire/core`).
+  `rec.run(tool, args, fn)` and `rec.wrap(tool, fn)` apply the proxy's rules
+  receipt for receipt: the full policy language with budgets and rate limits
+  judged against the log's history, escalations to an `approver` that sees
+  only a redacted preview, intent before the call and a linked outcome after,
+  `monitor` mode, `PolicyDenied` for a refusal, and `finalize()` on shutdown.
+  `recordTools(rec, tools)` wraps every `execute`-style tool at once (the
+  Vercel AI SDK's `tool()`, Mastra).
+- **Python adapters for LangChain and the OpenAI Agents SDK**
+  (`proof_wire.integrations.langchain` / `.openai_agents`, each with a
+  `record_tools`). A refused call never runs, and the model is told why in
+  the tool's reply, as the proxy does. Install with
+  `pip install "proof-wire[langchain]"` or `"proof-wire[openai-agents]"`; the
+  frameworks are imported only when the adapter is, and CI tests both against
+  the real packages.
 - **Bundles carry a consistency proof** (`consistency: { "<size>": [...] }`)
   from the latest witnessed checkpoint to their root, so a filtered bundle —
   which every hub bundle becomes once retention prunes anything — can still
@@ -36,6 +62,11 @@ release together at the same version.
 - **`verifyBundle` reports `witnessedSize`** when witnesses are required: the
   entries a witnessed checkpoint covers. `pw check` and the website say when
   later entries are signed by the log alone.
+
+### Changed
+
+- The evidence report's "tool errors" no longer counts calls that never
+  returned; those are listed on their own.
 
 ### Fixed
 

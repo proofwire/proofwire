@@ -16,6 +16,7 @@ import {
   identityFromPem,
   generateIdentity,
   consistencyFor,
+  DEFAULT_GRACE_MS,
 } from '@proof_wire/core';
 import { newId, now, today, transact } from './db.js';
 
@@ -775,6 +776,65 @@ export class Store {
   }
 
   // ── self-audit ────────────────────────────────────────────────────────
+
+  /**
+   * Actions an agent authorised and sent that never came back: intents with
+   * no outcome (the agent died mid-call), and outcomes recorded as
+   * `unfinished` (it shut down while the call was out).
+   *
+   * @param {string} orgId
+   * @param {string} logId
+   * @param {{ now?: number, graceMs?: number }} [opts]
+   */
+  unfinished(orgId, logId, opts = {}) {
+    const log = this.log(orgId, logId);
+    if (!log) throw new StoreError(404, 'no_such_log', 'no such log in this organization');
+    const now = opts.now ?? Date.now();
+    const graceMs = opts.graceMs ?? DEFAULT_GRACE_MS;
+
+    // Same rules as findUnfinished in @proof_wire/core, answered by the
+    // database: the hub may hold millions of receipts, and pruned rows keep
+    // exactly the columns this needs (hash, phase, ref, ts).
+    const open = this.db
+      .prepare(
+        `SELECT i.seq, i.ts, i.target, i.principal, i.agent, i.session, i.hash AS intent,
+                i.pruned_at IS NOT NULL AS pruned
+           FROM receipts i
+          WHERE i.log_id = ? AND i.phase = 'intent'
+            AND NOT EXISTS (SELECT 1 FROM receipts o
+                             WHERE o.log_id = i.log_id AND o.ref = i.hash AND o.phase = 'outcome')
+          ORDER BY i.seq`,
+      )
+      .all(log.id);
+    const abandoned = this.db
+      .prepare(
+        `SELECT i.seq, i.ts, i.target, i.principal, i.agent, i.session, i.hash AS intent,
+                o.ts AS closedAt, o.seq AS outcomeSeq
+           FROM receipts o JOIN receipts i ON i.log_id = o.log_id AND i.hash = o.ref AND i.phase = 'intent'
+          WHERE o.log_id = ? AND o.phase = 'outcome' AND o.status = 'error' AND o.pruned_at IS NULL
+            AND json_extract(o.body, '$.result.code') = 'unfinished'
+          ORDER BY i.seq`,
+      )
+      .all(log.id);
+    const orphans = this.db
+      .prepare(
+        `SELECT o.seq, o.ref FROM receipts o
+          WHERE o.log_id = ? AND o.phase = 'outcome'
+            AND NOT EXISTS (SELECT 1 FROM receipts i
+                             WHERE i.log_id = o.log_id AND i.hash = o.ref AND i.phase = 'intent')
+          ORDER BY o.seq`,
+      )
+      .all(log.id);
+
+    const plain = (/** @type {any} */ r) => ({ ...r, ...(r.pruned !== undefined ? { pruned: Boolean(r.pruned) } : {}) });
+    const unfinished = [];
+    const inFlight = [];
+    for (const r of open.map(plain)) {
+      const at = Date.parse(r.ts);
+      (Number.isFinite(at) && now - at < graceMs ? inFlight : unfinished).push(r);
+    }
+    return { unfinished, abandoned: abandoned.map(plain), inFlight, orphans: orphans.map((o) => ({ seq: o.seq, ref: o.ref ?? '' })) };
+  }
 
   /**
    * Re-verify a stored log from scratch: every signature, every chain link,

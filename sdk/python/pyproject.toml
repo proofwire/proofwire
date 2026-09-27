@@ -24,7 +24,16 @@ classifiers = [
 dependencies = ["cryptography>=41"]
 
 [project.optional-dependencies]
-test = ["pytest>=7"]
+# The framework adapters import their framework only when used; these extras
+# install it alongside. Both frameworks need Python 3.10+.
+langchain = ["langchain-core>=0.3"]
+openai-agents = ["openai-agents>=0.2"]
+test = [
+  "pytest>=7",
+  # So CI runs the adapters against the real frameworks where they install.
+  "langchain-core>=0.3; python_version >= '3.10'",
+  "openai-agents>=0.2; python_version >= '3.10'",
+]
 
 [project.urls]
 Homepage = "https://github.com/proofwire/proofwire"

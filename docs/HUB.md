@@ -499,6 +499,7 @@ GET    /v1/receipts                      query across logs  [?denied&target&sess
 GET    /v1/logs/:log/proof/:seq          inclusion proof
 GET    /v1/logs/:log/consistency?from=   consistency proof
 GET    /v1/logs/:log/audit               the hub re-verifies its own storage
+GET    /v1/logs/:log/unfinished          calls sent but never answered (agent crashed mid-call)
 GET    /v1/logs/:log/bundle              evidence bundle for a third party
 POST   /v1/logs/:log/checkpoint          sign the current root
 GET    /v1/logs/:log/checkpoints

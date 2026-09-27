@@ -2,11 +2,13 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const short = (h, n = 12) => (h ? esc(h.slice(0, n)) + '…' : '—');
 
-let state = { entries: [], selected: null };
+let state = { entries: [], selected: null, open: new Set() };
 
 async function load() {
   const data = await (await fetch('/api/log')).json();
   state.entries = data.entries;
+  const never = [...data.unfinished.unfinished, ...data.unfinished.abandoned];
+  state.open = new Set(never.map((u) => u.seq));
 
   $('s-log').textContent = data.log;
   $('s-size').textContent = data.size;
@@ -21,6 +23,10 @@ async function load() {
   $('alert').innerHTML = data.audit.ok
     ? (data.checkpoints.length === 0
         ? `<div class="banner">No checkpoints yet. A signed checkpoint is what lets an outside party detect a later rewrite — one is written when a proxy session ends.</div>`
+        : '') + (never.length
+        ? `<div class="banner"><b>${never.length} action(s) were authorised and sent, but never finished.</b> ` +
+          `The recorder stopped while they were out, so whether they took effect is not in the log: ` +
+          `check each with the system it called. Choose <i>never finished</i> below to list them.</div>`
         : '')
     : `<div class="banner bad"><b>This log has been altered since it was written.</b><br>` +
       data.audit.issues.map((i) => esc(`${i.kind}${i.seq !== undefined ? ` @ ${i.seq}` : ''}: ${i.message}`)).join('<br>') +
@@ -38,6 +44,7 @@ function render() {
     if (outcome === 'deny' && e.outcome === 'allow') return false;
     if (outcome === 'allow' && e.outcome !== 'allow') return false;
     if (outcome === 'would' && !e.wouldBe) return false;
+    if (outcome === 'unfinished' && !state.open.has(e.seq)) return false;
     if (phase && e.phase !== phase) return false;
     if (!q) return true;
     return [e.target, e.principal, e.reason, e.agent].join(' ').toLowerCase().includes(q);
@@ -54,6 +61,7 @@ function render() {
           : `<span class="pill ${esc(e.outcome)}">${esc(e.outcome)}</span>`}</span>
         <span class="target">${esc(e.target)}
           ${e.phase !== 'atomic' ? `<span class="phase">${esc(e.phase)}</span>` : ''}
+          ${state.open.has(e.seq) ? '<span class="pill escalate" title="authorised and sent; no result was recorded">never finished</span>' : ''}
         </span>
         <span class="meta">${
           e.outcome === 'allow' && !(e.wouldBe && !e.status)

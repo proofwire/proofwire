@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, generateIdentity, cosign, verifyBundle } from '@proof_wire/core';
+import { ProofLog, generateIdentity, cosign, verifyBundle, entryHash } from '@proof_wire/core';
 import { summarise, frameworkMap, renderHtml } from '../src/report.js';
 
 const BIN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src/bin.js');
@@ -25,18 +25,19 @@ function fixtureLog() {
 
   // Day one: a normal call, with its outcome.
   const intent = add({ ts: '2026-09-01T10:00:00.000Z', phase: 'intent', actor: actor(), action: { kind: 'tool_call', target: 'crm.query', params: { q: 1 } }, decision: allow });
-  add({ ts: '2026-09-01T10:00:01.000Z', phase: 'outcome', ref: 'x', actor: actor(), action: { kind: 'tool_call', target: 'crm.query', params: { q: 1 } }, decision: allow, result: { status: 'ok', latencyMs: 12, payload: {} } });
+  add({ ts: '2026-09-01T10:00:01.000Z', phase: 'outcome', ref: entryHash(intent), actor: actor(), action: { kind: 'tool_call', target: 'crm.query', params: { q: 1 } }, decision: allow, result: { status: 'ok', latencyMs: 12, payload: {} } });
   // A refusal, whose target tries to be markup.
   add({ ts: '2026-09-01T11:00:00.000Z', actor: actor(), action: { kind: 'tool_call', target: 'crm.<script>alert(1)</script>', params: {} }, decision: { outcome: 'deny', policy: 'p1', rules: ['no-scripts'], reason: 'destructive <b>SQL</b>' } });
   // Day two, under a new policy version: an approval by a person, a decline
-  // by a person, and one nobody answered.
+  // by a person, and one nobody answered. The approved refund never comes
+  // back: the process was killed while it was out.
   add({ ts: '2026-09-02T09:00:00.000Z', phase: 'intent', actor: actor('cfo@acme.test'), action: { kind: 'tool_call', target: 'stripe.refund', params: {}, metrics: { amount_usd: 250 } }, decision: { ...allow, policy: 'p2', rules: ['refunds.large'], approval: { by: 'slack:U024BE7LH (dana)', at: '2026-09-02T09:00:05.000Z', note: 'ok' } } });
   add({ ts: '2026-09-02T09:30:00.000Z', actor: actor(), action: { kind: 'tool_call', target: 'mail.send', params: {} }, decision: { outcome: 'deny', policy: 'p2', rules: ['mail.external'], reason: 'external mail — wrong customer', declined: { by: 'dana@acme.test', at: '2026-09-02T09:31:00.000Z', note: 'wrong customer' } } });
   add({ ts: '2026-09-02T10:00:00.000Z', actor: actor(), action: { kind: 'tool_call', target: 'mail.send', params: {} }, decision: { outcome: 'deny', policy: 'p2', rules: ['mail.external'], reason: 'external mail — nobody answered', declined: { by: 'policy:timeout', at: '2026-09-02T10:15:00.000Z' } } });
   // Monitor mode: ran, but the policy would have stopped it.
-  add({ ts: '2026-09-02T11:00:00.000Z', phase: 'intent', actor: actor(), action: { kind: 'tool_call', target: 'db.drop', params: {} }, decision: { outcome: 'allow', policy: 'p2', rules: ['no-drop'], enforced: false, wouldBe: 'deny', reason: 'not enforced' } });
-  // A call cut off by a crash.
-  add({ ts: '2026-09-02T12:00:00.000Z', phase: 'outcome', ref: 'y', actor: actor(), action: { kind: 'tool_call', target: 'crm.query', params: {} }, decision: allow, result: { status: 'error', code: 'unfinished', payload: null } });
+  const drop = add({ ts: '2026-09-02T11:00:00.000Z', phase: 'intent', actor: actor(), action: { kind: 'tool_call', target: 'db.drop', params: {} }, decision: { outcome: 'allow', policy: 'p2', rules: ['no-drop'], enforced: false, wouldBe: 'deny', reason: 'not enforced' } });
+  // Still out when the proxy shut down, which recorded that it gave up.
+  add({ ts: '2026-09-02T12:00:00.000Z', phase: 'outcome', ref: entryHash(drop), actor: actor(), action: { kind: 'tool_call', target: 'crm.query', params: {} }, decision: allow, result: { status: 'error', code: 'unfinished', payload: null } });
   assert.ok(intent);
   return { dir, log };
 }
@@ -70,8 +71,12 @@ test('the summary counts what happened, including who approved, who declined, an
   );
   assert.equal(s.monitor.unenforced, 1);
   assert.deepEqual(s.monitor.wouldBlock, [{ name: 'no-drop', count: 1 }]);
-  assert.equal(s.errors, 1);
-  assert.equal(s.unfinished, 1);
+  assert.equal(s.errors, 0, 'a call that never returned is not a tool error');
+  assert.equal(s.unfinished, 2);
+  assert.deepEqual(
+    s.unfinishedActions.map((/** @type {any} */ u) => [u.target, u.why]),
+    [['stripe.refund', 'no result recorded'], ['db.drop', 'recorder stopped before the reply']],
+  );
   assert.deepEqual(s.spend, { amount_usd: 250 });
   assert.deepEqual(s.policies.map((/** @type {any} */ p) => [p.hash, p.calls]), [['p1', 2], ['p2', 4]]);
   assert.equal(s.period.days, 2);

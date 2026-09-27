@@ -440,6 +440,8 @@ function logPage(hub, ctx) {
   if (!log) throw new StoreError(404, 'no_such_log', `no log "${ref}" in this organization`);
 
   const audit = hub.store.audit(ctx.principal.orgId, log.id);
+  const found = hub.store.unfinished(ctx.principal.orgId, log.id);
+  const never = [...found.unfinished, ...found.abandoned].sort((a, b) => a.seq - b.seq);
   const checkpoints = hub.store.checkpoints(ctx.principal.orgId, log.id, 6);
   const q = {
     logId: log.id,
@@ -466,6 +468,13 @@ function logPage(hub, ctx) {
       : `<b style="color:var(--alarm)">✗ ${audit.issues.length} problem(s).</b> This log has been altered since it
          was written.<br>${audit.issues.slice(0, 6).map((i) => esc(`${i.kind}${i.seq !== undefined ? ` @ ${i.seq}` : ''}: ${i.message}`)).join('<br>')}`}
   </div>
+
+  ${never.length ? `<div class="banner">
+    <b>${never.length} action(s) were authorised and sent, but never finished.</b> The agent stopped while
+    they were out, so whether they took effect is not in the log: check each with the system it called.
+    <br>${never.slice(0, 8).map((u) => esc(`#${u.seq} · ${u.ts.slice(0, 19).replace('T', ' ')} · ${u.target || '(pruned)'}${u.principal ? ` · ${u.principal}` : ''}`)).join('<br>')}${
+      never.length > 8 ? `<br><span class="dim">…and ${never.length - 8} more (GET /v1/logs/${esc(log.slug)}/unfinished)</span>` : ''}
+  </div>` : ''}
 
   <div class="grid">
     <div class="tile"><b class="mono" style="font-size:12px">${short(log.root, 24)}</b><span>merkle root</span></div>

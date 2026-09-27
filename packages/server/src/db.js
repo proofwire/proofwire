@@ -418,6 +418,15 @@ const MIGRATIONS = [
       ALTER TABLE sessions ADD COLUMN via TEXT NOT NULL DEFAULT 'password';
     `,
   },
+  {
+    id: '011_receipt_links',
+    sql: `
+      -- An outcome names its intent by hash in \`ref\`. Finding the intents
+      -- nothing answered joins on it; the other direction uses the existing
+      -- unique index on (log_id, hash).
+      CREATE INDEX idx_receipts_ref ON receipts(log_id, ref) WHERE ref IS NOT NULL;
+    `,
+  },
 ];
 
 /**

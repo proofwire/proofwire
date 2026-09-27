@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { ProofLog, verifyBundle } from '@proof_wire/core';
+import { ProofLog, verifyBundle, findUnfinished } from '@proof_wire/core';
 import { c, out, bad, warn, info, heading, kv } from './ui.js';
 import { witnessKeysFrom } from './witness-keys.js';
 
@@ -28,9 +28,14 @@ import { witnessKeysFrom } from './witness-keys.js';
  * summary, whatever the date.
  *
  * @param {any[]} entries   Receipts in the period, in log order.
+ * @param {object} [opts]
+ * @param {any[]} [opts.unfinished]  Actions that started and never finished,
+ *   from `findUnfinished` over the *whole* log: judged from the period alone,
+ *   a call whose result landed just after it ends would look unfinished.
+ *   Defaults to judging the entries given.
  * @returns {object}
  */
-export function summarise(entries) {
+export function summarise(entries, opts = {}) {
   const calls = entries.filter((r) => r.phase !== 'outcome');
   const outcomes = entries.filter((r) => r.phase === 'outcome' || r.phase === 'atomic');
 
@@ -94,8 +99,11 @@ export function summarise(entries) {
     }
   }
 
-  const errors = outcomes.filter((r) => r.result?.status === 'error');
-  const unfinished = errors.filter((r) => r.result?.code === 'unfinished').length;
+  // Tool errors, not counting the calls that never returned at all: those are
+  // listed on their own below.
+  const errors = outcomes.filter((r) => r.result?.status === 'error' && r.result?.code !== 'unfinished');
+  // With no clock given, every open intent counts: that keeps this pure.
+  const found = opts.unfinished ?? unfinishedIn(entries, { now: Infinity });
   const first = entries[0]?.ts ?? null;
   const last = entries.at(-1)?.ts ?? null;
   const top = (/** @type {Record<string, number>} */ m) =>
@@ -118,13 +126,30 @@ export function summarise(entries) {
     denials,
     monitor: { unenforced, wouldBlock: top(wouldBlock) },
     errors: errors.length,
-    unfinished,
+    unfinished: found.length,
+    unfinishedActions: found,
     spend,
     tools: top(byTool),
     principals: top(byPrincipal),
     agents: top(byAgent),
     policies: [...policies.values()],
   };
+}
+
+/**
+ * Intents without an outcome, and outcomes recorded as unfinished, as one list
+ * in log order.
+ *
+ * @param {any[]} entries
+ * @param {{ now?: number }} [clock]  Passed to `findUnfinished`.
+ * @param {(u: any) => boolean} [keep]
+ */
+function unfinishedIn(entries, clock = {}, keep = () => true) {
+  const found = findUnfinished(entries, clock);
+  return [
+    ...found.unfinished.map((u) => ({ ...u, why: 'no result recorded' })),
+    ...found.abandoned.map((u) => ({ ...u, why: 'recorder stopped before the reply' })),
+  ].filter(keep).sort((a, b) => a.seq - b.seq);
 }
 
 /**
@@ -278,7 +303,13 @@ export function renderHtml(r) {
 <div class="scroll">${table(['agent', 'calls'], s.agents.slice(0, 25).map((t) => [t.name, t.count]), [0])}</div>
 ${Object.keys(s.spend).length ? `<div class="scroll">${table(['metric', 'total allowed'], Object.entries(s.spend).map(([k, v]) => [k, Number(v).toFixed(2)]), [0])}</div>` : ''}
 
-<h2>Human decisions</h2>
+${s.unfinished ? `<h2>Actions that never finished</h2>
+<p class="note"><span class="hold">These calls were authorised and sent, and no result was ever recorded.</span>
+The recorder stopped, or was stopped, while they were out. Whether each one took effect is not in this log:
+check it with the system it called.</p>
+<div class="scroll">${table(['#', 'when', 'tool', 'on behalf of', 'session', 'why'], s.unfinishedActions.slice(0, cap).map((u) => [u.seq, u.ts, u.target, u.principal, u.session, u.why]), [0, 2, 4])}</div>
+<p class="note">${h(clipped(s.unfinishedActions))}</p>
+` : ''}<h2>Human decisions</h2>
 <p class="note">Every escalation and what became of it, as recorded in the signed receipt:
 ${h(s.approvedByPerson)} approved and ${h(s.declinedByPerson)} declined by a person, ${h(s.unanswered)} closed by a fallback.</p>
 <div class="scroll">${table(['#', 'when', 'tool', 'on behalf of', 'decision', 'by', 'note'], s.decisions.slice(0, cap).map((a) => [a.seq, a.ts, a.target, a.principal, a.decision, a.human ? a.by : `${a.by} (no person)`, a.note]), [0, 2, 5])}</div>
@@ -366,7 +397,9 @@ export function buildReport(opts) {
         pinned: Boolean(opts.trustedWitnesses),
         pinnedWitnesses,
       },
-      summary: summarise(bundle.entries.map((/** @type {any} */ e) => e.receipt)),
+      summary: summarise(bundle.entries.map((/** @type {any} */ e) => e.receipt), {
+        unfinished: unfinishedIn(opts.log.entries, {}, (u) => (!since || u.ts >= since) && (!until || u.ts <= until)),
+      }),
       files: ['evidence.bundle.json', 'report.html', 'summary.json'],
     },
   };

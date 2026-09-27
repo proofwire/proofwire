@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { ProofLog, verifyBundle, Policy, verifyInclusion, unhex, generateIdentity } from '@proof_wire/core';
+import { ProofLog, verifyBundle, Policy, verifyInclusion, unhex, generateIdentity, findUnfinished } from '@proof_wire/core';
 import { McpProxy, auditPolicyMetrics } from '@proof_wire/proxy';
 import { cmdPolicyTest } from './policy-test.js';
 import { cmdReport } from './report.js';
@@ -331,7 +331,8 @@ function cmdVerify(args) {
   if (res.ok) {
     ok(c.bold('Every receipt verifies. The chain is unbroken and extends every checkpoint.'));
     out('');
-    return 0;
+    const open = reportUnfinished(log.entries);
+    return open && args['fail-on-unfinished'] ? 3 : 0;
   }
 
   bad(c.bold(`${res.issues.length} problem(s) found:`));
@@ -347,6 +348,48 @@ function cmdVerify(args) {
   return 1;
 }
 
+/**
+ * Say which actions were authorised and sent but never came back.
+ *
+ * The log is intact either way, so this is a warning and not a verification
+ * failure; `--fail-on-unfinished` turns it into exit code 3 for monitoring.
+ *
+ * @param {any[]} entries
+ * @returns {number} How many were found.
+ */
+function reportUnfinished(entries) {
+  const found = findUnfinished(entries);
+  const all = [
+    ...found.unfinished.map((u) => ({ ...u, why: 'no result recorded' })),
+    ...found.abandoned.map((u) => ({ ...u, why: 'recorder stopped before the reply' })),
+  ].sort((a, b) => a.seq - b.seq);
+
+  if (found.inFlight.length) {
+    info(`${found.inFlight.length} call(s) are still out, started in the last few minutes.`);
+    out('');
+  }
+  if (found.orphans.length) {
+    warn(`${found.orphans.length} result receipt(s) name an intent this log does not hold: ` +
+      `entries ${found.orphans.slice(0, 10).map((o) => o.seq).join(', ')}.`);
+    out('');
+  }
+  if (all.length === 0) return 0;
+
+  warn(c.bold(`${all.length} action(s) were authorised and sent, but never finished:`));
+  out('');
+  table(
+    ['#', 'when', 'tool', 'principal', 'session', 'why'],
+    all.slice(0, 20).map((u) => [
+      c.grey(String(u.seq)), u.ts, u.target, c.grey(u.principal), c.grey(u.session), c.yellow(u.why),
+    ]),
+  );
+  if (all.length > 20) out(c.grey(`  …and ${all.length - 20} more: pw log --unfinished`));
+  out('');
+  warn('Whether these happened is not in the log: check each with the system it called.');
+  out('');
+  return all.length;
+}
+
 /** @param {any} args */
 function cmdLog(args) {
   const { dir } = loadConfig(args);
@@ -359,6 +402,11 @@ function cmdLog(args) {
   if (args.denied) entries = entries.filter((r) => r.decision.outcome !== 'allow');
   if (args['would-block']) entries = entries.filter((r) => r.decision.wouldBe && r.phase !== 'outcome');
   if (args.session) entries = entries.filter((r) => r.actor.session === args.session);
+  if (args.unfinished) {
+    const found = findUnfinished(log.entries);
+    const open = new Set([...found.unfinished, ...found.abandoned].map((u) => u.seq));
+    entries = entries.filter((r) => open.has(r.seq));
+  }
 
   const shown = entries.slice(-limit);
 
@@ -751,13 +799,13 @@ function cmdHelp() {
   out(`      ${c.grey('--enforce')}                   gate even if the config says "monitor": true`);
   out('');
   out(`  ${c.bold('Inspect')}`);
-  out(`    ${c.cyan('pw log')}                         recent receipts  ${c.grey('[--tail N --denied --would-block --target X --json]')}`);
+  out(`    ${c.cyan('pw log')}                         recent receipts  ${c.grey('[--tail N --denied --would-block --unfinished --target X --json]')}`);
   out(`    ${c.cyan('pw stats')}                       totals, spend, busiest tools`);
   out(`    ${c.cyan('pw policy test [file]')}          replay the log against a policy  ${c.grey('[--since --fail-on-change --json]')}`);
   out(`    ${c.cyan('pw dash')}                        browsable dashboard  ${c.grey('[--port 7788]')}`);
   out('');
   out(`  ${c.bold('Prove')}`);
-  out(`    ${c.cyan('pw verify')}                      audit the local log end to end`);
+  out(`    ${c.cyan('pw verify')}                      audit the local log end to end  ${c.grey('[--fail-on-unfinished]')}`);
   out(`    ${c.cyan('pw prove <seq>')}                 inclusion proof for one receipt`);
   out(`    ${c.cyan('pw export [file]')}               evidence bundle for a third party  ${c.grey('[--since --session]')}`);
   out(`    ${c.cyan('pw check <file>')}                verify a bundle with nothing but itself`);

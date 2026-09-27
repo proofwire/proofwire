@@ -309,13 +309,13 @@ Run
     --enforce                    gate even if the config says "monitor": true
 
 Inspect
-  pw log                         recent receipts  [--tail N --denied --would-block --target X --json]
+  pw log                         recent receipts  [--tail N --denied --would-block --unfinished --target X --json]
   pw stats                       totals, spend, busiest tools
   pw policy test [file]          replay the log against a policy  [--fail-on-change --json]
   pw dash                        browsable dashboard  [--port 7788]
 
 Prove
-  pw verify                      audit the local log end to end
+  pw verify                      audit the local log end to end  [--fail-on-unfinished]
   pw prove <seq>                 inclusion proof for one receipt
   pw export [file]               evidence bundle for a third party
   pw check <file>                verify a bundle with nothing but itself
@@ -336,36 +336,49 @@ Govern
   pw shred --before <date>       destroy payload commitments, keep the audit trail
 ```
 
-`pw verify` exits non-zero when a log has been altered — put it in CI.
+`pw verify` exits non-zero when a log has been altered — put it in CI. It also
+lists calls that were authorised and sent but never finished (the agent died
+mid-call); `--fail-on-unfinished` makes those exit 3.
 
 ---
 
 ## Library use
 
-Not on MCP? The core is a small, dependency-free ES module.
+Not on MCP? Wrap the tools themselves. The core is a small, dependency-free ES module.
 
 ```js
-import { ProofLog, Policy } from '@proof_wire/core';
+import fs from 'node:fs';
+import { ProofLog, Policy, Recorder, PolicyDenied } from '@proof_wire/core';
 
-const log = ProofLog.open('.proofwire');
-const policy = Policy.parse(await readFile('proofwire.policy.json', 'utf8'));
+const rec = new Recorder({
+  log: ProofLog.open('.proofwire'),
+  agent: 'support-bot',
+  principal: 'ops@acme.com',
+  policy: Policy.parse(fs.readFileSync('proofwire.policy.json', 'utf8')),
+  metrics: (tool, args) => (tool === 'stripe.refund' ? { amount_usd: args.amount } : {}),
+  approver: async (req) => askSomeone(req),   // optional: who answers an escalation
+});
 
-const decision = policy.decide({
-  kind: 'payment',
-  target: 'stripe.refund',
-  params: { order, amount },
-  metrics: { amount_usd: amount / 100 },
-  actor,
-}, new History(log.entries));
-
-if (decision.outcome !== 'allow') {
-  log.append({ actor, action, decision, result: null });
-  throw new Error(decision.reason);
-}
-
-const result = await stripe.refunds.create({ ... });
-log.append({ actor, action, decision, result: { status: 'ok', payload: result } });
+const refund = rec.wrap('stripe.refund', async ({ order, amount }) => stripe.refunds.create({ ... }));
+await refund({ order: 'o_1', amount: 45 });   // checked, recorded, then run; throws PolicyDenied if refused
 ```
+
+The same rules as `pw proxy`, receipt for receipt: the policy (budgets and
+rate limits included) decides first; an allowed call gets an intent receipt
+*before* it runs and a linked outcome after; a refused one never runs;
+`monitor: true` records what would have been blocked without blocking it.
+Call `rec.finalize()` on shutdown.
+
+Tools described as objects with an `execute` function (the Vercel AI SDK's
+`tool()`, Mastra) can be wrapped in one go:
+
+```js
+import { recordTools } from '@proof_wire/core';
+const result = await generateText({ model, tools: recordTools(rec, { weather, refund }), prompt });
+```
+
+Python agents have the same in [`proof-wire`](sdk/python/README.md), with
+adapters for LangChain and the OpenAI Agents SDK.
 
 ---
 
