@@ -11,8 +11,10 @@ import { RemoteSink, hubApprover, fetchPolicy } from '@proof_wire/proxy/remote';
 import { approverFrom } from '@proof_wire/proxy/approve';
 import { c, out, err, ok, bad, warn, info, heading, kv, table, outcomeBadge, parseArgs } from './ui.js';
 import { witnessKeysFrom } from './witness-keys.js';
+import { cmdWitnesses, cmdStreams } from './hub-integrations.js';
 import {
   cmdRemote, cmdPush, cmdRemoteVerify, cmdPolicy, cmdCosign, cmdSlack, loadRemotes, resolveRemote,
+  witnessWith, explainRefusal,
 } from './remote-cmds.js';
 
 // Read from the package, not written here: a version typed into source is one
@@ -294,10 +296,41 @@ async function cmdProxy(args) {
     }
   };
 
-  /** Flush the tail to the hub before the process goes away. */
+  /**
+   * Ask each configured witness to sign the checkpoint the session ended on.
+   * Best effort: the receipts are already durable, so a witness that is down
+   * costs a warning, never the session. Everything goes to stderr, because
+   * stdout is the MCP channel.
+   */
+  const witness = async () => {
+    const names = Array.isArray(config.witnesses) ? config.witnesses.map(String) : [];
+    if (names.length === 0 || log.size === 0) return;
+    const remotes = loadRemotes();
+    for (const name of names) {
+      const remote = remotes[name];
+      if (!remote) {
+        err(c.yellow(`proofwire: witness "${name}" is not a configured remote; pw remote add --name ${name} …`));
+        continue;
+      }
+      try {
+        const res = await witnessWith(log, { name, ...remote });
+        err(c.grey(`proofwire: witnessed by ${name} (${res.witness.kid}) at size ${res.checkpoint.body.size}`));
+      } catch (e) {
+        const refusal = /** @type {any} */ (e);
+        err((refusal.alarming ? c.red : c.yellow)(`proofwire: witness ${name} refused: ${refusal.message}`));
+        explainRefusal(refusal, log, (msg) => err(c.yellow(`proofwire: ${msg}`)));
+      }
+    }
+  };
+
+  /** Flush the tail to the hub, and have the end witnessed, before the process goes away. */
+  let drained = false;
   const drain = async () => {
+    if (drained) return;
+    drained = true;
     finish();
     if (sink) await sink.stop();
+    await witness();
   };
   for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]]) {
     process.on(signal, async () => {
@@ -829,6 +862,8 @@ function cmdHelp() {
   out(`    ${c.cyan('pw policy push|pull|list')}       manage the org's shared policy`);
   out(`    ${c.cyan('pw cosign')}                      have the hub's witness counter-sign`);
   out(`    ${c.cyan('pw slack connect|status|test')}   approve escalations from Slack (admin key)`);
+  out(`    ${c.cyan('pw witnesses list|add|remove')}   outside witnesses for every hub checkpoint (admin key)`);
+  out(`    ${c.cyan('pw streams list|add|test')}       receipts and audit events to Splunk, Datadog, OTel, a webhook (admin key)`);
   out('');
   out(`  ${c.bold('Govern')}`);
   out(`    ${c.cyan('pw keys')}                        public keys to publish for verifiers`);
@@ -853,8 +888,10 @@ const COMMANDS = {
       : args._[1] === 'templates' ? cmdPolicyTemplates(args)
         : args._[1] === 'template' ? cmdPolicyTemplate(args)
           : cmdPolicy(args),
-  cosign: cmdCosign,
+  cosign: (/** @type {any} */ args) => cmdCosign(args, loadConfig(args)),
   slack: cmdSlack,
+  witnesses: cmdWitnesses,
+  streams: cmdStreams,
   report: (/** @type {any} */ args) => cmdReport(args, loadConfig(args), VERSION),
   proxy: cmdProxy,
   verify: cmdVerify,

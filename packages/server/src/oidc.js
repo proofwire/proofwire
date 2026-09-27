@@ -1,7 +1,4 @@
-import http from 'node:http';
-import https from 'node:https';
-import dns from 'node:dns';
-import net from 'node:net';
+import { guardedRequest } from './egress.js';
 import { createHash, createPublicKey, randomBytes, timingSafeEqual, verify, constants } from 'node:crypto';
 
 /**
@@ -18,43 +15,11 @@ import { createHash, createPublicKey, randomBytes, timingSafeEqual, verify, cons
  * audience, authorized party, expiry, issued-at and nonce.
  */
 
-const MAX_BYTES = 1024 * 1024;
+export { isPrivateAddress } from './egress.js';
 
 /**
- * Whether an IP address is somewhere a hub must not be made to reach on a
- * tenant's say-so.
- *
- * @param {string} ip
- */
-export function isPrivateAddress(ip) {
-  let a = ip.toLowerCase();
-  if (a.startsWith('::ffff:')) a = a.slice(7); // IPv4-mapped IPv6
-  if (net.isIPv4(a)) {
-    const [b0, b1] = a.split('.').map(Number);
-    return (
-      b0 === 0 || b0 === 10 || b0 === 127 ||
-      (b0 === 100 && b1 >= 64 && b1 <= 127) || // carrier-grade NAT
-      (b0 === 169 && b1 === 254) ||            // link-local, cloud metadata
-      (b0 === 172 && b1 >= 16 && b1 <= 31) ||
-      (b0 === 192 && b1 === 168) ||
-      (b0 === 192 && b1 === 0) ||
-      (b0 === 198 && (b1 === 18 || b1 === 19)) ||
-      b0 >= 224                                // multicast and reserved
-    );
-  }
-  if (net.isIPv6(a)) {
-    return (
-      a === '::' || a === '::1' ||
-      a.startsWith('fe8') || a.startsWith('fe9') || a.startsWith('fea') || a.startsWith('feb') || // fe80::/10
-      a.startsWith('fc') || a.startsWith('fd') || // unique local
-      a.startsWith('ff')                          // multicast
-    );
-  }
-  return true;
-}
-
-/**
- * GET or POST, and parse the JSON reply, under the rules above.
+ * GET or POST, and parse the JSON reply, under the egress rules in egress.js:
+ * https only, no private addresses (checked after DNS), no redirects, capped.
  *
  * @param {string} url
  * @param {object} [opts]
@@ -64,75 +29,38 @@ export function isPrivateAddress(ip) {
  * @param {number} [opts.timeoutMs]
  * @returns {Promise<{ status: number, json: any }>}
  */
-export function fetchJson(url, opts = {}) {
-  return new Promise((resolve, reject) => {
-    let u;
-    try {
-      u = new URL(url);
-    } catch {
-      return reject(new Error(`not a URL: ${url}`));
-    }
-    if (u.protocol !== 'https:' && !(opts.allowPrivate && u.protocol === 'http:')) {
-      return reject(new Error(`${u.origin} is not https`));
-    }
-    const host = u.hostname.replace(/^\[|\]$/g, '');
-    // An IP literal never goes through `lookup`, so it is checked here.
-    if (net.isIP(host) && !opts.allowPrivate && isPrivateAddress(host)) {
-      return reject(new Error(`${host} is a private address`));
-    }
-
-    const body = opts.form ? new URLSearchParams(opts.form).toString() : undefined;
-    const client = u.protocol === 'https:' ? https : http;
-    const req = client.request(
-      u,
-      {
-        method: body ? 'POST' : 'GET',
-        headers: {
-          accept: 'application/json',
-          ...(body ? { 'content-type': 'application/x-www-form-urlencoded', 'content-length': Buffer.byteLength(body) } : {}),
-          ...(opts.headers ?? {}),
-        },
-        timeout: opts.timeoutMs ?? 10_000,
-        lookup: (hostname, options, cb) => {
-          dns.lookup(hostname, { ...options, all: false }, (err, address, family) => {
-            if (err) return cb(err, address, family);
-            if (!opts.allowPrivate && isPrivateAddress(String(address))) {
-              return cb(new Error(`${hostname} resolves to a private address`), address, family);
-            }
-            cb(null, address, family);
-          });
-        },
+export async function fetchJson(url, opts = {}) {
+  let origin = url;
+  try {
+    origin = new URL(url).origin;
+  } catch {
+    throw new Error(`not a URL: ${url}`);
+  }
+  const body = opts.form ? new URLSearchParams(opts.form).toString() : undefined;
+  let res;
+  try {
+    res = await guardedRequest(url, {
+      method: body ? 'POST' : 'GET',
+      body,
+      allowPrivate: opts.allowPrivate,
+      timeoutMs: opts.timeoutMs,
+      headers: {
+        accept: 'application/json',
+        ...(body ? { 'content-type': 'application/x-www-form-urlencoded' } : {}),
+        ...(opts.headers ?? {}),
       },
-      (res) => {
-        let size = 0;
-        /** @type {Buffer[]} */
-        const chunks = [];
-        res.on('data', (c) => {
-          size += c.length;
-          if (size > MAX_BYTES) {
-            req.destroy(new Error('response too large'));
-            return;
-          }
-          chunks.push(c);
-        });
-        res.on('end', () => {
-          const text = Buffer.concat(chunks).toString('utf8');
-          let json = null;
-          try {
-            json = text ? JSON.parse(text) : null;
-          } catch {
-            return reject(new Error(`${u.origin} did not answer with JSON (HTTP ${res.statusCode})`));
-          }
-          resolve({ status: res.statusCode ?? 0, json });
-        });
-        res.on('error', reject);
-      },
-    );
-    req.on('timeout', () => req.destroy(new Error(`${u.origin} did not answer in time`)));
-    req.on('error', reject);
-    if (body) req.write(body);
-    req.end();
-  });
+    });
+  } catch (err) {
+    // Keep the wording callers and their tests already rely on.
+    const m = /** @type {Error} */ (err).message;
+    if (m.endsWith(' must be https')) throw new Error(`${origin} is not https`);
+    if (m.endsWith(' is a private address')) throw new Error(`${new URL(url).hostname.replace(/^\[|\]$/g, '')} is a private address`);
+    throw err;
+  }
+  if (res.text && res.json === null) {
+    throw new Error(`${origin} did not answer with JSON (HTTP ${res.status})`);
+  }
+  return { status: res.status, json: res.json };
 }
 
 /**

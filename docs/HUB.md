@@ -90,6 +90,7 @@ edit is one more thing to get wrong in a container.
 | `PROOFWIRE_TRUST_PROXY` | `0` | Set to `1` **only** behind a proxy you control. |
 | `PROOFWIRE_CHECKPOINT_EVERY` | `500` | Receipts between automatic checkpoints. |
 | `PROOFWIRE_WITNESS_ONLY` | `0` | Set to `1` to run a witness and nothing else — see [Witnessing](#witnessing). |
+| `PROOFWIRE_EGRESS_ALLOW_PRIVATE` | `0` | Set to `1` to let outside witnesses, [event streams](STREAMING.md) and SSO discovery reach private addresses and plain http. Self-hosted hubs on their own network only; never a hosted one. |
 | `PROOFWIRE_SELFCHECK_MINUTES` | `60` | Re-verify every stored log on this interval. |
 | `PROOFWIRE_APPROVAL_TTL` | `900` | Seconds before an undecided escalation expires. |
 | `PROOFWIRE_ACCESS_LOG` | on | Set `off` to silence per-request JSON logs. |
@@ -434,6 +435,56 @@ are published in that list form at
 [`witnesses/keys.json`](../witnesses/keys.json) — append-only, with every
 change a commit — and a list entry carrying `revokedAt` is never pinned.
 
+### Having the hub's own checkpoints witnessed
+
+An organisation on a hub can name up to five witnesses. Every checkpoint of
+its logs then goes to each of them for co-signing, in the background, and
+their signatures appear on the checkpoints and in every bundle:
+
+```bash
+# An admin of the organisation. The token is the key that witness issued you.
+PROOFWIRE_WITNESS_TOKEN=<key> pw witnesses add notary --url https://witness.example.org
+pw witnesses list
+pw witnesses remove notary
+```
+
+The hub checks the witness answers before saving it, never returns a token,
+and sends checkpoints to each witness in order. A witness that is down costs
+a missing signature, never an ingest. A witness refusing because two
+histories disagree (`split_view`, `not_an_extension`, `log_shrank`,
+`log_key_mismatch`, or `diverged` below) is recorded in the organisation's
+audit trail as `witness.refused`, and is [streamed](STREAMING.md) at error
+severity. Witnesses are per organisation because a witness keeps one position
+per customer and log name: two organisations sharing a credential, each with
+a log called `payments`, would look to the witness like one log with two
+histories.
+
+Auditors still pin the witness keys from the witnesses' operators, never from
+the hub.
+
+### A local log, automatically
+
+List witness remotes in `proofwire.config.json` and every `pw proxy` session
+ends with each of them signing the new checkpoint, reported on stderr only:
+
+```json
+{ "witnesses": ["witness", "auditor"] }
+```
+
+`pw cosign` uses the same list, or `--remote a,b`.
+
+### Asking the witness, not guessing
+
+To prove growth, a client needs the size the witness last signed. It asks
+(`GET /v1/witness/position/:log`) instead of guessing from its own
+checkpoints. A guess is wrong whenever the witness missed a checkpoint, and
+the witness then reports a rewritten history that never happened. The answer
+also carries the root the witness signed at that size. Clients (`pw cosign`,
+`pw proxy`, the hub) check it against their own tree before sending
+anything, and a mismatch stops with `diverged`: one of the two histories was
+rewritten. A witness older than this endpoint is still supported, falling
+back to the latest local checkpoint it signed.
+
 ---
 
 ## Operating it
@@ -506,6 +557,7 @@ GET    /v1/logs/:log/checkpoints
 
 POST   /v1/witness/cosign                counter-sign  { checkpoint, consistencyProof, logPublicKey }
 GET    /v1/witness/key
+GET    /v1/witness/position/:log         the size and root this witness last signed, for this credential's org
 
 GET    /v1/policies                      versions
 GET    /v1/policies/:slug                the active one — what agents fetch
@@ -532,6 +584,13 @@ GET    /v1/integrations/oidc             SSO settings, never the secret  (admin)
 PUT    /v1/integrations/oidc             { issuer, clientId, clientSecret, domains, autoProvision, requireSso }  (admin)
 DELETE /v1/integrations/oidc             (admin)
 GET    /sso/:org · /sso/callback         the browser sign-in flow
+GET    /v1/integrations/witnesses        outside witnesses, never tokens  (admin)
+PUT    /v1/integrations/witnesses        { witnesses: [{ name, url, token }] }; a token left out is kept for the same URL  (admin)
+DELETE /v1/integrations/witnesses        (admin)
+GET    /v1/integrations/streams          event-stream destinations and delivery state  (admin; see STREAMING.md)
+PUT    /v1/integrations/streams[/:name]  the whole list, or one destination  (admin)
+DELETE /v1/integrations/streams[/:name]  (admin)
+POST   /v1/integrations/streams/test · /flush   (admin)
 PUT    /v1/settings/retention            { days | null }  (admin; not above the cap)
 ```
 
@@ -594,9 +653,12 @@ confidence rather than evidence.
 6. **Slack approvals** ([`SLACK.md`](SLACK.md)) post to one channel per
    organisation, and a request decided in the console keeps its buttons in
    Slack (a click then says who already decided).
-6. **`node:sqlite` is still marked experimental** upstream. It is stable in
+7. **Event streams** ([`STREAMING.md`](STREAMING.md)) deliver at least once:
+   after a failure a destination can see a batch twice, and should drop
+   duplicates by `id`.
+8. **`node:sqlite` is still marked experimental** upstream. It is stable in
    practice and the API surface used here is small, but it is worth knowing.
-7. **A witness trusts the first key it sees for a log name.** It binds the log
+9. **A witness trusts the first key it sees for a log name.** It binds the log
    to that key and holds it to it afterwards, but the first binding itself is
    trust on first use. Each customer having their own organization on the
    witness is what keeps one customer from binding another's log names.

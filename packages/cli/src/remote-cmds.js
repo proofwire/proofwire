@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { ProofLog, Policy, verifyBundle } from '@proof_wire/core';
+import { ProofLog, Policy, verifyBundle, witnessCheckpoint } from '@proof_wire/core';
 import { RemoteSink, fetchPolicy, trimSlashes } from '@proof_wire/proxy/remote';
 import { c, out, ok, bad, warn, info, heading, kv, table } from './ui.js';
 import { witnessKeysFrom } from './witness-keys.js';
@@ -412,80 +412,119 @@ export async function cmdPolicy(args) {
 }
 
 /**
- * Ask the hub's witness to counter-sign the latest checkpoint of a local log.
+ * The witnesses a command should ask: `--remote a,b`, else the config's
+ * `witnesses` list, else the default remote.
  *
  * @param {any} args
+ * @param {any} [config]
+ * @returns {string[]}
  */
-export async function cmdCosign(args) {
-  const remote = resolveRemote(args);
-  const dir = path.resolve(args.log ?? '.proofwire');
-  const localLog = ProofLog.open(dir);
+export function witnessNames(args, config = {}) {
+  if (typeof args.remote === 'string' && args.remote) return args.remote.split(',').map((s) => s.trim()).filter(Boolean);
+  if (Array.isArray(config.witnesses) && config.witnesses.length) return config.witnesses.map(String);
+  return ['default'];
+}
 
+/**
+ * Have one witness counter-sign a local log's latest checkpoint, and keep the
+ * signature with the log.
+ *
+ * Trusting the witness's key *and* storing its signature are both needed:
+ * without the second the signature exists only in this process, and the
+ * bundle an auditor is later handed carries no witness attestation at all.
+ *
+ * @param {ProofLog} localLog
+ * @param {{ name: string, url: string, token: string }} remote
+ */
+export async function witnessWith(localLog, remote) {
   const cp = localLog.checkpoints().at(-1) ?? localLog.checkpoint();
-  const headers = { authorization: `Bearer ${remote.token}`, 'content-type': 'application/json' };
-
-  // The witness will demand proof that this root extends the last one it saw.
   const prior = localLog.checkpoints().filter((c2) => c2.body.size < cp.body.size).at(-1);
-  const proof = prior
-    ? localLog.tree.consistencyProof(prior.body.size, cp.body.size).map((b) => b.toString('hex'))
-    : undefined;
-
-  const res = await fetch(`${remote.url}/v1/witness/cosign`, {
-    method: 'POST',
-    headers,
-    // The witness binds this log to the key that signs its first checkpoint,
-    // and holds every later one to it.
-    body: JSON.stringify({ checkpoint: cp, consistencyProof: proof, logPublicKey: localLog.identity.publicKey }),
+  const res = await witnessCheckpoint({
+    url: remote.url,
+    token: remote.token,
+    checkpoint: cp,
+    tree: localLog.tree,
+    logPublicKey: localLog.identity.publicKey,
+    guessPriorSize: prior?.body.size,
   });
-  const body = await res.json();
+  localLog.trustKey(res.witness.kid, res.witness.publicKey);
+  const updated = localLog.addSignature(cp.body.size, res.signature);
+  return { ...res, checkpoint: updated };
+}
 
-  if (!res.ok) {
-    heading('Witness refused');
-    bad(body.error?.message ?? `HTTP ${res.status}`);
-    if (body.error?.code === 'split_view' || body.error?.code === 'not_an_extension') {
-      out('');
-      warn('A witness refusing on these grounds means the history it was shown does not');
-      warn('match the history it saw before. Investigate before doing anything else.');
-    }
-    if (body.error?.code === 'log_key_mismatch') {
-      out('');
-      warn(`The witness holds this log to ${body.error.detail?.bound ?? 'a different key'}; this log signs with ${localLog.identity.kid}.`);
-      warn('If you rotated the key on purpose, send the witness operator the new public key');
-      warn('through a channel other than this witness credential, so they can rebind it:');
-      warn(`  ${localLog.identity.publicKey}`);
-      warn('If you did not, the witness is holding this log to a key you do not control — either');
-      warn('someone else signed for this log name first, or it was rebound without you. Investigate.');
-    }
-    out('');
-    return 1;
+/**
+ * Explain a refusal. Most are operational; the alarming ones mean two
+ * histories disagree, and say so.
+ *
+ * @param {any} e
+ * @param {ProofLog} localLog
+ * @param {(msg: string) => void} say
+ */
+export function explainRefusal(e, localLog, say) {
+  if (e?.code === 'log_key_mismatch') {
+    say(`The witness holds this log to ${e.detail?.bound ?? 'a different key'}; this log signs with ${localLog.identity.kid}.`);
+    say('If you rotated the key on purpose, send the witness operator the new public key through a channel');
+    say(`other than this witness credential, so they can rebind it: ${localLog.identity.publicKey}`);
+    say('If you did not, the witness is holding this log to a key you do not control. Investigate.');
+  } else if (e?.alarming) {
+    say('A witness refusing on these grounds means the history it was shown does not match the history');
+    say('it saw before. Investigate before doing anything else.');
   }
+}
 
-  // Trust the witness's key *and* keep its signature. Without the second step
-  // the signature exists only in this process's memory, and the bundle an
-  // auditor is later handed would carry no witness attestation at all.
-  localLog.trustKey(body.witness.kid, body.witness.publicKey);
-  const updated = localLog.addSignature(cp.body.size, body.signature);
-  const witnesses = updated.sigs.filter((s) => s.role === 'witness').length;
+/**
+ * `pw cosign`: have witnesses counter-sign the latest checkpoint of a local
+ * log. Asks every witness named by `--remote a,b`, or listed in the config's
+ * `witnesses`, or the default remote.
+ *
+ * @param {any} args
+ * @param {{ dir: string, config: any }} where
+ */
+export async function cmdCosign(args, where) {
+  const localLog = ProofLog.open(where.dir);
+  const names = witnessNames(args, where.config);
+  let failed = 0;
 
-  heading('Checkpoint witnessed');
-  kv([
-    ['log', localLog.logId],
-    ['size', String(cp.body.size)],
-    ['root', cp.body.root],
-    ['witness', body.witness.kid],
-    ['signatures', `${witnesses} witness${witnesses === 1 ? '' : 'es'} on this root`],
-    // Older witnesses do not bind, and say nothing here.
-    ...(body.logKey
-      ? [['log key', body.logKey.newlyBound
-          ? `${body.logKey.kid} ${c.grey('— bound now; this witness will accept no other key for this log')}`
-          : `${body.logKey.kid} ${c.grey(`— bound since ${String(body.logKey.boundAt).slice(0, 10)}`)}`]]
-      : []),
-  ]);
-  out('');
-  info('An auditor can now require this signature, pinning the witness they trust:');
-  out(`  ${c.cyan(`pw check evidence.json --witnesses 1 --witness-key ${body.witness.kid}=${body.witness.publicKey}`)}`);
-  out('');
-  return 0;
+  for (const name of names) {
+    let remote;
+    try {
+      remote = resolveRemote({ remote: name });
+    } catch (e) {
+      bad(/** @type {Error} */ (e).message);
+      failed++;
+      continue;
+    }
+    try {
+      const res = await witnessWith(localLog, remote);
+      const witnesses = res.checkpoint.sigs.filter((/** @type {any} */ s) => s.role === 'witness').length;
+      heading(`Checkpoint witnessed · ${name}`);
+      kv([
+        ['log', localLog.logId],
+        ['size', String(res.checkpoint.body.size)],
+        ['root', res.checkpoint.body.root],
+        ['witness', res.witness.kid],
+        ['signatures', `${witnesses} witness${witnesses === 1 ? '' : 'es'} on this root`],
+        // Older witnesses do not bind, and say nothing here.
+        ...(res.logKey
+          ? [['log key', res.logKey.newlyBound
+              ? `${res.logKey.kid} ${c.grey('— bound now; this witness will accept no other key for this log')}`
+              : `${res.logKey.kid} ${c.grey(`— bound since ${String(res.logKey.boundAt).slice(0, 10)}`)}`]]
+          : []),
+      ]);
+      out('');
+      info('An auditor can now require this signature, pinning the witness they trust:');
+      out(`  ${c.cyan(`pw check evidence.json --witnesses 1 --witness-key ${res.witness.kid}=${res.witness.publicKey}`)}`);
+      out('');
+    } catch (e) {
+      failed++;
+      heading(`Witness refused · ${name}`);
+      bad(/** @type {Error} */ (e).message);
+      out('');
+      explainRefusal(e, localLog, warn);
+      out('');
+    }
+  }
+  return failed ? 1 : 0;
 }
 
 /**

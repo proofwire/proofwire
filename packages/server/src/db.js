@@ -427,6 +427,26 @@ const MIGRATIONS = [
       CREATE INDEX idx_receipts_ref ON receipts(log_id, ref) WHERE ref IS NOT NULL;
     `,
   },
+  {
+    id: '012_stream_cursors',
+    sql: `
+      -- How far each event-stream destination has got. Receipts and audit
+      -- events are already durable, so a destination is only a place in them:
+      -- per log, the last receipt seq it has accepted (JSON, log id to seq; a
+      -- log not named starts at its beginning), and the last audit seq. Seqs,
+      -- not rowids, because a seq is part of the signed receipt and a rowid
+      -- can change under VACUUM, which backups use. Moved only after the
+      -- destination accepts a batch, which is what makes delivery at least
+      -- once across outages and restarts.
+      CREATE TABLE stream_cursors (
+        org_id      TEXT NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
+        name        TEXT NOT NULL,
+        receipts    TEXT NOT NULL DEFAULT '{}',
+        audit_after INTEGER NOT NULL,
+        PRIMARY KEY (org_id, name)
+      );
+    `,
+  },
 ];
 
 /**

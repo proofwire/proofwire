@@ -10,7 +10,10 @@ import {
   identityFromPublicKey,
   unhex,
   verifyConsistency,
+  witnessCheckpoint,
 } from '@proof_wire/core';
+import { guardedRequest, destinationProblem } from './egress.js';
+import { Streams, parseDestinations, describeDestination } from './streams.js';
 import { openDatabase, newId, now, transact } from './db.js';
 import { Store, StoreError } from './store.js';
 import { signerFor, disabledSigner } from './signer.js';
@@ -81,6 +84,12 @@ export const DEFAULT_CONFIG = {
    * hosted hub, where the issuer URL is chosen by a tenant.
    */
   oidcAllowPrivate: false,
+  /**
+   * Let witnesses and event streams an organisation configures live on a
+   * private address, over plain HTTP. Same rule as `oidcAllowPrivate`: tests
+   * and a self-hosted hub on its own network, never a hosted hub.
+   */
+  egressAllowPrivate: false,
 };
 
 /**
@@ -101,6 +110,7 @@ export const WITNESS_ONLY_ROUTES = Object.freeze([
   'GET /.well-known/proofwire',
   'GET /v1/me',
   'GET /v1/witness/key',
+  'GET /v1/witness/position/:log',
   'POST /v1/witness/cosign',
 ]);
 
@@ -147,6 +157,27 @@ export class Hub {
     /** @type {number} */
     this._sinceCheckpoint = 0;
     this.startedAt = now();
+
+    /**
+     * Outside witnessing, one queue per (organisation, log, witness): a
+     * witness must see a log's checkpoints in order, or the second of two
+     * racing requests would look like the log shrinking.
+     * @type {Map<string, { chain: Promise<void>, size: number }>}
+     */
+    this._witnessQueues = new Map();
+    /** Background work `close` waits for. @type {Set<Promise<unknown>>} */
+    this._background = new Set();
+
+    /** Event streaming to each organisation's SIEM. See `streams.js`. */
+    this.streams = new Streams({
+      store: this.store,
+      allowPrivate: () => Boolean(this.config.egressAllowPrivate),
+      track: (p) => {
+        this._background.add(p);
+        p.then(() => this._background.delete(p), () => this._background.delete(p));
+      },
+    });
+    this.store.onAuditEvent = (orgId) => this.streams.poke(orgId);
 
     this.router = new Router();
     this._routes();
@@ -420,17 +451,20 @@ export class Hub {
       });
 
       if (!result.duplicate) {
+        this.streams.poke(ctx.principal.orgId);
         this._sinceCheckpoint += result.accepted;
         if (this.config.checkpointEvery > 0 && this._sinceCheckpoint >= this.config.checkpointEvery) {
           this._sinceCheckpoint = 0;
           // A checkpoint is an optimisation of detection, not a precondition
           // for storing receipts — and with an external signer it is a network
           // call. Never make an ingest wait for one, and never fail one over it.
-          this.store.checkpoint(ctx.principal.orgId, log.id, this.hubSigner).catch((err) => {
-            console.error(
-              JSON.stringify({ level: 'warn', event: 'checkpoint.failed', log: log.slug, message: err.message }),
-            );
-          });
+          this.store.checkpoint(ctx.principal.orgId, log.id, this.hubSigner)
+            .then((cp) => this._witnessOutside(ctx.principal.orgId, log.id, cp))
+            .catch((err) => {
+              console.error(
+                JSON.stringify({ level: 'warn', event: 'checkpoint.failed', log: log.slug, message: err.message }),
+              );
+            });
         }
       }
       return result;
@@ -562,7 +596,11 @@ export class Hub {
     r.post('/v1/logs/:log/checkpoint', async (ctx) => {
       requireScope(ctx.principal, 'logs:write');
       const log = this._log(ctx.principal, ctx.params.log);
-      return this.store.checkpoint(ctx.principal.orgId, log.id, this.hubSigner);
+      const cp = await this.store.checkpoint(ctx.principal.orgId, log.id, this.hubSigner);
+      // Returned at once; the organisation's witnesses sign in the background
+      // and their signatures appear on this checkpoint as they arrive.
+      this._witnessOutside(ctx.principal.orgId, log.id, cp);
+      return cp;
     });
 
     r.get('/v1/logs/:log/checkpoints', (ctx) => {
@@ -759,6 +797,22 @@ export class Hub {
         witness: { kid: this.witnessSigner.kid, publicKey: this.witnessSigner.publicKey },
         logKey: { kid: binding.kid, boundAt: binding.bound_at, boundBy: binding.bound_by, newlyBound },
       };
+    });
+
+    /**
+     * What this witness last attested to for one of the caller's logs.
+     *
+     * A client extending that has to prove growth from exactly this size, and
+     * without asking it can only guess: a witness that missed a checkpoint
+     * would then see a proof from the wrong size and report a rewritten
+     * history that never happened. Scoped like cosign: a caller sees only its
+     * own organisation's positions.
+     */
+    r.get('/v1/witness/position/:log', (ctx) => {
+      requireScope(ctx.principal, 'witness:sign');
+      const pos = this.store.witnessPosition(this.witnessSigner.kid, `${ctx.principal.orgId}:${ctx.params.log}`);
+      if (!pos) throw new StoreError(404, 'no_position', `this witness has not signed for ${ctx.params.log}`);
+      return { log: ctx.params.log, size: pos.size, root: pos.root, updatedAt: pos.updated_at };
     });
 
     r.get('/v1/witness/key', () => ({
@@ -1113,6 +1167,185 @@ export class Hub {
       else if (res.outcome === 'already') respond(decidedMessage(row, res.row.status, res.row.decided_by, true));
       else if (res.outcome === 'expired') respond(decidedMessage(row, 'expired', ''));
       return {};
+    });
+
+    // ── outside witnesses ───────────────────────────────────────────────
+    //
+    // The hub signs its own checkpoints, which on its own proves little: an
+    // operator can sign two histories. An organisation names witnesses it
+    // trusts, each with a credential that witness issued it, and every
+    // checkpoint of its logs is then sent to each for co-signing. Per
+    // organisation because a witness keeps one position per customer and log
+    // name: two organisations sharing a credential, both with a log called
+    // "payments", would look to the witness like one log with two histories.
+
+    r.get('/v1/integrations/witnesses', (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      const found = this.store.integration(ctx.principal.orgId, 'witnesses');
+      return {
+        witnesses: (found?.config.witnesses ?? []).map((/** @type {any} */ w) => ({
+          name: w.name, url: w.url, kid: w.kid ?? null, publicKey: w.publicKey ?? null,
+        })),
+      };
+    });
+
+    r.put('/v1/integrations/witnesses', async (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      const list = ctx.body?.witnesses;
+      if (!Array.isArray(list) || list.length > 5) {
+        throw new StoreError(400, 'bad_witnesses', 'body must be { witnesses: [{ name, url, token }] }, at most 5');
+      }
+      const previous = this.store.integration(ctx.principal.orgId, 'witnesses')?.config.witnesses ?? [];
+      const names = new Set();
+      const checked = [];
+      for (const w of list) {
+        const name = String(w?.name ?? '');
+        if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(name) || names.has(name)) {
+          throw new StoreError(400, 'bad_witness_name', `witness names must be unique, lowercase letters, digits and dashes: "${name}"`);
+        }
+        names.add(name);
+        const url = trimSlashes(String(w?.url ?? ''));
+        const problem = destinationProblem(url, { allowPrivate: this.config.egressAllowPrivate });
+        if (problem) throw new StoreError(400, 'bad_witness_url', `${name}: url ${problem}`);
+        // Left out, the stored token stays, but only for the same name at the
+        // same URL: a token is write-only, and must not be sendable to a new
+        // address by anyone who can edit this list.
+        const kept = previous.find((/** @type {any} */ p) => p.name === name && p.url === url)?.token;
+        const token = w?.token === undefined ? String(kept ?? '') : String(w.token);
+        if (!token || token.length > 512 || /[\r\n]/.test(token)) {
+          throw new StoreError(400, 'bad_witness_token', `${name}: a token is required`);
+        }
+        // Reach it now, so a typo is refused here and not discovered as a
+        // silent failure on every later checkpoint. The key it names is used
+        // only to label its signatures in bundles; auditors pin keys they
+        // obtained elsewhere.
+        let key;
+        try {
+          const res = await guardedRequest(`${url}/v1/witness/key`, {
+            allowPrivate: this.config.egressAllowPrivate, headers: { accept: 'application/json' },
+          });
+          key = res.status === 200 ? identityFromPublicKey(String(res.json?.publicKey ?? '')) : null;
+        } catch {
+          key = null;
+        }
+        if (!key) throw new StoreError(422, 'witness_unreachable', `${name}: no witness answered at ${url}/v1/witness/key`);
+        checked.push({ name, url, token, kid: key.kid, publicKey: key.publicKey });
+      }
+
+      this.store.setIntegration(ctx.principal.orgId, 'witnesses', { witnesses: checked });
+      for (const w of checked) this.store.rememberWitnessKey(ctx.principal.orgId, w);
+      this.store.recordEvent({
+        orgId: ctx.principal.orgId,
+        actor: ctx.principal.label,
+        actorKind: ctx.principal.kind,
+        action: 'integration.witnesses.set',
+        subject: 'witnesses',
+        meta: { witnesses: checked.map((w) => ({ name: w.name, host: new URL(w.url).host, kid: w.kid })) },
+      });
+      return { witnesses: checked.map((w) => ({ name: w.name, url: w.url, kid: w.kid, publicKey: w.publicKey })) };
+    });
+
+    r.delete('/v1/integrations/witnesses', (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      const removed = this.store.deleteIntegration(ctx.principal.orgId, 'witnesses');
+      if (removed) {
+        this.store.recordEvent({
+          orgId: ctx.principal.orgId,
+          actor: ctx.principal.label,
+          actorKind: ctx.principal.kind,
+          action: 'integration.witnesses.removed',
+          subject: 'witnesses',
+        });
+      }
+      return { removed };
+    });
+
+    // ── integrations: event streaming ───────────────────────────────────
+    r.get('/v1/integrations/streams', (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      return { destinations: this.streams.status(ctx.principal.orgId) };
+    });
+
+    /**
+     * @param {import('./http.js').Ctx} ctx
+     * @param {unknown[]} input  The whole list, as the admin wants it.
+     */
+    const saveStreams = (ctx, input) => {
+      const orgId = ctx.principal.orgId;
+      const { destinations, generated } = parseDestinations(input, this.streams.destinations(orgId), {
+        allowPrivate: Boolean(this.config.egressAllowPrivate),
+      });
+      const backfill = new Set(
+        input.filter((d) => /** @type {any} */ (d)?.backfill === true).map((d) => String(/** @type {any} */ (d).name)),
+      );
+      this.streams.save(orgId, destinations, backfill);
+      this.store.recordEvent({
+        orgId,
+        actor: ctx.principal.label,
+        actorKind: ctx.principal.kind,
+        action: 'integration.streams.set',
+        subject: 'streams',
+        meta: { destinations: destinations.map((d) => ({ name: d.name, type: d.type, host: new URL(d.url).host })) },
+      });
+      return {
+        destinations: destinations.map(describeDestination),
+        // A webhook secret made here is shown this once, like an API key.
+        ...(Object.keys(generated).length ? { secrets: generated } : {}),
+      };
+    };
+
+    r.put('/v1/integrations/streams', (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      const input = ctx.body?.destinations;
+      if (!Array.isArray(input)) throw new StoreError(400, 'bad_destinations', 'body must be { destinations: [...] }');
+      return saveStreams(ctx, input);
+    });
+
+    /** Add or replace one destination, leaving the others as they are. */
+    r.put('/v1/integrations/streams/:name', (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      const name = ctx.params.name;
+      const others = this.streams.destinations(ctx.principal.orgId).filter((d) => d.name !== name);
+      return saveStreams(ctx, [...others, { ...(ctx.body ?? {}), name }]);
+    });
+
+    r.delete('/v1/integrations/streams/:name', (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      const all = this.streams.destinations(ctx.principal.orgId);
+      if (!all.some((d) => d.name === ctx.params.name)) {
+        throw new StoreError(404, 'no_such_destination', `no destination named "${ctx.params.name}"`);
+      }
+      return saveStreams(ctx, all.filter((d) => d.name !== ctx.params.name));
+    });
+
+    r.delete('/v1/integrations/streams', (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      const removed = this.streams.remove(ctx.principal.orgId);
+      if (removed) {
+        this.store.recordEvent({
+          orgId: ctx.principal.orgId,
+          actor: ctx.principal.label,
+          actorKind: ctx.principal.kind,
+          action: 'integration.streams.removed',
+          subject: 'streams',
+        });
+      }
+      return { removed };
+    });
+
+    /** One event to each destination, so an admin sees it arrive before relying on it. */
+    r.post('/v1/integrations/streams/test', async (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      if (this.streams.destinations(ctx.principal.orgId).length === 0) {
+        throw new StoreError(404, 'not_configured', 'no event-stream destinations for this organization');
+      }
+      return { results: await this.streams.test(ctx.principal.orgId) };
+    });
+
+    /** Send what is pending now, without waiting out a retry. */
+    r.post('/v1/integrations/streams/flush', async (ctx) => {
+      requireScope(ctx.principal, 'admin');
+      return { destinations: await this.streams.flush(ctx.principal.orgId) };
     });
 
     // ── admin ───────────────────────────────────────────────────────────
@@ -1847,6 +2080,64 @@ export class Hub {
   }
 
   /**
+   * Send a checkpoint to each of the organisation's outside witnesses, in the
+   * background. Never throws and never delays the caller: a witness that is
+   * down costs a missing signature, not an ingest.
+   *
+   * @param {string} orgId
+   * @param {string} logId
+   * @param {import('@proof_wire/core').Checkpoint} cp
+   */
+  _witnessOutside(orgId, logId, cp) {
+    if (this.config.witnessOnly) return;
+    const configured = this.store.integration(orgId, 'witnesses')?.config.witnesses ?? [];
+    for (const w of configured) {
+      const key = `${orgId}:${logId}:${w.name}`;
+      const q = this._witnessQueues.get(key) ?? { chain: Promise.resolve(), size: 0 };
+      this._witnessQueues.set(key, q);
+      const task = q.chain.then(async () => {
+        // A later checkpoint may already have been signed; an earlier one
+        // would only be refused as the log shrinking.
+        if (cp.body.size <= q.size) return;
+        try {
+          const res = await witnessCheckpoint({
+            url: w.url,
+            token: w.token,
+            checkpoint: cp,
+            tree: this.store.tree(logId),
+            logPublicKey: this.hubSigner.publicKey,
+            request: async (method, url, headers, body) => {
+              const r2 = await guardedRequest(url, {
+                method, headers, body, allowPrivate: this.config.egressAllowPrivate, timeoutMs: 15_000,
+              });
+              return { status: r2.status, json: r2.json };
+            },
+          });
+          this.store.rememberWitnessKey(orgId, { name: w.name, url: w.url, ...res.witness });
+          this.store.addWitnessSignature(orgId, logId, cp.body.size, res.signature);
+          q.size = cp.body.size;
+        } catch (err) {
+          const e = /** @type {any} */ (err);
+          console.error(JSON.stringify({
+            level: e.alarming ? 'error' : 'warn', event: 'witness.failed', witness: w.name, code: e.code, message: e.message,
+          }));
+          // A witness saying two histories disagree is evidence, and goes in
+          // the organisation's own tamper-evident trail, not just a log line.
+          if (e.alarming) {
+            this.store.recordEvent({
+              orgId, actor: `witness:${w.name}`, actorKind: 'system', action: 'witness.refused',
+              subject: cp.body.log, meta: { code: e.code, size: cp.body.size, message: e.message },
+            });
+          }
+        }
+      });
+      q.chain = task;
+      this._background.add(task);
+      task.finally(() => this._background.delete(task));
+    }
+  }
+
+  /**
    * The base URL to put in an invitation or reset link.
    *
    * Configured first, because behind a proxy the Host header is whatever the
@@ -2146,6 +2437,8 @@ export class Hub {
       this.server.on('error', reject);
       this.server.listen(port, this.config.host, () => {
         const addr = /** @type {import('node:net').AddressInfo} */ (this.server.address());
+        // Destinations that were behind when the hub stopped catch up now.
+        this.streams.resume();
         resolve({ url: `http://${this.config.host}:${addr.port}`, server: this.server });
       });
     });
@@ -2153,6 +2446,8 @@ export class Hub {
 
   async close() {
     if (this.server) await new Promise((r) => this.server.close(r));
+    await this.streams.close();
+    await Promise.allSettled([...this._background]);
     this.db.close();
   }
 }

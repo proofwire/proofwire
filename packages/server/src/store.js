@@ -49,6 +49,12 @@ export class Store {
      */
     this._trees = new Map();
     this._maxTrees = 64;
+    /**
+     * Told the organisation after each audit event is committed, so event
+     * streaming can pick it up. Never allowed to fail the event.
+     * @type {((orgId: string) => void) | null}
+     */
+    this.onAuditEvent = null;
   }
 
   // ── tenancy ───────────────────────────────────────────────────────────
@@ -1021,6 +1027,17 @@ export class Store {
    * @param {object} [args.meta]
    */
   recordEvent(args) {
+    const res = this._recordEvent(args);
+    try {
+      this.onAuditEvent?.(args.orgId);
+    } catch {
+      // Streaming is downstream of the record; it must never undo it.
+    }
+    return res;
+  }
+
+  /** @param {Parameters<Store['recordEvent']>[0]} args */
+  _recordEvent(args) {
     return transact(this.db, () => {
       const last = this.db
         .prepare('SELECT seq, hash FROM audit_events WHERE org_id = ? ORDER BY seq DESC LIMIT 1')
@@ -1112,6 +1129,23 @@ export class Store {
    * @param {string} kid
    * @returns {string|null}
    */
+  /**
+   * Keep the key of an outside witness an organisation uses, so the bundles
+   * it exports can verify that witness's signatures. A label, not trust:
+   * auditors who require witnesses pin keys they obtained elsewhere.
+   *
+   * @param {string} orgId
+   * @param {{ name: string, url?: string, kid: string, publicKey: string }} w
+   */
+  rememberWitnessKey(orgId, w) {
+    this.db
+      .prepare(
+        `INSERT INTO witnesses(id, org_id, kid, public_key, name, url, created_at) VALUES(?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(org_id, kid) DO NOTHING`,
+      )
+      .run(newId('witness'), orgId, w.kid, w.publicKey, w.name, w.url ?? null, now());
+  }
+
   publicKeyFor(orgId, kid) {
     // Deliberately not filtered by retired_at: a signature made before a
     // rotation is still a valid signature, and a verifier must be able to

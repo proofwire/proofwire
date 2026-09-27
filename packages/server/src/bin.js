@@ -46,6 +46,7 @@ function configFromEnv() {
   // A self-hosted hub whose identity provider is on its own network. Never on
   // a hub whose tenants choose the issuer: see oidc.js.
   if (env.PROOFWIRE_OIDC_ALLOW_PRIVATE === '1') config.oidcAllowPrivate = true;
+  if (env.PROOFWIRE_EGRESS_ALLOW_PRIVATE === '1') config.egressAllowPrivate = true;
   return config;
 }
 

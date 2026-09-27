@@ -323,6 +323,26 @@ checkpoints. Only signatures from keys you pinned are counted, and asking for
 `--witnesses` without pinning any is refused rather than answered by counting
 whatever the bundle contains.
 
+Witnessing doesn't have to be a chore. Put `"witnesses": ["w1", "w2"]` in
+`proofwire.config.json` and every `pw proxy` session ends with each witness
+signing. On a hub, `pw witnesses add` has every hub checkpoint co-signed, and
+a witness refusing a checkpoint lands in the audit trail. See
+[the hub guide](docs/HUB.md#witnessing).
+
+### 5. Your SOC sees it where it already looks
+
+A hub streams receipts and its own audit trail to **Splunk, Datadog,
+OpenTelemetry or a signed webhook**. Delivery is at least once, with nothing
+lost while a destination is down, and an action's parameters never leave the
+hub:
+
+```bash
+PROOFWIRE_STREAM_TOKEN=<HEC token> pw streams add splunk --type splunk --url https://splunk.example.com:8088
+pw streams add soc --type webhook --url https://soc.example.com/hook --receipts blocked
+```
+
+See [streaming to your SIEM](docs/STREAMING.md).
+
 ---
 
 ## Commands
@@ -358,7 +378,10 @@ Hub
   pw push                        ship local receipts the hub is missing
   pw remote-verify <log>         verify a hosted log from outside
   pw policy push|pull|list       manage the org's shared policy
-  pw cosign                      have a witness counter-sign your latest root
+  pw cosign                      have witnesses counter-sign your latest root
+                                 (--remote a,b, or "witnesses" in the config)
+  pw witnesses list|add|remove   outside witnesses for every hub checkpoint (admin key)
+  pw streams list|add|test       events to Splunk, Datadog, OTel, a webhook (admin key)
 
 Govern
   pw keys                        public keys to publish for verifiers
@@ -469,6 +492,7 @@ not broken.
 [deploying a hub or witness](docs/DEPLOY.md) ·
 [Slack approvals](docs/SLACK.md) ·
 [single sign-on](docs/SSO.md) ·
+[streaming to your SIEM](docs/STREAMING.md) ·
 [evidence packs for auditors](docs/EVIDENCE.md) ·
 [the hub](docs/HUB.md) ·
 [threat model](docs/THREAT-MODEL.md)
