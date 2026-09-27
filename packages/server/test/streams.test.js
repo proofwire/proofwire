@@ -301,11 +301,15 @@ test('several logs, more than a batch: every receipt arrives once, each log in o
   seen = [];
   const h = await startHub();
   try {
-    await h.api('PUT', '/v1/integrations/streams', h.admin, { destinations: [{ ...all('bulk').webhook, secret: 'q'.repeat(16), audit: false }] });
+    // Both logs exist before the destination does, so no automatic send can
+    // go out with only one of them; backfill makes it deliver both.
     const a = await agentLog(h, 'alpha');
     const b = await agentLog(h, 'beta');
     await a(Array(260).fill('allow'));
     await b(Array(30).fill('deny'));
+    await h.api('PUT', '/v1/integrations/streams', h.admin, {
+      destinations: [{ ...all('bulk').webhook, secret: 'q'.repeat(16), audit: false, backfill: true }],
+    });
     const status = (await h.api('POST', '/v1/integrations/streams/flush', h.admin)).json.destinations[0];
     assert.equal(status.pending, 0);
     const ids = seen.flatMap((s) => JSON.parse(s.body).events).map((/** @type {any} */ e) => e.id);
