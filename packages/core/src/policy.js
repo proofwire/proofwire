@@ -1,5 +1,6 @@
 import { hashObject, hex, RECEIPT_PREFIX } from './hash.js';
 import { hasSecrets, redact } from './redact.js';
+import { regexProblem, wildcardMatch } from './safe-regex.js';
 
 /**
  * Declarative policy, evaluated before an action runs.
@@ -72,6 +73,9 @@ export function toRegExp(source) {
     }
   }
 
+  // Refused before it can ever run: see safe-regex.js.
+  const problem = regexProblem(body);
+  if (problem) throw new Error(`pattern ${JSON.stringify(String(source))} ${problem}`);
   const rx = new RegExp(body, flags);
   regexCache.set(source, rx);
   return rx;
@@ -94,6 +98,7 @@ export function parseWindow(w) {
 /**
  * Glob match supporting `*` (any run of characters) — enough for the
  * `namespace.tool` naming that MCP servers use, without pulling in a matcher.
+ * Not a regex underneath: see `wildcardMatch`.
  *
  * @param {string} pattern
  * @param {string} value
@@ -101,10 +106,7 @@ export function parseWindow(w) {
  */
 export function globMatch(pattern, value) {
   if (pattern === '*' || pattern === value) return true;
-  const rx = new RegExp(
-    '^' + pattern.split('*').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$',
-  );
-  return rx.test(value);
+  return wildcardMatch(pattern, value);
 }
 
 /**

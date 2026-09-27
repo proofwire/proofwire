@@ -183,10 +183,16 @@ evidence.
 }
 ```
 
-Three defaults chosen so the failure modes are safe:
+Four defaults chosen so the failure modes are safe:
 
 - **A typo is a load error, not a skipped rule.** A misspelled operator in a
   `deny` rule must never quietly read as "allow".
+- **A pattern that could hang is a load error too.** `matches` runs against
+  arguments the agent chose, and a pattern like `(a+)+$` takes exponential
+  time on the right input. Patterns that repeat a group containing its own
+  repetition, alternatives or optional parts, and backreferences, are refused
+  when a policy loads or is published, with a suggested rewrite (`(a|b)+` is
+  `[ab]+`).
 - **`escalate` with no approver resolves to `deny`.** A system that degrades
   into "allow everything" under stress is worse than no system.
 - **Budgets commit at decision time, not on completion.** Otherwise three

@@ -161,7 +161,8 @@ export function verifyBackup(file) {
  * @param {string} args.from
  * @param {string} args.database
  * @param {boolean} [args.force]  Skip the pre-verification. Never in an incident.
- * @returns {{ restored: string, displaced: string|null, verified: object }}
+ * @param {string | null} [args.journal]  The witness journal's path, if the hub has one.
+ * @returns {{ restored: string, displaced: string|null, verified: object, witnessLogsHeld: number }}
  */
 export function restore(args) {
   const source = path.resolve(args.from);
@@ -196,8 +197,23 @@ export function restore(args) {
   // nothing could — but it does make the claim contemporaneous and
   // tamper-evident rather than an assertion produced after the fact.
   const db = openDatabase(target);
+  let held = 0;
   try {
     const store = new Store(db);
+    // With a witness journal the witness catches up from it when it starts.
+    // Without one, nothing says what it signed after this backup was taken,
+    // so it signs nothing until its operator releases each log.
+    const journalSurvived = Boolean(args.journal && fs.existsSync(args.journal));
+    /** @type {Map<string, number>} */
+    const heldByOrg = new Map();
+    if (!journalSurvived) {
+      for (const row of db.prepare('SELECT witness_kid, log_id FROM witness_state').all()) {
+        store.holdWitnessLog(String(row.witness_kid), String(row.log_id), 'restored_without_journal');
+        const orgId = String(row.log_id).slice(0, String(row.log_id).indexOf(':'));
+        heldByOrg.set(orgId, (heldByOrg.get(orgId) ?? 0) + 1);
+        held++;
+      }
+    }
     for (const org of db.prepare('SELECT id FROM orgs').all()) {
       store.recordEvent({
         orgId: org.id,
@@ -208,6 +224,7 @@ export function restore(args) {
         meta: {
           sha256: createHash('sha256').update(fs.readFileSync(source)).digest('hex'),
           backupVerified: verified.ok,
+          ...(heldByOrg.has(String(org.id)) ? { witnessLogsHeld: heldByOrg.get(String(org.id)) } : {}),
         },
       });
     }
@@ -215,7 +232,7 @@ export function restore(args) {
     db.close();
   }
 
-  return { restored: target, displaced, verified };
+  return { restored: target, displaced, verified, witnessLogsHeld: held };
 }
 
 /**

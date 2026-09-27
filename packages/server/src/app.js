@@ -14,6 +14,7 @@ import {
 } from '@proof_wire/core';
 import { guardedRequest, destinationProblem } from './egress.js';
 import { Streams, parseDestinations, describeDestination } from './streams.js';
+import { WitnessJournal, witnessJournalPath } from './witness-journal.js';
 import { openDatabase, newId, now, transact } from './db.js';
 import { Store, StoreError } from './store.js';
 import { signerFor, disabledSigner } from './signer.js';
@@ -178,6 +179,11 @@ export class Hub {
       },
     });
     this.store.onAuditEvent = (orgId) => this.streams.poke(orgId);
+
+    /** What this witness signed, outside the database. See witness-journal.js. */
+    const journalPath = witnessJournalPath(this.config);
+    this.witnessJournal = journalPath ? new WitnessJournal(journalPath) : null;
+    this._catchUpWitness();
 
     this.router = new Router();
     this._routes();
@@ -368,8 +374,11 @@ export class Hub {
       return { ok: true };
     });
 
+    // Any valid credential may ask who it is: it learns only its own label,
+    // scopes and organisation. `pw remote add` checks a key with this, and an
+    // admin-only or witness-only key must pass that check too.
     r.get('/v1/me', (ctx) => {
-      requireScope(ctx.principal, 'logs:read');
+      if (!ctx.principal) throw new StoreError(401, 'unauthenticated', 'this endpoint requires credentials');
       return {
         kind: ctx.principal.kind,
         label: ctx.principal.label,
@@ -652,7 +661,7 @@ export class Hub {
       const { body } = checkpoint;
       const logKey = `${ctx.principal.orgId}:${body.log}`;
       const witnessKid = this.witnessSigner.kid;
-      /** @type {{ kid: string, bound_at: string, bound_by: string }} */
+      /** @type {{ kid: string, public_key: string, bound_at: string, bound_by: string }} */
       let binding;
       let newlyBound = false;
 
@@ -708,6 +717,18 @@ export class Hub {
             'bad_log_signature',
             `the checkpoint carries no valid log signature from ${key.kid}` +
               (bound ? `, the key this witness has ${body.log} bound to` : ''),
+          );
+        }
+
+        const hold = this.store.witnessHold(witnessKid, logKey);
+        if (hold) {
+          throw new StoreError(
+            409,
+            'witness_restored',
+            `this witness is not co-signing for ${body.log} until its operator releases it (${hold.reason}, ` +
+              `since ${hold.since}). It was restored from a backup and may have signed later checkpoints of ` +
+              'this log that it no longer remembers; signing again could vouch for a conflicting history.',
+            { reason: hold.reason, since: hold.since },
           );
         }
 
@@ -775,6 +796,21 @@ export class Hub {
         newlyBound = !bound;
       });
 
+      // On disk outside the database before any signature leaves: a witness
+      // restored from a backup catches up from this. If it can't be written,
+      // nothing is signed. The position is already claimed, which fails safe.
+      if (this.witnessJournal) {
+        try {
+          this.witnessJournal.append({
+            t: 'sign', witness: witnessKid, log: logKey, size: body.size, root: body.root,
+            logKid: binding.kid, logPublicKey: binding.public_key, at: now(),
+          });
+        } catch (err) {
+          console.error(JSON.stringify({ level: 'error', event: 'witness.journal_failed', message: /** @type {Error} */ (err).message }));
+          throw new StoreError(503, 'witness_journal_unavailable', 'this witness could not record the signature, so it did not sign; try again');
+        }
+      }
+
       const sig = {
         role: /** @type {const} */ ('witness'),
         kid: this.witnessSigner.kid,
@@ -812,7 +848,11 @@ export class Hub {
       requireScope(ctx.principal, 'witness:sign');
       const pos = this.store.witnessPosition(this.witnessSigner.kid, `${ctx.principal.orgId}:${ctx.params.log}`);
       if (!pos) throw new StoreError(404, 'no_position', `this witness has not signed for ${ctx.params.log}`);
-      return { log: ctx.params.log, size: pos.size, root: pos.root, updatedAt: pos.updated_at };
+      const hold = this.store.witnessHold(this.witnessSigner.kid, `${ctx.principal.orgId}:${ctx.params.log}`);
+      return {
+        log: ctx.params.log, size: pos.size, root: pos.root, updatedAt: pos.updated_at,
+        ...(hold ? { held: { reason: hold.reason, since: hold.since } } : {}),
+      };
     });
 
     r.get('/v1/witness/key', () => ({
@@ -2080,6 +2120,74 @@ export class Hub {
   }
 
   /**
+   * Bring the witness's positions up to what its journal says it signed.
+   *
+   * After a restore the database is behind: the journal, which backups don't
+   * touch, holds every signature since. Each log it has a later position for
+   * moves forward to it (with the key it was bound to then), recorded as
+   * `witness.caught_up` in that organisation's audit trail. A journal and
+   * database that disagree at the same size put the log on hold. Then the
+   * journal is rewritten from the database, one line per log, which also
+   * seeds a journal enabled on a witness that already had positions.
+   */
+  _catchUpWitness() {
+    if (!this.witnessJournal) return;
+    const kid = this.witnessSigner.kid;
+    const memory = this.witnessJournal.read();
+    for (const mem of memory.values()) {
+      const j = mem.position;
+      if (!j || j.witness !== kid) continue;
+      const orgId = j.log.slice(0, j.log.indexOf(':'));
+      const logName = j.log.slice(j.log.indexOf(':') + 1);
+      if (!this.store.org(orgId)) continue; // an organisation since removed
+      const db = this.store.witnessPosition(kid, j.log);
+      if (!db || db.size < j.size) {
+        transact(this.db, () => {
+          this.store.setWitnessPosition(kid, j.log, j.size, j.root);
+          const b = mem.binding;
+          const bound = this.store.witnessBinding(kid, j.log);
+          if (b && (!bound || bound.kid !== b.logKid)) {
+            this.store.bindWitnessLogKey({
+              witnessKid: kid, positionKey: j.log, kid: b.logKid, publicKey: b.logPublicKey,
+              by: b.by === 'operator' ? 'operator' : 'first-use',
+            });
+          }
+          this.store.recordEvent({
+            orgId, actor: 'witness-journal', actorKind: 'system', action: 'witness.caught_up', subject: logName,
+            meta: { from: db?.size ?? null, to: j.size, root: j.root },
+          });
+        });
+        console.error(JSON.stringify({ level: 'warn', event: 'witness.caught_up', log: j.log, from: db?.size ?? null, to: j.size }));
+      } else if (db.size === j.size && db.root !== j.root) {
+        this.store.holdWitnessLog(kid, j.log, 'journal_conflict');
+        this.store.recordEvent({
+          orgId, actor: 'witness-journal', actorKind: 'system', action: 'witness.held', subject: logName,
+          meta: { reason: 'journal_conflict', size: j.size, journalRoot: j.root, databaseRoot: db.root },
+        });
+        console.error(JSON.stringify({ level: 'error', event: 'witness.journal_conflict', log: j.log, size: j.size }));
+      }
+    }
+
+    // The database is now at least as far along as the journal: make the
+    // journal say exactly that, keeping any other witness key's entries.
+    /** @type {Map<string, import('./witness-journal.js').LogMemory>} */
+    const next = new Map([...memory].filter(([, m]) => m.position && m.position.witness !== kid));
+    const rows = this.db.prepare('SELECT * FROM witness_state WHERE witness_kid = ?').all(kid);
+    for (const row of rows) {
+      const bound = this.store.witnessBinding(kid, String(row.log_id));
+      if (!bound) continue; // bound on its next co-signing; nothing to remember yet
+      next.set(`${kid} ${row.log_id}`, {
+        position: {
+          t: 'sign', witness: kid, log: String(row.log_id), size: Number(row.size), root: String(row.root),
+          logKid: bound.kid, logPublicKey: bound.public_key, at: String(row.updated_at),
+        },
+        binding: { logKid: bound.kid, logPublicKey: bound.public_key, by: bound.bound_by },
+      });
+    }
+    this.witnessJournal.compact(next);
+  }
+
+  /**
    * Send a checkpoint to each of the organisation's outside witnesses, in the
    * background. Never throws and never delays the caller: a witness that is
    * down costs a missing signature, not an ingest.
@@ -2445,6 +2553,9 @@ export class Hub {
   }
 
   async close() {
+    // Safe to call twice: shutdown paths overlap (a signal during a restore).
+    if (this._closed) return;
+    this._closed = true;
     if (this.server) await new Promise((r) => this.server.close(r));
     await this.streams.close();
     await Promise.allSettled([...this._background]);

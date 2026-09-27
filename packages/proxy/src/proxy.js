@@ -4,7 +4,7 @@ import path from 'node:path';
 import { EventEmitter } from 'node:events';
 import { createRequire } from 'node:module';
 import { LineFramer, encode, isRequest, isResponse, toolRefusal } from './jsonrpc.js';
-import { History, redact, entryHash } from '@proof_wire/core';
+import { History, redact, entryHash, globMatch } from '@proof_wire/core';
 
 /**
  * A transparent MCP proxy that enforces policy and writes receipts.
@@ -59,10 +59,7 @@ export function extractMetrics(config, target, params) {
   /** @type {Record<string, number>} */
   const out = {};
   for (const [pattern, spec] of Object.entries(config ?? {})) {
-    const rx = new RegExp(
-      '^' + pattern.split('*').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$',
-    );
-    if (!rx.test(target)) continue;
+    if (!globMatch(pattern, target)) continue;
     for (const [name, rule] of Object.entries(/** @type {Record<string, any>} */ (spec))) {
       const from = typeof rule === 'string' ? rule : rule.from;
       const scale = typeof rule === 'string' ? 1 : (rule.scale ?? 1);
