@@ -32,7 +32,7 @@ before(async () => {
     });
     const { url } = await hub.listen(0);
     const org = hub.store.createOrg({ slug: 'acme', name: 'Acme' });
-    const { token } = new Auth(hub.store).createKey({ orgId: org.id, name: `witness ${name}`, scopes: ['witness:sign', 'logs:read'] });
+    const { token } = new Auth(hub.store).createKey({ orgId: org.id, name: `witness ${name}`, scopes: ['witness:sign'] });
     witnesses.push({ hub, url: url.replace('0.0.0.0', '127.0.0.1'), token, kid: hub.witnessSigner.kid, publicKey: hub.witnessSigner.publicKey });
   }
 });

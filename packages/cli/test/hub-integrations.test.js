@@ -39,7 +39,7 @@ before(async () => {
   hub = new Hub({ database: ':memory:', egressAllowPrivate: true, apiRate: fast, authRate: fast });
   hubUrl = (await hub.listen(0)).url.replace('0.0.0.0', '127.0.0.1');
   const org = hub.store.createOrg({ slug: 'acme', name: 'Acme' });
-  admin = new Auth(hub.store).createKey({ orgId: org.id, name: 'admin', scopes: ['admin', 'logs:read'] }).token;
+  admin = new Auth(hub.store).createKey({ orgId: org.id, name: 'admin', scopes: ['admin'] }).token;
 
   sink = http.createServer((req, res) => {
     let body = '';

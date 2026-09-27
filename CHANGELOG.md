@@ -7,6 +7,27 @@ release together at the same version.
 
 ### Security
 
+- **A policy pattern could stall the policy check.** `matches` patterns run
+  against tool arguments the agent chose, and a pattern like `(a+)+$` takes
+  exponential time on a crafted argument; JavaScript can't interrupt a match.
+  Policies are now refused at load and at publish (`422 invalid_policy`) when a
+  pattern repeats a group that contains its own repetition, alternatives or
+  optional parts, or uses a backreference, with a message suggesting the
+  rewrite. Globs (`stripe.*`) no longer compile to a regex, which backtracked
+  polynomially in the number of stars. A test generates thousands of patterns,
+  keeps those the check accepts, and runs them against inputs built to make
+  regexes backtrack. **A policy already in use with such a pattern will now
+  fail to load**, and the error names the rule.
+- **A witness restored from a backup could sign a fork.** It remembered only
+  what was in the restored database, so a history branching off after the
+  backup looked new to it. Every co-signature is now also written to a
+  witness journal outside the database (`PROOFWIRE_WITNESS_JOURNAL`, default
+  `<db>.witness-journal`), forced to disk before the signature is returned. A
+  restored witness catches up from it on start (`witness.caught_up`), including
+  after a backup copied into place by hand. Restored without one, every log is
+  held (`409 witness_restored`) until the operator runs
+  `proofwire-hub witness-release`, ideally with a checkpoint the witness
+  provably signed. Rebinds are journalled too.
 - **Witness requirements could be met without the witnesses.** Three gaps,
   identical in `pw check`/`verifyBundle`, the website's verifier and the
   Python SDK:
@@ -121,6 +142,10 @@ release together at the same version.
   limit" to SQLite.
 - `verifyReceipt` looks up a signer only among the keyring's own properties,
   as `verifyCheckpoint` already did.
+- `pw remote add` accepts any valid key. `/v1/me`, which it checks the key
+  with, required `logs:read`, so an admin-only key (for `pw slack`,
+  `pw witnesses`, `pw streams`) or a witness-only key couldn't connect.
+  `/v1/me` returns only the caller's own identity.
 
 ## 0.4.0 — 2026-09-25
 

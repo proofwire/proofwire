@@ -657,6 +657,63 @@ export class Store {
     return { kid: args.kid, public_key: args.publicKey, bound_at: boundAt, bound_by: args.by };
   }
 
+  /**
+   * Set a witness's recorded position outright. Only for catching up from
+   * the witness's own journal or a checkpoint it provably signed; co-signing
+   * moves the position through `/v1/witness/cosign`, with its checks.
+   *
+   * @param {string} witnessKid
+   * @param {string} positionKey
+   * @param {number} size
+   * @param {string} root
+   */
+  setWitnessPosition(witnessKid, positionKey, size, root) {
+    this.db
+      .prepare(
+        `INSERT INTO witness_state(witness_kid, log_id, size, root, updated_at)
+         VALUES(?, ?, ?, ?, ?)
+         ON CONFLICT(witness_kid, log_id) DO UPDATE SET
+           size = excluded.size, root = excluded.root, updated_at = excluded.updated_at`,
+      )
+      .run(witnessKid, positionKey, size, root, now());
+  }
+
+  /**
+   * Why this witness won't co-sign for a log, if it won't.
+   *
+   * @param {string} witnessKid
+   * @param {string} positionKey
+   * @returns {{ reason: string, since: string } | null}
+   */
+  witnessHold(witnessKid, positionKey) {
+    return /** @type {any} */ (
+      this.db
+        .prepare('SELECT reason, since FROM witness_holds WHERE witness_kid = ? AND log_id = ?')
+        .get(witnessKid, positionKey) ?? null
+    );
+  }
+
+  /**
+   * @param {string} witnessKid
+   * @param {string} positionKey
+   * @param {string} reason
+   */
+  holdWitnessLog(witnessKid, positionKey, reason) {
+    this.db
+      .prepare(
+        `INSERT INTO witness_holds(witness_kid, log_id, reason, since) VALUES(?, ?, ?, ?)
+         ON CONFLICT(witness_kid, log_id) DO NOTHING`,
+      )
+      .run(witnessKid, positionKey, reason, now());
+  }
+
+  /** @param {string} witnessKid @param {string} positionKey */
+  releaseWitnessLog(witnessKid, positionKey) {
+    return this.db
+      .prepare('DELETE FROM witness_holds WHERE witness_kid = ? AND log_id = ?')
+      .run(witnessKid, positionKey).changes > 0;
+  }
+
   // ── retention ─────────────────────────────────────────────────────────
 
   /**

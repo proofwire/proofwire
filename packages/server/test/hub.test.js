@@ -618,6 +618,21 @@ test('a policy that would not load is refused at publish time', async () => {
   assert.match(res.json.error.message, /unknown operator/);
 });
 
+test('a policy pattern that can take exponential time is refused at publish time', async () => {
+  const res = await api('POST', '/v1/policies/slow', {
+    token: acme.key,
+    body: {
+      policy: {
+        version: 1,
+        rules: [{ id: 'emails', when: { 'params.to': { matches: '^([a-z]+\\.?)+@corp\\.com$' } }, then: 'deny' }],
+      },
+    },
+  });
+  assert.equal(res.status, 422);
+  assert.equal(res.json.error.code, 'invalid_policy');
+  assert.match(res.json.error.message, /emails.*exponential time/);
+});
+
 // ── approvals ────────────────────────────────────────────────────────────
 
 test('an escalation can be approved and the agent sees the decision', async () => {

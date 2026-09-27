@@ -447,6 +447,23 @@ const MIGRATIONS = [
       );
     `,
   },
+  {
+    id: '013_witness_holds',
+    sql: `
+      -- Logs a witness will not co-sign for until its operator releases them.
+      -- A restore with no witness journal to catch up from puts every log on
+      -- hold: the witness may have signed later checkpoints it no longer
+      -- remembers, and signing again from the restored position could vouch
+      -- for a conflicting history. See witness-journal.js.
+      CREATE TABLE witness_holds (
+        witness_kid TEXT NOT NULL,
+        log_id      TEXT NOT NULL,
+        reason      TEXT NOT NULL,
+        since       TEXT NOT NULL,
+        PRIMARY KEY (witness_kid, log_id)
+      );
+    `,
+  },
 ];
 
 /**

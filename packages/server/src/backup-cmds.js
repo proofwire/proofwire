@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DEFAULT_CONFIG } from './app.js';
 import { backup, verifyBackup, restore, reconcile, prune } from './backup.js';
+import { witnessJournalPath } from './witness-journal.js';
 
 /**
  * The operator-facing half of backup and restore.
@@ -84,10 +85,15 @@ export async function cmdRestore() {
 
   let res;
   try {
+    const journalEnv = process.env.PROOFWIRE_WITNESS_JOURNAL;
     res = restore({
       from: file,
       database: databasePath(),
       force: process.argv.includes('--force'),
+      journal: witnessJournalPath({
+        database: databasePath(),
+        witnessJournal: journalEnv === 'off' ? false : journalEnv ?? null,
+      }),
     });
   } catch (err) {
     console.error('');
@@ -105,6 +111,18 @@ export async function cmdRestore() {
     console.log(`  previous   ${DIM(res.displaced)}  ${DIM('(kept, not deleted)')}`);
   }
   console.log('');
+  if (res.witnessLogsHeld > 0) {
+    console.log(YELLOW(`  The witness journal was not found, so this witness has put ${res.witnessLogsHeld} log(s) on hold.`));
+    console.log(YELLOW('  It may have signed checkpoints after this backup that it no longer remembers, and'));
+    console.log(YELLOW('  will not co-sign for them until you release each one, ideally with the latest'));
+    console.log(YELLOW('  checkpoint it signed, from the customer:'));
+    console.log('');
+    console.log(`    ${CYAN('proofwire-hub witness-release <customer> <log> --checkpoint checkpoint.json')}`);
+    console.log('');
+  } else {
+    console.log(DIM('  The witness catches up from its journal when the hub starts.'));
+    console.log('');
+  }
   console.log(YELLOW('  A restore can leave the hub behind a checkpoint it already signed.'));
   console.log(YELLOW('  To an auditor that is indistinguishable from deletion, so close the gap:'));
   console.log('');

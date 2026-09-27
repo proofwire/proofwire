@@ -59,6 +59,7 @@ export {
 } from './checkpoint.js';
 export { ProofLog, verifyBundle, consistencyFor } from './log.js';
 export { Policy, History, parseWindow, globMatch } from './policy.js';
+export { regexProblem } from './safe-regex.js';
 export { redact, hasSecrets, DEFAULT_DETECTORS } from './redact.js';
 export { findUnfinished, DEFAULT_GRACE_MS } from './unfinished.js';
 export { Recorder, PolicyDenied, NO_POLICY, recordTools } from './recorder.js';

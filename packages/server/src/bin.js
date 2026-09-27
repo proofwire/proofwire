@@ -1,6 +1,7 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
 import { randomBytes } from 'node:crypto';
-import { identityFromPublicKey } from '@proof_wire/core';
+import { identityFromPublicKey, checkpointDigest, verify as verifyBytes } from '@proof_wire/core';
 import { Hub, VERSION } from './app.js';
 import { Auth } from './auth.js';
 import { selfTest } from './signer.js';
@@ -16,6 +17,8 @@ import {
  *   proofwire-hub witness-key <name>    give a customer a key to this node's witness
  *   proofwire-hub witness-rebind <customer> <log> <public key>
  *                                       rebind a log to a rotated signing key
+ *   proofwire-hub witness-release <customer> <log> --checkpoint <file> | --no-evidence
+ *                                       resume co-signing a log held after a restore
  *   proofwire-hub check                 verify every stored log
  *   proofwire-hub identity [--json]     this node's public keys, for publishing
  *   proofwire-hub retention <org> [--days N|forever] [--cap N|none]
@@ -47,6 +50,10 @@ function configFromEnv() {
   // a hub whose tenants choose the issuer: see oidc.js.
   if (env.PROOFWIRE_OIDC_ALLOW_PRIVATE === '1') config.oidcAllowPrivate = true;
   if (env.PROOFWIRE_EGRESS_ALLOW_PRIVATE === '1') config.egressAllowPrivate = true;
+  // Where the witness journal lives; `off` disables it. See witness-journal.js.
+  if (env.PROOFWIRE_WITNESS_JOURNAL) {
+    config.witnessJournal = env.PROOFWIRE_WITNESS_JOURNAL === 'off' ? false : env.PROOFWIRE_WITNESS_JOURNAL;
+  }
   return config;
 }
 
@@ -96,6 +103,18 @@ async function serve() {
       DIM('  note: a signing key is stored in this database. For a hosted deployment set'),
     );
     console.error(DIM('        PROOFWIRE_SIGNER=command|http so key material stays out of it.'));
+  }
+  if (hub.witnessJournal) {
+    console.error(DIM(`  witness journal  ${hub.witnessJournal.file}`));
+    console.error(DIM('        keep it on a different volume from the database; see docs/HUB.md#backups'));
+  } else {
+    console.error('');
+    console.error(RED('  warning: the witness journal is off. A restore from backup can make this witness'));
+    console.error(RED('           forget what it signed and vouch for a conflicting history.'));
+  }
+  const held = hub.db.prepare('SELECT COUNT(*) AS n FROM witness_holds WHERE witness_kid = ?').get(hub.witnessSigner.kid);
+  if (Number(held?.n) > 0) {
+    console.error(RED(`  ${held.n} log(s) on hold after a restore; release each with proofwire-hub witness-release.`));
   }
   console.error('');
 
@@ -487,6 +506,11 @@ async function witnessRebind() {
       return;
     }
 
+    // Journal first: a rebind the database loses in a restore must come back.
+    hub.witnessJournal?.append({
+      t: 'bind', witness: witnessKid, log: positionKey, logKid: next.kid, logPublicKey: next.publicKey,
+      by: 'operator', at: new Date().toISOString(),
+    });
     hub.store.bindWitnessLogKey({
       witnessKid, positionKey, kid: next.kid, publicKey: next.publicKey, by: 'operator',
     });
@@ -508,6 +532,126 @@ async function witnessRebind() {
     console.error(`  to         ${next.kid}`);
     if (position) {
       console.error(`  position   size ${position.size}, root ${position.root.slice(0, 16)}… ${DIM('— kept')}`);
+    }
+    console.error('');
+  } finally {
+    await hub.close();
+  }
+}
+
+/**
+ * Resume co-signing a log this witness put on hold after a restore.
+ *
+ * The safe way is with evidence: a checkpoint of the log carrying this
+ * witness's own signature, as late as the customer has (a bundle from
+ * `pw export` works: every checkpoint in it is considered). The signature
+ * proves this witness vouched for that root, so the position moves up to it
+ * and the witness carries on from where it really was. `--no-evidence`
+ * resumes from the restored position instead, accepting that a later
+ * signature may have been forgotten; `--all` does that for every held log of
+ * the customer.
+ */
+async function witnessRelease() {
+  const argv = process.argv.slice(3);
+  const flag = (/** @type {string} */ name) => argv.includes(name);
+  const value = (/** @type {string} */ name) => {
+    const i = argv.indexOf(name);
+    return i === -1 ? undefined : argv[i + 1];
+  };
+  const positional = argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--checkpoint');
+  const [customer, log] = positional;
+  const evidenceFile = value('--checkpoint');
+  const noEvidence = flag('--no-evidence');
+  const all = flag('--all');
+  if (!customer || (!log && !all) || (!evidenceFile && !noEvidence) || (all && !noEvidence)) {
+    console.error(RED('  usage: proofwire-hub witness-release <customer> <log> --checkpoint <checkpoint or bundle.json>'));
+    console.error(RED('         proofwire-hub witness-release <customer> <log> --no-evidence'));
+    console.error(RED('         proofwire-hub witness-release <customer> --all --no-evidence'));
+    process.exitCode = 2;
+    return;
+  }
+
+  const hub = new Hub(configFromEnv());
+  try {
+    const slug = customer.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+    const org = hub.store.orgBySlug(slug);
+    if (!org) {
+      console.error(RED(`  no customer "${slug}" on this witness`));
+      process.exitCode = 1;
+      return;
+    }
+    const kid = hub.witnessSigner.kid;
+    const held = hub.db
+      .prepare('SELECT log_id FROM witness_holds WHERE witness_kid = ? AND log_id LIKE ?')
+      .all(kid, `${org.id}:%`)
+      .map((r) => String(r.log_id).slice(org.id.length + 1));
+    const logs = all ? held : [log];
+    if (!all && !held.includes(log)) {
+      console.error(DIM(`  ${log} is not on hold for ${slug}; nothing to release.`));
+      return;
+    }
+
+    for (const name of logs) {
+      const positionKey = `${org.id}:${name}`;
+      const pos = hub.store.witnessPosition(kid, positionKey);
+      /** @type {any} */
+      let best = null;
+      if (evidenceFile) {
+        const doc = JSON.parse(fs.readFileSync(evidenceFile, 'utf8'));
+        const candidates = Array.isArray(doc?.checkpoints) ? doc.checkpoints : [doc];
+        for (const cp of candidates) {
+          if (cp?.body?.log !== name || !Number.isInteger(cp.body.size) || typeof cp.body.root !== 'string') continue;
+          const mine = (Array.isArray(cp.sigs) ? cp.sigs : []).some((sg) =>
+            sg?.role === 'witness' && sg.kid === kid && typeof sg.sig === 'string' &&
+            verifyBytes(hub.witnessSigner.publicKey, checkpointDigest(cp.body), sg.sig));
+          if (mine && (!best || cp.body.size > best.body.size)) best = cp;
+        }
+        if (!best) {
+          console.error(RED(`  ${evidenceFile} holds no checkpoint of ${name} signed by this witness (${kid}).`));
+          console.error(DIM('  Ask the customer for their latest witnessed checkpoint, or a bundle from pw export.'));
+          process.exitCode = 1;
+          return;
+        }
+        if (pos && best.body.size === pos.size && best.body.root !== pos.root) {
+          console.error(RED(`  this witness signed a different root of ${name} at size ${pos.size} than its database holds.`));
+          console.error(RED('  Its records are inconsistent; investigate before releasing anything.'));
+          process.exitCode = 1;
+          return;
+        }
+      }
+
+      const moved = Boolean(best && (!pos || best.body.size > pos.size));
+      if (moved) {
+        const bound = hub.store.witnessBinding(kid, positionKey);
+        if (hub.witnessJournal && bound) {
+          hub.witnessJournal.append({
+            t: 'sign', witness: kid, log: positionKey, size: best.body.size, root: best.body.root,
+            logKid: bound.kid, logPublicKey: bound.public_key, at: new Date().toISOString(),
+          });
+        }
+        hub.store.setWitnessPosition(kid, positionKey, best.body.size, best.body.root);
+      }
+      hub.store.releaseWitnessLog(kid, positionKey);
+      hub.store.recordEvent({
+        orgId: org.id,
+        actor: 'witness-release',
+        actorKind: 'system',
+        action: 'witness.released',
+        subject: name,
+        meta: {
+          evidence: best ? { size: best.body.size, root: best.body.root } : null,
+          from: pos?.size ?? null,
+          to: moved ? best.body.size : pos?.size ?? null,
+        },
+      });
+      const now = hub.store.witnessPosition(kid, positionKey);
+      console.error(`  ${GREEN('✓')} ${name}: co-signing again from size ${now?.size ?? 0}` +
+        (moved ? DIM(` (moved up from ${pos?.size ?? 0} on this witness's own signature)`) : ''));
+    }
+    if (noEvidence) {
+      console.error('');
+      console.error(DIM('  Released without evidence: if this witness signed later checkpoints before the'));
+      console.error(DIM('  restore, it can no longer tell whether a new one conflicts with them.'));
     }
     console.error('');
   } finally {
@@ -553,6 +697,7 @@ const COMMANDS = {
   bootstrap,
   'witness-key': witnessKey,
   'witness-rebind': witnessRebind,
+  'witness-release': witnessRelease,
   identity,
   retention,
   check,

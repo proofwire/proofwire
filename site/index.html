@@ -489,8 +489,9 @@
 
   <div class="cols">
     <div>
-      <h3>Three defaults, chosen for the failure mode</h3>
+      <h3>Four defaults, chosen for the failure mode</h3>
       <p style="font-size:.95rem;color:var(--ink-2)"><strong>A typo is a load error, not a skipped rule.</strong> A misspelled operator inside a <code class="inl">deny</code> rule must never quietly read as <em>allow</em>.</p>
+      <p style="font-size:.95rem;color:var(--ink-2)"><strong>A pattern that could hang is a load error too.</strong> Patterns run against arguments the agent chose, and one like <code class="inl">(a+)+$</code> takes exponential time on the right input. Those are refused when the policy loads, with the rewrite that fixes them.</p>
       <p style="font-size:.95rem;color:var(--ink-2)"><strong>Escalation with no approver resolves to deny.</strong> A system that degrades into “allow everything” under stress fails open exactly when it mattered.</p>
       <p style="font-size:.95rem;color:var(--ink-2);margin:0"><strong>Budgets commit at decision time.</strong> Spend recorded on completion means three pipelined refunds all evaluate against an empty ledger, and every one passes a cap they collectively blow through.</p>
     </div>
@@ -516,6 +517,29 @@
   ],
   "egress": { "denySecrets": true }
 }</pre>
+    </div>
+  </div>
+
+  <div class="cols" style="margin-top:26px">
+    <div>
+      <h3>Or start from a template</h3>
+      <p style="font-size:.95rem;color:var(--ink-2)">Eleven ready-made policies cover what nearly every deployment needs to stop: secrets and personal data in arguments, destructive SQL, payments over a limit, outbound messages, shell commands like <code class="inl">rm -rf</code>, production changes, and runaway loops.</p>
+      <p style="font-size:.95rem;color:var(--ink-2);margin:0">They're ordinary policy, so you can read and edit them. Combine any of them, then replay last week's recorded calls against the result to see exactly what it would have blocked, before it blocks anything.</p>
+    </div>
+    <div class="term">
+      <div class="term-bar"><span>pw policy template</span></div>
+<pre>$ pw policy template secrets destructive-sql \
+    --out proofwire.policy.json
+<span class="ok">✓</span> Wrote proofwire.policy.json: secrets, destructive-sql
+
+$ pw policy test proofwire.policy.json
+  replayed        3 calls
+  unchanged       2
+  changed         1
+    allow → <span class="bad">deny</span>  1
+
+  tool       recorded  this policy  rule
+  ops.query  allow     <span class="bad">deny</span>         destructive-sql.schema.sql</pre>
     </div>
   </div>
 
@@ -555,6 +579,7 @@
       <h3 class="ok" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">The split view</h3>
       <p style="font-size:.97rem">A log that signs its own root can keep two histories and show each auditor a different one. Both verify perfectly in isolation. This is the one attack a self-hosted transparency log cannot defend against alone.</p>
       <p style="font-size:.97rem"><strong>Independent witnesses close it.</strong> A witness counter-signs a root only if it extends the last root it saw, and refuses to sign two roots at the same size. Pin the witnesses <em>you</em> chose, and a split view needs every one of them to collude.</p>
+      <p style="font-size:.97rem"><strong>And it happens without anyone remembering to.</strong> List your witnesses once, and every session ends with each of them signing. A witness restored from a backup catches up from a journal it keeps outside its database, rather than forgetting what it signed and vouching for a fork.</p>
       <div class="term">
         <div class="term-bar"><span>auditor</span></div>
 <pre>$ pw check evidence.json \
@@ -619,6 +644,8 @@ $ pw proxy --namespace crm -- npx -y @acme/mcp-crm
     <div class="prop"><span class="k">approvals inbox</span><p><strong>Escalations reach a human.</strong> Undecided requests expire into a <em>denial</em> — never into an approval. Reviewers see redacted arguments.</p></div>
     <div class="prop"><span class="k">tenant isolation</span><p><strong>Every row names its organisation.</strong> A credential cannot reach another tenant's data by any route, including by guessing an id — and agent keys are pinned to a single log.</p></div>
     <div class="prop"><span class="k">keys out of the database</span><p><strong>A KMS or HSM can hold them.</strong> Signing goes through a three-member interface, so a misconfigured signer disables signing rather than quietly falling back to a local key.</p></div>
+    <div class="prop"><span class="k">witnessed automatically</span><p><strong>Name up to five outside witnesses.</strong> Every checkpoint goes to each in the background. A witness refusing because two histories disagree lands in your audit trail, not a log file.</p></div>
+    <div class="prop"><span class="k">streams to your SIEM</span><p><strong>Splunk, Datadog, OpenTelemetry or a signed webhook.</strong> Receipts and the hub's own audit trail, with nothing lost while a destination is down. The arguments an agent sent never leave the hub.</p></div>
   </div>
 
   <div class="wkeys" id="witness-keys">

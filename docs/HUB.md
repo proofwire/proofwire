@@ -90,6 +90,7 @@ edit is one more thing to get wrong in a container.
 | `PROOFWIRE_TRUST_PROXY` | `0` | Set to `1` **only** behind a proxy you control. |
 | `PROOFWIRE_CHECKPOINT_EVERY` | `500` | Receipts between automatic checkpoints. |
 | `PROOFWIRE_WITNESS_ONLY` | `0` | Set to `1` to run a witness and nothing else — see [Witnessing](#witnessing). |
+| `PROOFWIRE_WITNESS_JOURNAL` | `<db>.witness-journal` | What the witness signed, outside the database, so a restore can't make it forget: see [Backups](#a-witness-must-not-forget-what-it-signed). Put it on another volume. `off` disables it. |
 | `PROOFWIRE_EGRESS_ALLOW_PRIVATE` | `0` | Set to `1` to let outside witnesses, [event streams](STREAMING.md) and SSO discovery reach private addresses and plain http. Self-hosted hubs on their own network only; never a hosted one. |
 | `PROOFWIRE_SELFCHECK_MINUTES` | `60` | Re-verify every stored log on this interval. |
 | `PROOFWIRE_APPROVAL_TTL` | `900` | Seconds before an undecided escalation expires. |
@@ -266,6 +267,40 @@ never optional — they are the authoritative copy; the hub is a replica.
 `reconcile` distinguishes a **recoverable** gap (re-push fixes it) from a
 **divergent** one (the stored history contradicts a signed root — no re-push
 fixes that, and it should be treated as an incident).
+
+### A witness must not forget what it signed
+
+A restore is worse for a witness than for a log. A witness refuses to sign two
+histories of a log because it remembers the last root it signed. Restored to
+last Tuesday, it has forgotten everything it signed since, and would co-sign a
+fork that branches off after Tuesday: a split view, the one thing it exists to
+stop. A test in the suite shows exactly that happening.
+
+So every co-signature is also written to a **witness journal**, a file outside
+the database, forced to disk before the signature is returned (if it can't be
+written, nothing is signed). Backups copy only the database, so the journal
+still holds what was signed after the backup:
+
+- **With the journal**, a restored witness catches up when it starts: each log
+  moves forward to the last position it signed, recorded as `witness.caught_up`
+  in that organisation's audit trail. This also catches a backup copied into
+  place by hand.
+- **Without it** (lost with the disk, or switched off), `restore` puts every
+  log on hold, and the witness answers `409 witness_restored` for each until
+  its operator releases it. Release with evidence: a checkpoint carrying this
+  witness's own signature, as late as the customer has. A bundle from
+  `pw export` works. The witness verifies its own signature and resumes from
+  there:
+
+  ```bash
+  proofwire-hub witness-release acme payments --checkpoint latest.json
+  proofwire-hub witness-release acme --all --no-evidence   # accepting the risk
+  ```
+
+The journal defaults to `<database>.witness-journal`. **Put it on a different
+volume** (`PROOFWIRE_WITNESS_JOURNAL=/journal/witness.jsonl`) so one lost disk
+doesn't take both. The hub prints where it is at startup, and warns when it is
+switched off (`PROOFWIRE_WITNESS_JOURNAL=off`).
 
 ---
 
