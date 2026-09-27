@@ -112,12 +112,18 @@ test('each destination gets receipts and audit events in its own format, without
 
     assert.ok(!seen.some((s) => s.body.includes('4242')), 'parameters must never leave the hub');
 
-    // Webhook: {events}, signed over the timestamp and the exact body.
-    const hook = seen.find((s) => s.path === '/hooks/hook');
-    assert.ok(hook);
-    const [, t, v1] = /** @type {RegExpMatchArray} */ (String(hook.headers['proofwire-signature']).match(/^t=(\d+),v1=([0-9a-f]{64})$/));
-    assert.equal(v1, createHmac('sha256', secret).update(`${t}.${hook.body}`).digest('hex'));
-    const events = JSON.parse(hook.body).events;
+    // Events can arrive over several requests (the audit event of adding the
+    // destinations may go out before the receipts exist), so gather them all.
+    const at = (/** @type {string} */ p) => seen.filter((s) => s.path === p);
+
+    // Webhook: {events}, each request signed over the timestamp and the exact body.
+    const hooks = at('/hooks/hook');
+    assert.ok(hooks.length);
+    for (const hook of hooks) {
+      const [, t, v1] = /** @type {RegExpMatchArray} */ (String(hook.headers['proofwire-signature']).match(/^t=(\d+),v1=([0-9a-f]{64})$/));
+      assert.equal(v1, createHmac('sha256', secret).update(`${t}.${hook.body}`).digest('hex'));
+    }
+    const events = hooks.flatMap((h) => JSON.parse(h.body).events);
     const receipts = events.filter((/** @type {any} */ e) => e.type === 'receipt');
     assert.deepEqual(receipts.map((/** @type {any} */ e) => e.outcome), ['allow', 'deny', 'escalate']);
     assert.deepEqual(receipts[1].rules, ['payments.big']);
@@ -127,16 +133,16 @@ test('each destination gets receipts and audit events in its own format, without
     assert.ok(events.some((/** @type {any} */ e) => e.type === 'audit' && e.action === 'integration.streams.set'));
 
     // Splunk: HEC path and scheme, events back to back.
-    const splunk = seen.find((s) => s.path === '/services/collector/event');
-    assert.equal(splunk?.headers.authorization, 'Splunk hec-token-1');
-    const hec = /** @type {string} */ (splunk?.body).split('\n').map((l) => JSON.parse(l));
+    const splunk = at('/services/collector/event');
+    assert.ok(splunk.length && splunk.every((r) => r.headers.authorization === 'Splunk hec-token-1'));
+    const hec = splunk.flatMap((r) => r.body.split('\n').map((l) => JSON.parse(l)));
     assert.ok(hec.every((e) => e.source === 'proofwire' && typeof e.time === 'number' && e.event.type));
     assert.ok(hec.some((e) => e.sourcetype === 'proofwire:receipt'));
 
     // Datadog: logs intake v2, a JSON array, key in the header.
-    const dd = seen.find((s) => s.path === '/api/v2/logs');
-    assert.equal(dd?.headers['dd-api-key'], 'dd-key-1');
-    const logs = JSON.parse(/** @type {string} */ (dd?.body));
+    const dd = at('/api/v2/logs');
+    assert.ok(dd.length && dd.every((r) => r.headers['dd-api-key'] === 'dd-key-1'));
+    const logs = dd.flatMap((r) => JSON.parse(r.body));
     const denied = logs.find((/** @type {any} */ l) => l.outcome === 'deny');
     assert.equal(denied.ddsource, 'proofwire');
     assert.equal(denied.status, 'warn');
@@ -144,9 +150,9 @@ test('each destination gets receipts and audit events in its own format, without
     assert.equal(denied.message, 'deny tool_call stripe.refund by bot (payments#1)');
 
     // OpenTelemetry: OTLP/HTTP JSON, with the collector's own headers.
-    const otel = seen.find((s) => s.path === '/v1/logs');
-    assert.equal(otel?.headers.authorization, 'Bearer otel-1');
-    const records = JSON.parse(/** @type {string} */ (otel?.body)).resourceLogs[0].scopeLogs[0].logRecords;
+    const otel = at('/v1/logs');
+    assert.ok(otel.length && otel.every((r) => r.headers.authorization === 'Bearer otel-1'));
+    const records = otel.flatMap((r) => JSON.parse(r.body).resourceLogs[0].scopeLogs[0].logRecords);
     const warn = records.find((/** @type {any} */ r) => r.severityText === 'WARN');
     assert.match(warn.timeUnixNano, /^\d{19}$/);
     assert.ok(warn.attributes.some((/** @type {any} */ a) => a.key === 'proofwire.outcome' && a.value.stringValue === 'deny'));
