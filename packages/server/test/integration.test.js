@@ -437,6 +437,15 @@ test('the console renders and escapes agent-supplied strings', async () => {
 
   // A tool name containing markup must render as text, not as markup.
   const probe = ProofLog.create(fs.mkdtempSync(path.join(os.tmpdir(), 'pw-xss-')));
+  // A call that was sent and never came back, so the page's "never finished"
+  // banner renders too, with a name that tries to be markup.
+  probe.append({
+    ts: '2026-01-01T00:00:00.000Z',
+    phase: 'intent',
+    actor: { agent: 'a', runtime: 'r', session: 's', principal: 'p@acme.test' },
+    action: { kind: 'tool_call', target: '<b>never</b>', params: {} },
+    decision: { outcome: 'allow', policy: 'p', rules: [] },
+  });
   probe.append({
     actor: { agent: 'a', runtime: 'r', session: 's', principal: '<img src=x onerror=alert(1)>' },
     action: { kind: 'tool_call', target: '<script>alert(1)</script>', params: {} },
@@ -457,6 +466,8 @@ test('the console renders and escapes agent-supplied strings', async () => {
   assert.ok(page.includes('&lt;img src=x onerror=alert(1)&gt;'), 'the principal should be escaped');
   assert.ok(!page.includes('<script>alert(1)</script>'), 'unescaped markup reached the page');
   assert.ok(!page.includes('<img src=x'), 'an unescaped tag reached the page');
+  assert.match(page, /1 action\(s\) were authorised and sent, but never finished/);
+  assert.ok(page.includes('#0 · 2026-01-01 00:00:00 · &lt;b&gt;never&lt;/b&gt;'), 'the unfinished call should be listed, escaped');
 
   // The response must also forbid inline script execution outright, so a
   // single missed escape somewhere is not immediately exploitable.

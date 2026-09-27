@@ -131,3 +131,21 @@ test('the allowed Host set names the port and brackets IPv6', () => {
   assert.ok(allowedHosts('::1', 9).has('[::1]:9'));
   assert.ok(allowedHosts('dash.internal', 80).has('dash.internal:80'));
 });
+
+test('an action authorised and sent but never answered is listed as unfinished', async () => {
+  const dir = ProofLogDir();
+  const log = ProofLog.open(dir);
+  const actor = { agent: 'a', runtime: 'test', session: 's', principal: 'p@acme.test' };
+  const allow = { outcome: 'allow', policy: 'p', rules: [] };
+  // Old enough to be past the grace period, with no outcome: a crash.
+  log.append({ ts: '2026-01-01T00:00:00.000Z', phase: 'intent', actor, action: { kind: 'tool_call', target: 'stripe.refund', params: {} }, decision: allow });
+  const { server, port } = await start(dir);
+  try {
+    const res = await get(port, '/api/log', `127.0.0.1:${port}`);
+    const body = JSON.parse(res.body);
+    assert.deepEqual(body.unfinished.unfinished.map((/** @type {any} */ u) => [u.seq, u.target]), [[0, 'stripe.refund']]);
+    assert.deepEqual(body.unfinished.inFlight, []);
+  } finally {
+    server.close();
+  }
+});

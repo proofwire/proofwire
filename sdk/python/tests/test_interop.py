@@ -124,3 +124,30 @@ def test_a_log_written_by_javascript_verifies_in_python_and_can_be_continued(tmp
     # A bundle JavaScript exported, tampered with, fails here too.
     bundle["entries"][0]["receipt"]["action"]["target"] = "stripe.charge"
     assert not verify_bundle(bundle)["ok"]
+
+
+def test_both_sides_agree_on_which_calls_never_finished(tmp_path):
+    from proof_wire import entry_hash, find_unfinished
+
+    actor = {"agent": "claude", "runtime": "test", "session": "s", "principal": "p@acme.test"}
+    allow = {"outcome": "allow", "policy": "p", "rules": []}
+    log = ProofLog.create(tmp_path / ".proofwire")
+    old = "2026-01-01T00:00:00.000Z"
+    done = log.append(ts=old, phase="intent", actor=actor, action={"kind": "tool_call", "target": "crm.query", "params": {}}, decision=allow)
+    log.append(ts=old, phase="outcome", ref=entry_hash(done), actor=actor, action={"kind": "tool_call", "target": "crm.query", "params": {}}, decision=allow, result={"status": "ok", "payload": None})
+    log.append(ts=old, phase="intent", actor=actor, action={"kind": "tool_call", "target": "stripe.refund", "params": {}}, decision=allow)
+    cut = log.append(ts=old, phase="intent", actor=actor, action={"kind": "tool_call", "target": "db.migrate", "params": {}}, decision=allow)
+    log.append(ts=old, phase="outcome", ref=entry_hash(cut), actor=actor, action={"kind": "tool_call", "target": "db.migrate", "params": {}}, decision=allow, result={"status": "error", "code": "unfinished", "payload": None})
+
+    theirs = json.loads(node(
+        "import { ProofLog, findUnfinished } from '@proof_wire/core';"
+        f"const log = ProofLog.open({json.dumps(str(tmp_path / '.proofwire'))}, {{ readOnly: true }});"
+        "process.stdout.write(JSON.stringify(findUnfinished(log.entries)));"
+    ))
+    ours = find_unfinished(log.entries)
+    assert ours == theirs
+    assert [u["target"] for u in ours["unfinished"]] == ["stripe.refund"]
+
+    res = pw("verify", "--fail-on-unfinished", home=tmp_path)
+    assert res.returncode == 3, res.stdout + res.stderr
+    assert "stripe.refund" in res.stdout

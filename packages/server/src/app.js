@@ -533,6 +533,12 @@ export class Hub {
       return this.store.audit(ctx.principal.orgId, log.id);
     });
 
+    r.get('/v1/logs/:log/unfinished', (ctx) => {
+      requireScope(ctx.principal, 'receipts:read');
+      const log = this._log(ctx.principal, ctx.params.log);
+      return this.store.unfinished(ctx.principal.orgId, log.id);
+    });
+
     r.get('/v1/logs/:log/bundle', (ctx) => {
       requireScope(ctx.principal, 'receipts:read');
       const log = this._log(ctx.principal, ctx.params.log);

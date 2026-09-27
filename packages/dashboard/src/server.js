@@ -2,7 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ProofLog } from '@proof_wire/core';
+import { ProofLog, findUnfinished } from '@proof_wire/core';
 
 /**
  * A local, read-only dashboard over a Proofwire log.
@@ -190,6 +190,8 @@ export function createServer(opts) {
         // watch, and a cached handle would show a stale tree.
         const log = ProofLog.open(opts.dir, { readOnly: true });
         const audit = log.audit();
+        const open = findUnfinished(log.entries);
+        const brief = (/** @type {any[]} */ list) => list.map((u) => ({ seq: u.seq, ts: u.ts, target: u.target }));
         return json(res, 200, {
           log: log.logId,
           created: log.config.created,
@@ -204,6 +206,13 @@ export function createServer(opts) {
             witnesses: c.sigs.filter((s) => s.role === 'witness').length,
           })),
           audit: { ok: audit.ok, issues: audit.issues },
+          // Authorised and sent, never answered: what a process killed
+          // mid-action leaves behind. inFlight is recent enough to be running.
+          unfinished: {
+            unfinished: brief(open.unfinished),
+            abandoned: brief(open.abandoned),
+            inFlight: brief(open.inFlight),
+          },
           entries: log.entries.map(summarise),
         });
       }

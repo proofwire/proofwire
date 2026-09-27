@@ -71,9 +71,47 @@ An `escalate` outcome is a denial here, recorded as `policy:no-approver`,
 because nobody in the process can approve it.
 
 The full policy language (budgets, rate limits, escalation to a person, Slack
-approvals, monitor mode) lives in the `pw proxy` MCP proxy. For an agent that
-uses MCP, wrap its servers with that instead. A Python port of the policy
-engine is planned.
+approvals, monitor mode) lives in the `pw proxy` MCP proxy and in the
+JavaScript `Recorder` in `@proof_wire/core`. For an agent that uses MCP, wrap
+its servers with the proxy instead. A Python port of the policy engine is
+planned.
+
+### Use it with LangChain or the OpenAI Agents SDK
+
+Wrap the agent's tools once; use the wrapped ones in their place. Each call is
+checked with `decide`, recorded as intent and outcome, and a refused call
+never runs: the model is told why in the tool's reply, as the MCP proxy does,
+instead of the agent crashing.
+
+```python
+from proof_wire.integrations.langchain import record_tools        # pip install "proof-wire[langchain]"
+agent = create_react_agent(model, record_tools(rec, [search, refund]))
+
+from proof_wire.integrations.openai_agents import record_tools    # pip install "proof-wire[openai-agents]"
+agent = Agent(name="Support", tools=record_tools(rec, [lookup_order, refund]))
+```
+
+Hosted OpenAI tools (web search and the like) run on OpenAI's side, so they
+are passed through unrecorded. Both adapters need Python 3.10+, and are tested
+in CI against the real packages.
+
+### Find calls that never finished
+
+Each call's intent is on disk before the tool runs. If the process is killed
+while a call is out, the intent has no outcome, and that is worth knowing:
+
+```python
+from proof_wire import find_unfinished
+
+found = find_unfinished(log.entries)
+for u in found["unfinished"]:
+    print(u["seq"], u["ts"], u["target"], u["principal"])
+```
+
+`inFlight` holds calls from the last five minutes that may still be running,
+and `abandoned` the ones a recorder gave up on while shutting down. `pw verify`
+reports the same list, and `pw verify --fail-on-unfinished` exits 3 when there
+is one.
 
 ## Hand over evidence
 
@@ -117,6 +155,8 @@ crosses a network unencrypted.
 | --- | --- |
 | `canonical` | RFC 8785 canonical JSON: UTF-16 key order, ECMAScript number formatting |
 | `merkle` | RFC 6962 trees, inclusion and consistency proofs |
+| `unfinished` | `find_unfinished`: calls sent and never answered |
+| `integrations` | `langchain.record_tools`, `openai_agents.record_tools` |
 | `keys` | Ed25519 identities, canonical base64url |
 | `receipt` | Build, seal, sign and verify receipts |
 | `checkpoint` | Signed tree heads, witness countersignatures |

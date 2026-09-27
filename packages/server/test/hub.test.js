@@ -123,6 +123,8 @@ class Agent {
       decision: over.decision ?? { outcome: 'allow', policy: 'p_test', rules: [] },
       result: over.result ?? null,
       ts: over.ts,
+      phase: over.phase,
+      ref: over.ref,
     });
     const receipt = signReceipt(this.identity, body);
     this.seq++;
@@ -888,4 +890,39 @@ test('HSTS is sent unless cookies are explicitly insecure', async () => {
   } else {
     assert.match(hsts ?? '', /max-age=31536000/);
   }
+});
+
+// ── actions that never finished ──────────────────────────────────────────
+
+test('the hub lists calls that were authorised and sent but never came back', async () => {
+  const agent = new Agent('jobs');
+  const created = await api('POST', '/v1/logs', {
+    token: acme.key,
+    body: { slug: 'jobs', kid: agent.identity.kid, publicKey: agent.identity.publicKey },
+  });
+  assert.equal(created.status, 200);
+
+  const old = '2026-01-01T00:00:00.000Z';
+  const done = agent.make({ phase: 'intent', target: 'crm.query', ts: old });
+  const doneOut = agent.make({ phase: 'outcome', ref: entryHash(done), target: 'crm.query', ts: old, result: { status: 'ok', payload: {} } });
+  const crashed = agent.make({ phase: 'intent', target: 'stripe.refund', ts: old });
+  const cut = agent.make({ phase: 'intent', target: 'db.migrate', ts: old });
+  const gaveUp = agent.make({ phase: 'outcome', ref: entryHash(cut), target: 'db.migrate', ts: old, result: { status: 'error', code: 'unfinished', payload: null } });
+  const running = agent.make({ phase: 'intent', target: 'slow.export', ts: new Date().toISOString() });
+  const push = await api('POST', '/v1/logs/jobs/receipts', {
+    token: acme.key,
+    body: { receipts: [done, doneOut, crashed, cut, gaveUp, running] },
+  });
+  assert.equal(push.status, 200, JSON.stringify(push.json));
+
+  const res = await api('GET', '/v1/logs/jobs/unfinished', { token: acme.readKey });
+  assert.equal(res.status, 200, JSON.stringify(res.json));
+  assert.deepEqual(res.json.unfinished.map((/** @type {any} */ u) => [u.seq, u.target]), [[2, 'stripe.refund']]);
+  assert.equal(res.json.unfinished[0].intent, entryHash(crashed));
+  assert.deepEqual(res.json.abandoned.map((/** @type {any} */ u) => [u.seq, u.target, u.outcomeSeq]), [[3, 'db.migrate', 4]]);
+  assert.deepEqual(res.json.inFlight.map((/** @type {any} */ u) => u.target), ['slow.export']);
+  assert.deepEqual(res.json.orphans, []);
+
+  // Another organisation cannot ask about this log.
+  assert.equal((await api('GET', '/v1/logs/jobs/unfinished', { token: globex.key })).status, 404);
 });
