@@ -38,3 +38,8 @@ __pycache__/
 *.egg-info/
 sdk/python/dist/
 sdk/python/build/
+
+# Business planning stays out of this public repository. Keep it in private/
+# (or a private repository); nothing in it is ever committed here.
+private/
+BUSINESS.md

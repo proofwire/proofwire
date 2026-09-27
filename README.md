@@ -129,9 +129,8 @@ Keys can live in a KMS or HSM rather than the hub's database
 (`PROOFWIRE_SIGNER`), backups and restores have a drilled runbook, and
 invitations and password resets are built in.
 
-Full deployment and operations guide: [`docs/HUB.md`](docs/HUB.md) · readiness
-assessment: [`docs/GO-LIVE.md`](docs/GO-LIVE.md) · for reviewers:
-[`docs/AUDIT-BRIEF.md`](docs/AUDIT-BRIEF.md).
+Full deployment and operations guide: [`docs/HUB.md`](docs/HUB.md) · for
+reviewers: [`docs/AUDIT-BRIEF.md`](docs/AUDIT-BRIEF.md).
 
 ---
 
@@ -395,9 +394,8 @@ than none:
   and common PII. They will not catch a secret shaped like prose. Commitments,
   not redaction, are what keep payloads out of the log.
 
-See [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for the full analysis, and
-[`docs/GO-LIVE.md`](docs/GO-LIVE.md) for a blunt assessment of what is and is
-not ready for production.
+See [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for the full analysis,
+including the known gaps.
 
 ---
 

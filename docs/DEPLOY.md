@@ -1,9 +1,8 @@
 # Deploying a Proofwire node
 
 This takes one Linux server from nothing to a Proofwire node serving HTTPS on
-your own domain. It's the Phase 1 step in
-[`WITNESS-SERVICE.md`](WITNESS-SERVICE.md): a witness-only node for the free
-beta. The same kit runs a full hub by changing one setting.
+your own domain: a witness-only node by default. The same kit runs a full hub
+by changing one setting.
 
 Everything here runs in CI on every push: `deploy/setup.sh` from a fresh
 checkout, then a customer co-signing through TLS and an auditor verifying the

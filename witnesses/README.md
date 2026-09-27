@@ -5,9 +5,7 @@ Proofwire operates. **It is empty, because Proofwire does not operate a
 witness yet.** An empty list is the true state, and publishing a key for a
 node that isn't running — or a test key whose private half sits on someone's
 laptop — would invite auditors to pin something nobody is accountable for.
-The first entry goes in when the first real node starts signing; see
-[`docs/WITNESS-SERVICE.md`](../docs/WITNESS-SERVICE.md) for what has to exist
-first.
+The first entry goes in when the first real node starts signing.
 
 ## Why it lives here
 

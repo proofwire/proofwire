@@ -11,8 +11,11 @@ writes exactly the format the `proofwire` CLI reads:
 CI runs both directions against the real CLI on every commit.
 
 ```bash
-pip install proof-wire
+pip install "proof-wire @ git+https://github.com/proofwire/proofwire#subdirectory=sdk/python"
 ```
+
+That installs straight from this repository. The package is not on PyPI yet;
+once it is, `pip install proof-wire` will do the same.
 
 Python 3.9+. The one dependency is `cryptography`, for Ed25519.
 
