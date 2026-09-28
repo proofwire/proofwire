@@ -23,7 +23,7 @@ import { launchSpec } from '../packages/proxy/src/proxy.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /**
- * Dependency order. `@proof_wire/core` has no dependents above it; the CLI
+ * Dependency order. `@vouchwell/core` has no dependents above it; the CLI
  * depends on the proxy, so it goes last. Publishing out of order leaves a
  * package on the registry whose dependency does not exist yet — briefly
  * uninstallable, and not fixable by unpublishing.
@@ -123,16 +123,16 @@ function preflight() {
   // 2. Does the scope exist and can this account write to it?
   if (who) {
     try {
-      const orgs = JSON.parse(run('npm', ['org', 'ls', 'proof_wire', '--json']));
+      const orgs = JSON.parse(run('npm', ['org', 'ls', 'vouchwell', '--json']));
       console.log(
-        `  ${GREEN('✓')} scope  @proof_wire reachable ${DIM(`(${Object.keys(orgs).length} member(s))`)}`,
+        `  ${GREEN('✓')} scope  @vouchwell reachable ${DIM(`(${Object.keys(orgs).length} member(s))`)}`,
       );
     } catch {
-      console.log(`  ${YELLOW('!')} scope  cannot read the @proof_wire org`);
+      console.log(`  ${YELLOW('!')} scope  cannot read the @vouchwell org`);
       blocking.push(
-        'Create the free org at https://www.npmjs.com/org/create (name: proof_wire).\n' +
-          '     Without it, the four @proof_wire/* packages cannot be published.\n' +
-          '     The unscoped `proofwire` CLI depends on two of them, so it would be uninstallable.',
+        'Create the free org at https://www.npmjs.com/org/create (name: vouchwell).\n' +
+          '     Without it, the four @vouchwell/* packages cannot be published.\n' +
+          '     The unscoped `vouchwell` CLI depends on two of them, so it would be uninstallable.',
       );
     }
   }
@@ -206,7 +206,7 @@ function preflight() {
   } else {
     try {
       run('npm', ['test'], {
-        env: { ...process.env, PROOFWIRE_ACCESS_LOG: 'off', PROOFWIRE_INSECURE_COOKIES: '1' },
+        env: { ...process.env, VOUCHWELL_ACCESS_LOG: 'off', VOUCHWELL_INSECURE_COOKIES: '1' },
       });
       console.log(`  ${GREEN('✓')} tests  passing`);
     } catch (err) {
@@ -220,7 +220,7 @@ function preflight() {
 
 async function main() {
   console.log('');
-  console.log(B('  Proofwire release') + DIM(dryRun ? '  (dry run)' : ''));
+  console.log(B('  Vouchwell release') + DIM(dryRun ? '  (dry run)' : ''));
 
   const blocking = preflight();
 
@@ -278,11 +278,11 @@ async function main() {
   console.log(GREEN(`  Published ${version}.`));
   console.log('');
   console.log(DIM('  Verify what the world now sees:'));
-  console.log(`    ${CYAN('npx proofwire@latest --version')}`);
-  console.log(`    ${CYAN(`npm view proofwire@${version}`)}`);
+  console.log(`    ${CYAN('npx vouchwell@latest --version')}`);
+  console.log(`    ${CYAN(`npm view vouchwell@${version}`)}`);
   console.log('');
   console.log(DIM('  Then tag the release:'));
-  console.log(`    ${CYAN(`git tag -a v${version} -m "Proofwire ${version}" && git push --tags`)}`);
+  console.log(`    ${CYAN(`git tag -a v${version} -m "Vouchwell ${version}" && git push --tags`)}`);
   console.log('');
 }
 

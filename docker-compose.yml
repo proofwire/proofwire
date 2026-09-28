@@ -4,14 +4,14 @@ services:
     ports:
       - "8787:8787"
     volumes:
-      - proofwire-data:/data
+      - vouchwell-data:/data
     environment:
-      # Terminate TLS in front of this and set PROOFWIRE_TRUST_PROXY=1 there.
+      # Terminate TLS in front of this and set VOUCHWELL_TRUST_PROXY=1 there.
       # Without a proxy, leave it off: X-Forwarded-For is a header any client
       # can set, and trusting it would let anyone evade the rate limiter.
-      PROOFWIRE_TRUST_PROXY: "0"
-      PROOFWIRE_CHECKPOINT_EVERY: "500"
-      PROOFWIRE_SELFCHECK_MINUTES: "60"
+      VOUCHWELL_TRUST_PROXY: "0"
+      VOUCHWELL_CHECKPOINT_EVERY: "500"
+      VOUCHWELL_SELFCHECK_MINUTES: "60"
     restart: unless-stopped
     # The hub writes to /data and nowhere else.
     read_only: true
@@ -34,9 +34,9 @@ services:
     ports:
       - "8788:8787"
     volumes:
-      - proofwire-witness:/data
+      - vouchwell-witness:/data
     environment:
-      PROOFWIRE_WITNESS_ONLY: "1"
+      VOUCHWELL_WITNESS_ONLY: "1"
     restart: unless-stopped
     read_only: true
     tmpfs:
@@ -45,5 +45,5 @@ services:
       - no-new-privileges:true
 
 volumes:
-  proofwire-data:
-  proofwire-witness:
+  vouchwell-data:
+  vouchwell-witness:

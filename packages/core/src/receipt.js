@@ -103,7 +103,7 @@ export function openSeal(sealed, saltB64u, value) {
 /**
  * @typedef {object} Actor
  * @property {string} agent      Model or agent identifier, e.g. `claude-opus-5`.
- * @property {string} runtime    What produced the receipt, e.g. `proofwire-proxy/0.1.0`.
+ * @property {string} runtime    What produced the receipt, e.g. `vouchwell-proxy/0.1.0`.
  * @property {string} session    Groups the receipts of one agent run.
  * @property {string} principal  Whose authority the agent acted under.
  */

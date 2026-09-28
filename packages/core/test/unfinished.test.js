@@ -13,7 +13,7 @@ const NOW = Date.parse('2026-09-26T12:00:00.000Z');
 const at = (/** @type {number} */ msAgo) => new Date(NOW - msAgo).toISOString();
 
 function log() {
-  return ProofLog.create(fs.mkdtempSync(path.join(os.tmpdir(), 'proofwire-unfinished-')));
+  return ProofLog.create(fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-unfinished-')));
 }
 
 /**

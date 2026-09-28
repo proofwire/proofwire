@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, Policy, entryHash } from '@proof_wire/core';
+import { ProofLog, Policy, entryHash } from '@vouchwell/core';
 import { McpProxy, extractMetrics } from '../src/proxy.js';
 import { LineFramer, isRequest, isResponse, toolRefusal } from '../src/jsonrpc.js';
 import { denyingApprover } from '../src/approve.js';
@@ -24,7 +24,7 @@ const SERVER = fileURLToPath(new URL('../../../examples/fake-mcp-server.js', imp
  * @param {(proxy: McpProxy) => void} [opts.onProxy]
  */
 async function run(opts) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'proofwire-proxy-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-proxy-'));
   const log = ProofLog.create(dir);
   const stdin = new PassThrough();
   const stdout = new PassThrough();
@@ -174,7 +174,7 @@ test('a denied call never reaches the upstream server', async () => {
   });
 
   assert.equal(received[0].result.isError, true);
-  assert.match(received[0].result.content[0].text, /Blocked by Proofwire policy/);
+  assert.match(received[0].result.content[0].text, /Blocked by Vouchwell policy/);
   assert.match(received[0].result.content[0].text, /destructive SQL/);
   // The upstream server would have reported rows affected. It never ran.
   assert.ok(!/rows affected/.test(received[0].result.content[0].text));
@@ -349,7 +349,7 @@ test('monitor mode forwards a call the policy would deny, and says so in the sig
 
   // It ran: the client got the upstream's real answer, not a refusal.
   assert.equal(byId.get(1).result.isError, undefined);
-  assert.doesNotMatch(JSON.stringify(byId.get(1)), /Blocked by Proofwire/);
+  assert.doesNotMatch(JSON.stringify(byId.get(1)), /Blocked by Vouchwell/);
 
   // And the record says it ran — intent then outcome, never an atomic "deny"
   // for an action that happened.
@@ -428,7 +428,7 @@ test('monitor mode counts spend that really happened against the budget', async 
 });
 
 test('a call left unanswered at shutdown is recorded as unfinished', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'proofwire-proxy-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-proxy-'));
   const log = ProofLog.create(dir);
   const proxy = new McpProxy({
     log,
@@ -493,7 +493,7 @@ test('a full session leaves an audit that verifies and a bundle that travels', a
   assert.equal(log.entries.filter((r) => r.phase === 'outcome').length, 2);
   assert.equal(log.entries.filter((r) => r.decision.outcome === 'deny').length, 1);
 
-  const { verifyBundle } = await import('@proof_wire/core');
+  const { verifyBundle } = await import('@vouchwell/core');
   const bundle = JSON.parse(JSON.stringify(log.bundle()));
   const res = verifyBundle(bundle);
   assert.ok(res.ok, JSON.stringify(res.issues));
@@ -551,7 +551,7 @@ test('hostile arguments reach a real batch shim exactly, run nothing, and raise 
   const { spawnSync } = await import('node:child_process');
 
   // A shim in a directory with a space in it, like C:\Program Files\nodejs.
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pw shim '));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vw shim '));
   fs.writeFileSync(path.join(dir, 'echo.js'), 'process.stdout.write(JSON.stringify(process.argv.slice(2)))');
   fs.writeFileSync(path.join(dir, 'echoargs.cmd'), '@node "%~dp0echo.js" %*\r\n');
   const env = { ...process.env, PATH: `${dir};${process.env.PATH}`, PW_SECRET: 'must-not-expand' };

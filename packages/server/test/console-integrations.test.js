@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV } from '@proof_wire/core';
+import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV } from '@vouchwell/core';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 
@@ -197,7 +197,7 @@ test('a log this hub\'s witness holds after a restore is shown, with the operato
   hub.store.holdWitnessLog(hub.witnessSigner.kid, `${orgId}:payments`, 'restored_without_journal');
   const page = (await view('/settings/integrations')).html;
   assert.match(page, /holding 1 log\(s\)/);
-  assert.match(page, /proofwire-hub witness-release/);
+  assert.match(page, /vouchwell-hub witness-release/);
   assert.ok(!/action="[^"]*release/.test(page), 'releasing is the witness operator\'s, not the log owner\'s');
   hub.store.releaseWitnessLog(hub.witnessSigner.kid, `${orgId}:payments`);
 });

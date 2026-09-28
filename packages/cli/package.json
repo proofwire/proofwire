@@ -1,5 +1,5 @@
 {
-  "name": "proofwire",
+  "name": "vouchwell",
   "version": "0.5.0",
   "type": "module",
   "description": "Tamper-evident receipts for AI agent actions. Policy, proof, and audit for MCP.",
@@ -7,12 +7,12 @@
   "author": "IdeaboticsAI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/proofwire/proofwire.git",
+    "url": "git+https://github.com/vouchwell/vouchwell.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/proofwire/proofwire#readme",
+  "homepage": "https://github.com/vouchwell/vouchwell#readme",
   "bugs": {
-    "url": "https://github.com/proofwire/proofwire/issues"
+    "url": "https://github.com/vouchwell/vouchwell/issues"
   },
   "keywords": [
     "mcp",
@@ -23,15 +23,15 @@
     "eu-ai-act"
   ],
   "bin": {
-    "pw": "./src/bin.js",
-    "proofwire": "./src/bin.js"
+    "vw": "./src/bin.js",
+    "vouchwell": "./src/bin.js"
   },
   "files": [
     "src"
   ],
   "dependencies": {
-    "@proof_wire/core": "0.5.0",
-    "@proof_wire/proxy": "0.5.0"
+    "@vouchwell/core": "0.5.0",
+    "@vouchwell/proxy": "0.5.0"
   },
   "engines": {
     "node": ">=20.11"

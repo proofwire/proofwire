@@ -3,6 +3,7 @@ import path from 'node:path';
 import { DEFAULT_CONFIG } from './app.js';
 import { backup, verifyBackup, restore, reconcile, prune } from './backup.js';
 import { witnessJournalPath } from './witness-journal.js';
+import { resolveDatabase } from './legacy.js';
 
 /**
  * The operator-facing half of backup and restore.
@@ -22,13 +23,14 @@ const CYAN = (s) => `[36m${s}[0m`;
 
 /** @returns {string} */
 function databasePath() {
-  return process.env.PROOFWIRE_DB ?? DEFAULT_CONFIG.database;
+  // Same rule as the server: a proofwire.db from before the rename is used.
+  return resolveDatabase(process.env.VOUCHWELL_DB ?? DEFAULT_CONFIG.database).file;
 }
 
 /** @returns {string} */
 function defaultBackupName() {
-  const dir = process.env.PROOFWIRE_BACKUP_DIR ?? './backups';
-  return path.join(dir, `proofwire-${new Date().toISOString().replace(/[:.]/g, '-')}.db`);
+  const dir = process.env.VOUCHWELL_BACKUP_DIR ?? './backups';
+  return path.join(dir, `vouchwell-${new Date().toISOString().replace(/[:.]/g, '-')}.db`);
 }
 
 /** Take a snapshot now. */
@@ -45,7 +47,7 @@ export async function cmdBackup() {
   console.log(`  sha256     ${res.sha256}`);
   console.log('');
   console.log(DIM('  Verify it now, not during an incident:'));
-  console.log(`    ${CYAN(`proofwire-hub verify-backup ${res.file}`)}`);
+  console.log(`    ${CYAN(`vouchwell-hub verify-backup ${res.file}`)}`);
   console.log('');
 }
 
@@ -53,7 +55,7 @@ export async function cmdBackup() {
 export async function cmdVerifyBackup() {
   const file = process.argv[3];
   if (!file) {
-    console.error('usage: proofwire-hub verify-backup <file.db>');
+    console.error('usage: vouchwell-hub verify-backup <file.db>');
     process.exitCode = 2;
     return;
   }
@@ -78,14 +80,14 @@ export async function cmdVerifyBackup() {
 export async function cmdRestore() {
   const file = process.argv[3];
   if (!file) {
-    console.error('usage: proofwire-hub restore <file.db> [--force]');
+    console.error('usage: vouchwell-hub restore <file.db> [--force]');
     process.exitCode = 2;
     return;
   }
 
   let res;
   try {
-    const journalEnv = process.env.PROOFWIRE_WITNESS_JOURNAL;
+    const journalEnv = process.env.VOUCHWELL_WITNESS_JOURNAL;
     res = restore({
       from: file,
       database: databasePath(),
@@ -117,7 +119,7 @@ export async function cmdRestore() {
     console.log(YELLOW('  will not co-sign for them until you release each one, ideally with the latest'));
     console.log(YELLOW('  checkpoint it signed, from the customer:'));
     console.log('');
-    console.log(`    ${CYAN('proofwire-hub witness-release <customer> <log> --checkpoint checkpoint.json')}`);
+    console.log(`    ${CYAN('vouchwell-hub witness-release <customer> <log> --checkpoint checkpoint.json')}`);
     console.log('');
   } else {
     console.log(DIM('  The witness catches up from its journal when the hub starts.'));
@@ -126,7 +128,7 @@ export async function cmdRestore() {
   console.log(YELLOW('  A restore can leave the hub behind a checkpoint it already signed.'));
   console.log(YELLOW('  To an auditor that is indistinguishable from deletion, so close the gap:'));
   console.log('');
-  console.log(`    ${CYAN('proofwire-hub reconcile')}`);
+  console.log(`    ${CYAN('vouchwell-hub reconcile')}`);
   console.log('');
 }
 
@@ -175,10 +177,10 @@ export async function cmdReconcile() {
       console.log('');
       console.log(DIM('  After any restore, re-push from every agent — their logs are the'));
       console.log(DIM('  authoritative copy and the push is idempotent:'));
-      console.log(`    ${CYAN('pw push')}   ${DIM('(on each agent)')}`);
+      console.log(`    ${CYAN('vw push')}   ${DIM('(on each agent)')}`);
       console.log('');
       console.log(DIM('  Or compare against a checkpoint held outside this database:'));
-      console.log(`    ${CYAN('proofwire-hub reconcile --against witness-checkpoints.json')}`);
+      console.log(`    ${CYAN('vouchwell-hub reconcile --against witness-checkpoints.json')}`);
     }
   } else {
     if (recoverable.length) {
@@ -201,9 +203,9 @@ export async function cmdReconcile() {
  * @returns {NodeJS.Timeout|null}
  */
 export function scheduleBackups(database) {
-  const dir = process.env.PROOFWIRE_BACKUP_DIR;
-  const hours = Number(process.env.PROOFWIRE_BACKUP_HOURS ?? 6);
-  const keep = Number(process.env.PROOFWIRE_BACKUP_KEEP ?? 14);
+  const dir = process.env.VOUCHWELL_BACKUP_DIR;
+  const hours = Number(process.env.VOUCHWELL_BACKUP_HOURS ?? 6);
+  const keep = Number(process.env.VOUCHWELL_BACKUP_KEEP ?? 14);
   if (!dir || hours <= 0) return null;
 
   const run = () => {

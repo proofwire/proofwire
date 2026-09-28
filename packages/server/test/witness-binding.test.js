@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, generateIdentity, signCheckpoint } from '@proof_wire/core';
+import { ProofLog, generateIdentity, signCheckpoint } from '@vouchwell/core';
 import { Hub } from '../src/app.js';
 
 /**
@@ -35,8 +35,8 @@ function cli(args) {
     encoding: 'utf8',
     env: {
       ...process.env,
-      PROOFWIRE_DB: database,
-      PROOFWIRE_WITNESS_ONLY: '1',
+      VOUCHWELL_DB: database,
+      VOUCHWELL_WITNESS_ONLY: '1',
       NODE_OPTIONS: '--no-warnings=ExperimentalWarning',
     },
   });

@@ -17,7 +17,7 @@ import { createInterface } from 'node:readline';
  * @property {unknown} params      Already redacted — an approver sees a preview, not secrets.
  * @property {string} reason
  * @property {string[]} rules
- * @property {import('@proof_wire/core').Actor} actor
+ * @property {import('@vouchwell/core').Actor} actor
  */
 
 /**
@@ -77,7 +77,7 @@ export function ttyApprover(opts = {}) {
     });
 
     out.write('\n');
-    out.write('  ┌─ Proofwire: approval required ' + '─'.repeat(28) + '\n');
+    out.write('  ┌─ Vouchwell: approval required ' + '─'.repeat(28) + '\n');
     out.write(`  │ tool     ${req.target}\n`);
     out.write(`  │ for      ${req.actor.principal}\n`);
     out.write(`  │ reason   ${req.reason}\n`);

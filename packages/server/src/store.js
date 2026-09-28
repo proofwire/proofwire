@@ -17,7 +17,7 @@ import {
   generateIdentity,
   consistencyFor,
   DEFAULT_GRACE_MS,
-} from '@proof_wire/core';
+} from '@vouchwell/core';
 import { newId, now, today, transact } from './db.js';
 
 /**
@@ -244,7 +244,7 @@ export class Store {
    * @param {object} args
    * @param {string} args.orgId
    * @param {string} args.logId
-   * @param {import('@proof_wire/core').Receipt[]} args.receipts
+   * @param {import('@vouchwell/core').Receipt[]} args.receipts
    * @param {string} [args.batchId]  Client-supplied; makes a retry idempotent.
    * @returns {{ accepted: number, size: number, head: string, root: string, duplicate: boolean }}
    */
@@ -523,7 +523,7 @@ export class Store {
    * @param {string} orgId
    * @param {string} logId
    * @param {import('./signer.js').Signer} signer
-   * @returns {Promise<import('@proof_wire/core').Checkpoint>}
+   * @returns {Promise<import('@vouchwell/core').Checkpoint>}
    */
   async checkpoint(orgId, logId, signer) {
     const log = this.log(orgId, logId);
@@ -585,7 +585,7 @@ export class Store {
    * @param {string} orgId
    * @param {string} logId
    * @param {number} size
-   * @param {import('@proof_wire/core').Signature} sig
+   * @param {import('@vouchwell/core').Signature} sig
    */
   addWitnessSignature(orgId, logId, size, sig) {
     const row = this.db
@@ -855,7 +855,7 @@ export class Store {
     const now = opts.now ?? Date.now();
     const graceMs = opts.graceMs ?? DEFAULT_GRACE_MS;
 
-    // Same rules as findUnfinished in @proof_wire/core, answered by the
+    // Same rules as findUnfinished in @vouchwell/core, answered by the
     // database: the hub may hold millions of receipts, and pruned rows keep
     // exactly the columns this needs (hash, phase, ref, ts).
     const open = this.db
@@ -1046,7 +1046,7 @@ export class Store {
 
     return {
       v: 1,
-      kind: 'proofwire.bundle',
+      kind: 'vouchwell.bundle',
       log: log.slug,
       exported: now(),
       treeSize: log.size,
@@ -1306,7 +1306,7 @@ export class Store {
    * through a `Signer`, which may hold no key material at all.
    *
    * @param {'hub'|'witness'} role
-   * @returns {import('@proof_wire/core').Identity}
+   * @returns {import('@vouchwell/core').Identity}
    */
   serverIdentity(role) {
     const row = this.activeServerKey(role);

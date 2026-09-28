@@ -5,13 +5,13 @@ import { redact } from './redact.js';
 import { entryHash } from './receipt.js';
 
 /**
- * Record the tool calls a JavaScript agent makes, the way `pw proxy` does for
+ * Record the tool calls a JavaScript agent makes, the way `vw proxy` does for
  * MCP servers — for agents whose tools are plain functions: the Vercel AI SDK,
  * the OpenAI Agents SDK, LangChain.js, or your own function calling.
  *
- *     const log = ProofLog.open('.proofwire');
+ *     const log = ProofLog.open('.vouchwell');
  *     const rec = new Recorder({ log, agent: 'support-bot', principal: 'ops@acme.com',
- *                                policy: Policy.parse(fs.readFileSync('proofwire.policy.json', 'utf8')) });
+ *                                policy: Policy.parse(fs.readFileSync('vouchwell.policy.json', 'utf8')) });
  *
  *     const refund = rec.wrap('stripe.refund', async ({ order, amount }) => stripe.refunds.create(...));
  *     await refund({ order: 'o_1', amount: 45 });     // checked, recorded, then run
@@ -33,7 +33,7 @@ import { entryHash } from './receipt.js';
  *     and runs every call anyway.
  */
 
-const RUNTIME = `proofwire-js/${createRequire(import.meta.url)('../package.json').version}`;
+const RUNTIME = `vouchwell-js/${createRequire(import.meta.url)('../package.json').version}`;
 
 /** Recorded when no policy is given: the call was recorded, and nothing decided it. */
 export const NO_POLICY = Object.freeze({

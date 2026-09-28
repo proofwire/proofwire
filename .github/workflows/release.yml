@@ -36,8 +36,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm test
         env:
-          PROOFWIRE_ACCESS_LOG: 'off'
-          PROOFWIRE_INSECURE_COOKIES: '1'
+          VOUCHWELL_ACCESS_LOG: 'off'
+          VOUCHWELL_INSECURE_COOKIES: '1'
       - run: npm run demo
 
   publish:
@@ -121,7 +121,7 @@ jobs:
           # notes generated from commit titles.
           awk -v v="$V" 'index($0, "## " v " ") == 1 { found = 1; next } found && /^## / { exit } found' CHANGELOG.md > notes.md
           if [ -s notes.md ]; then
-            gh release create "$GITHUB_REF_NAME" --verify-tag --title "Proofwire $V" --notes-file notes.md
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "Vouchwell $V" --notes-file notes.md
           else
-            gh release create "$GITHUB_REF_NAME" --verify-tag --title "Proofwire $V" --generate-notes
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "Vouchwell $V" --generate-notes
           fi

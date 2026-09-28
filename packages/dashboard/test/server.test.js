@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
-import { ProofLog } from '@proof_wire/core';
+import { ProofLog } from '@vouchwell/core';
 import { createServer, allowedHosts, insideRoot } from '../src/server.js';
 
 /** Start a dashboard over a fresh log on a random loopback port. */
@@ -16,7 +16,7 @@ async function start(dir = ProofLogDir()) {
 }
 
 function ProofLogDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'proofwire-dash-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-dash-'));
   ProofLog.create(dir);
   return dir;
 }
@@ -95,7 +95,7 @@ test('paths cannot walk out of the public directory', async () => {
     for (const p of ['/../package.json', '/..%2fpackage.json', '/%2e%2e/package.json', String.raw`/..\package.json`]) {
       const res = await get(port, p, `127.0.0.1:${port}`);
       assert.notEqual(res.status, 200, p);
-      assert.doesNotMatch(res.body, /"name": "@proof_wire\/dashboard"/, p);
+      assert.doesNotMatch(res.body, /"name": "@vouchwell\/dashboard"/, p);
     }
   } finally {
     server.close();

@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { ProofLog, Policy, History } from '@proof_wire/core';
+import { ProofLog, Policy, History } from '@vouchwell/core';
 import { c, out, bad, warn, heading, kv, table } from './ui.js';
+import { POLICY_FILE } from './legacy-paths.js';
 
 /**
  * Replay a recorded log against a policy.
@@ -117,13 +118,13 @@ function paint(v) {
 }
 
 /**
- * `pw policy test [policy-file]`
+ * `vw policy test [policy-file]`
  *
  * @param {any} args
  * @param {{ dir: string, config: any }} where
  */
 export function cmdPolicyTest(args, where) {
-  const file = path.resolve(args._[2] ?? args.policy ?? where.config.policy ?? 'proofwire.policy.json');
+  const file = path.resolve(args._[2] ?? args.policy ?? where.config.policy ?? POLICY_FILE());
   let policy;
   try {
     policy = Policy.parse(fs.readFileSync(file, 'utf8'));

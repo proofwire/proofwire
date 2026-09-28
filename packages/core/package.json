@@ -1,5 +1,5 @@
 {
-  "name": "@proof_wire/core",
+  "name": "@vouchwell/core",
   "version": "0.5.0",
   "type": "module",
   "description": "Signed, hash-chained, Merkle-anchored receipts for AI agent actions.",
@@ -7,12 +7,12 @@
   "author": "IdeaboticsAI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/proofwire/proofwire.git",
+    "url": "git+https://github.com/vouchwell/vouchwell.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/proofwire/proofwire#readme",
+  "homepage": "https://github.com/vouchwell/vouchwell#readme",
   "bugs": {
-    "url": "https://github.com/proofwire/proofwire/issues"
+    "url": "https://github.com/vouchwell/vouchwell/issues"
   },
   "keywords": [
     "ai-agents",

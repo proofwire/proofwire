@@ -1,4 +1,4 @@
-name: proofwire
+name: vouchwell
 
 # Tests feed hostile input on purpose (fake keys, script tags, odd paths); an
 # alert there is the test doing its job.
@@ -9,9 +9,9 @@ paths-ignore:
 
 query-filters:
   # The CLI's job is to talk to the hub it was pointed at: it reads the API key
-  # it stored (`pw remote add`) and sends it there, and saves the policy it
+  # it stored (`vw remote add`) and sends it there, and saves the policy it
   # pulls to a file. These two queries flag exactly that, every time, and would
-  # bury anything real. `pw remote add` refusing cleartext URLs is the control
+  # bury anything real. `vw remote add` refusing cleartext URLs is the control
   # that matters here, and it is tested.
   - exclude:
       id: js/file-access-to-http

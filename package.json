@@ -1,9 +1,9 @@
 {
-  "name": "proofwire-monorepo",
+  "name": "vouchwell-monorepo",
   "version": "0.5.0",
   "private": true,
   "type": "module",
-  "description": "Proofwire — tamper-evident, independently verifiable receipts for AI agent actions.",
+  "description": "Vouchwell — tamper-evident, independently verifiable receipts for AI agent actions.",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=20.11"
@@ -18,7 +18,7 @@
   "scripts": {
     "test": "node --no-warnings=ExperimentalWarning --test",
     "demo": "node examples/demo.js",
-    "pw": "node packages/cli/src/bin.js",
+    "vw": "node packages/cli/src/bin.js",
     "hub": "node --no-warnings=ExperimentalWarning packages/server/src/bin.js",
     "release": "node scripts/release.js",
     "release:dry": "node scripts/release.js --dry-run",
@@ -26,10 +26,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/proofwire/proofwire.git"
+    "url": "git+https://github.com/vouchwell/vouchwell.git"
   },
-  "homepage": "https://github.com/proofwire/proofwire#readme",
+  "homepage": "https://github.com/vouchwell/vouchwell#readme",
   "bugs": {
-    "url": "https://github.com/proofwire/proofwire/issues"
+    "url": "https://github.com/vouchwell/vouchwell/issues"
   }
 }

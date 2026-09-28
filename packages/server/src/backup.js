@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { canonicalBytes } from '@proof_wire/core';
+import { canonicalBytes } from '@vouchwell/core';
 import { openDatabase, openReadOnly, now } from './db.js';
 import { Store } from './store.js';
 
@@ -78,7 +78,7 @@ export function backup(args) {
   const digest = createHash('sha256').update(bytes).digest('hex');
 
   const manifest = {
-    kind: 'proofwire.backup',
+    kind: 'vouchwell.backup',
     v: 1,
     at: now(),
     file: path.basename(outPath),
@@ -259,7 +259,7 @@ export function restore(args) {
  * Only a party holding the later evidence can see the gap:
  *
  *   - **the agent**, whose local log is longer. This is the normal path and it
- *     self-heals: `pw push` detects the shortfall and re-sends the difference.
+ *     self-heals: `vw push` detects the shortfall and re-sends the difference.
  *   - **a witness or auditor** holding a later checkpoint. Pass it as
  *     `reference` and the gap is reported here.
  *
@@ -268,7 +268,7 @@ export function restore(args) {
  *
  * @param {string} database
  * @param {object} [opts]
- * @param {import('@proof_wire/core').Checkpoint[]} [opts.reference]
+ * @param {import('@vouchwell/core').Checkpoint[]} [opts.reference]
  *   Checkpoints obtained from outside this database — from a witness, an
  *   auditor, or a previous export.
  * @returns {{ ok: boolean, logs: object[], selfReferential: boolean }}
@@ -313,7 +313,7 @@ export function reconcile(database, opts = {}) {
             detail:
               `${missing} receipt(s) covered by a signed checkpoint are not stored. ` +
               `The agent that owns this log still holds them.`,
-            remedy: `On the agent: pw push --name ${log.slug}`,
+            remedy: `On the agent: vw push --name ${log.slug}`,
           });
           continue;
         }

@@ -4,14 +4,14 @@
 
 Use GitHub's private vulnerability reporting:
 
-**https://github.com/proofwire/proofwire/security/advisories/new**
+**https://github.com/vouchwell/vouchwell/security/advisories/new**
 
 It reaches the maintainers privately and keeps the fix and the disclosure in
 one place. There is no security mailbox yet; this file will say so when
 there is one.
 
 Please include enough to reproduce: a failing test, a crafted bundle, or the
-sequence of API calls. A proof-of-concept that makes `pw check` accept
+sequence of API calls. A proof-of-concept that makes `vw check` accept
 something it should reject is worth more than any amount of prose.
 
 **What to expect:** acknowledgement within 3 working days, an assessment within
@@ -51,7 +51,7 @@ will be closed as known — see [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md):
 - **An attacker with an agent's signing key can write new false receipts.** The
   chain proves consistency, not truthfulness. It still cannot rewrite the past
   once a checkpoint is witnessed.
-- **Actions that bypass the proxy leave no receipt.** Proofwire records what
+- **Actions that bypass the proxy leave no receipt.** Vouchwell records what
   passes through it. An unwrapped credential is a deployment gap.
 - **Redaction misses secrets shaped like prose.** It is pattern-based and
   best-effort; commitments, not redaction, keep payloads out of the log.

@@ -1,25 +1,29 @@
-# Proofwire
+# Vouchwell
 
 **Tamper-evident receipts for AI agent actions.**
+
+> **Formerly Proofwire.** Renamed after 0.5.0 because another company was
+> already using the name. The `proofwire` and `@proof_wire/*` packages point
+> here; existing logs, settings, hubs and evidence keep working unchanged.
 
 Your agents spend money, send mail, and touch customer data. When something
 goes wrong, "our logs say it didn't" is not an answer — your logs are a text
 file you can edit.
 
-Proofwire makes every agent action **policy-gated before it runs** and
+Vouchwell makes every agent action **policy-gated before it runs** and
 **cryptographically provable afterwards**. One line of config. No code change.
 
 Run it standalone on one machine, or as a **hub** your whole organisation
 writes to — with shared policy, an approvals inbox, tenant isolation, and
 independent witnesses that make a hosted log worth believing.
 
-**[Check a real log in your browser →](https://proofwire.github.io/proofwire/)** Then try to cheat it: edit a
+**[Check a real log in your browser →](https://vouchwell.github.io/vouchwell/)** Then try to cheat it: edit a
 receipt, cut the tail off, invent your own witnesses. Nothing you paste leaves
 the page.
 
 ```bash
-npm install -g proofwire
-pw init
+npm install -g vouchwell
+vw init
 ```
 
 Then wrap any MCP server:
@@ -29,7 +33,7 @@ Then wrap any MCP server:
 { "command": "npx", "args": ["-y", "@acme/mcp-crm"] }
 
 // after
-{ "command": "pw", "args": ["proxy", "--namespace", "crm", "--", "npx", "-y", "@acme/mcp-crm"] }
+{ "command": "vw", "args": ["proxy", "--namespace", "crm", "--", "npx", "-y", "@acme/mcp-crm"] }
 ```
 
 That is the whole integration. Every tool call now hits your policy first, and
@@ -41,7 +45,7 @@ append-only log that an outside party can verify without trusting you.
 ## See it in one command
 
 ```bash
-git clone https://github.com/proofwire/proofwire && cd proofwire
+git clone https://github.com/vouchwell/vouchwell && cd vouchwell
 npm install
 npm run demo
 ```
@@ -86,13 +90,13 @@ server** with a domain, automatic HTTPS and a hardened setup, use `deploy/`:
 > actually runs read-only and non-root (`scripts/docker-smoke.mjs`). It also caught
 > a real bug: a receipt missing an actor field crashed the hub with a raw SQLite
 > error instead of a clean 4xx — fixed in `buildReceipt`/`verifyReceipt`. The two-
-> container witnessing flow below (`docker compose up -d witness`, `pw remote add
-> --name witness`, `pw cosign --remote witness`) was run by hand against both
-> containers, through to `pw check --witnesses 1` on the resulting bundle.
+> container witnessing flow below (`docker compose up -d witness`, `vw remote add
+> --name witness`, `vw cosign --remote witness`) was run by hand against both
+> containers, through to `vw check --witnesses 1` on the resulting bundle.
 
 ```bash
-pw remote add --url https://hub.acme.com --token <agent token>
-pw proxy --namespace crm -- npx -y @acme/mcp-crm
+vw remote add --url https://hub.acme.com --token <agent token>
+vw proxy --namespace crm -- npx -y @acme/mcp-crm
 ```
 
 The proxy now fetches your organisation's active policy at startup, enforces
@@ -126,7 +130,7 @@ whose hub is unreachable keeps running, keeps recording locally, and ships the
 backlog when it returns.
 
 Keys can live in a KMS or HSM rather than the hub's database
-(`PROOFWIRE_SIGNER`), backups and restores have a drilled runbook, and
+(`VOUCHWELL_SIGNER`), backups and restores have a drilled runbook, and
 invitations and password resets are built in.
 
 Full deployment and operations guide: [`docs/HUB.md`](docs/HUB.md) · for
@@ -137,11 +141,11 @@ reviewers: [`docs/AUDIT-BRIEF.md`](docs/AUDIT-BRIEF.md).
 ## Why this is different
 
 Everyone is building agent **observability** — dashboards that show you what
-your agent did, which you have to take on faith. Proofwire builds agent
+your agent did, which you have to take on faith. Vouchwell builds agent
 **evidence**: a record whose integrity a third party can check independently,
 using nothing but the file you hand them.
 
-|                                | Observability tools | Proofwire |
+|                                | Observability tools | Vouchwell |
 | ------------------------------ | ------------------- | --------- |
 | Shows what the agent did       | ✅                  | ✅        |
 | Blocks the action before it runs| ❌                  | ✅        |
@@ -218,14 +222,14 @@ Eleven ready-made policies cover what nearly every deployment needs to stop:
 | `read-only` | An allowlist: lookups run, everything else is refused |
 
 ```bash
-pw init --template secrets,destructive-sql,payments      # a new project
-pw policy template shell-safety loop-guard --out proofwire.policy.json
-pw policy template payments --explain                     # what it assumes
+vw init --template secrets,destructive-sql,payments      # a new project
+vw policy template shell-safety loop-guard --out vouchwell.policy.json
+vw policy template payments --explain                     # what it assumes
 ```
 
 Combined, refusals are placed ahead of allows, so `read-only` can never let
 through something `destructive-sql` refuses. The output is ordinary policy:
-read it, edit it, push it to a hub with `pw policy push`, or load it in code
+read it, edit it, push it to a hub with `vw policy push`, or load it in code
 with `new Policy(composePolicy(['secrets', 'payments']))`. Templates match the
 names most tools use (`send_email`, `params.sql`, `params.command`), which may
 not be yours, so check them against your own traffic first, as below.
@@ -233,13 +237,13 @@ not be yours, so check them against your own traffic first, as below.
 ### Try a policy before it can block anything
 
 ```bash
-pw proxy --monitor -- npx -y @acme/mcp-crm
+vw proxy --monitor -- npx -y @acme/mcp-crm
 ```
 
 Monitor mode evaluates the policy exactly as enforcement would, then forwards
 every call anyway, including ones the egress guard would stop. Nothing is
 blocked and no one is asked to approve anything. It is the status quo plus a
-record. `pw log --would-block` and `pw stats` then show what the policy *would*
+record. `vw log --would-block` and `vw stats` then show what the policy *would*
 have stopped, and which rule did it, against your real traffic. When that list
 contains only things you want stopped, drop the flag.
 
@@ -248,15 +252,15 @@ The receipts stay truthful. A call that ran is recorded as `allow`, never as a
 policy objected, `"wouldBe": "deny"` or `"escalate"`, all inside the signature.
 So a bundle shows an auditor that the policy was only observed, and a monitored
 call counts against budgets because it really spent the money. Set
-`"monitor": true` in `proofwire.config.json` to make it the default on a
+`"monitor": true` in `vouchwell.config.json` to make it the default on a
 machine; `--enforce` overrides that. A hub's policy cannot switch it on.
 
 Before you drop `--monitor`, or before you change a policy that is already
 enforcing, replay what you recorded against the new version:
 
 ```bash
-pw policy test proofwire.policy.json
-pw policy test next.policy.json --fail-on-change   # exit 1 if any verdict differs
+vw policy test vouchwell.policy.json
+vw policy test next.policy.json --fail-on-change   # exit 1 if any verdict differs
 ```
 
 It lists each call whose verdict would change (`deny → allow`, `allow →
@@ -301,7 +305,7 @@ live in a separate file. So:
 
 - **A receipt is publishable as written.** No "sanitise before exporting" step
   to forget.
-- **Erasure and audit stop being in conflict.** `pw shred --before 2026-01-01`
+- **Erasure and audit stop being in conflict.** `vw shred --before 2026-01-01`
   destroys the salts. Those payloads become permanently unopenable — by you,
   by a court, by whoever steals the directory in 2029 — while every signature,
   chain link and inclusion proof still verifies. That is a real GDPR Article 17
@@ -316,9 +320,9 @@ extends the last one they saw, so a split view requires every witness to
 collude.
 
 ```bash
-pw witness keygen               # on the witness's machine
-pw trust pw1a4f… <publicKey>    # on the log's machine
-pw check evidence.json --witnesses 2 --witness-keys witnesses.json
+vw witness keygen               # on the witness's machine
+vw trust pw1a4f… <publicKey>    # on the log's machine
+vw check evidence.json --witnesses 2 --witness-keys witnesses.json
 ```
 
 `witnesses.json` holds the witnesses' public keys **as their operators
@@ -330,8 +334,8 @@ checkpoints. Only signatures from keys you pinned are counted, and asking for
 whatever the bundle contains.
 
 Witnessing doesn't have to be a chore. Put `"witnesses": ["w1", "w2"]` in
-`proofwire.config.json` and every `pw proxy` session ends with each witness
-signing. On a hub, `pw witnesses add` has every hub checkpoint co-signed, and
+`vouchwell.config.json` and every `vw proxy` session ends with each witness
+signing. On a hub, `vw witnesses add` has every hub checkpoint co-signed, and
 a witness refusing a checkpoint lands in the audit trail. See
 [the hub guide](docs/HUB.md#witnessing).
 
@@ -343,8 +347,8 @@ lost while a destination is down, and an action's parameters never leave the
 hub:
 
 ```bash
-PROOFWIRE_STREAM_TOKEN=<HEC token> pw streams add splunk --type splunk --url https://splunk.example.com:8088
-pw streams add soc --type webhook --url https://soc.example.com/hook --receipts blocked
+VOUCHWELL_STREAM_TOKEN=<HEC token> vw streams add splunk --type splunk --url https://splunk.example.com:8088
+vw streams add soc --type webhook --url https://soc.example.com/hook --receipts blocked
 ```
 
 See [streaming to your SIEM](docs/STREAMING.md).
@@ -355,10 +359,10 @@ See [streaming to your SIEM](docs/STREAMING.md).
 
 ```
 Setup
-  pw init                        create a log, a starter policy, and a config
+  vw init                        create a log, a starter policy, and a config
 
 Run
-  pw proxy -- <cmd...>           wrap an MCP server; enforce policy, write receipts
+  vw proxy -- <cmd...>           wrap an MCP server; enforce policy, write receipts
     --namespace <ns>             prefix tool names in receipts
     --principal <id>             who the agent is acting for
     --approve tty|webhook|deny   how escalations get resolved
@@ -366,37 +370,37 @@ Run
     --enforce                    gate even if the config says "monitor": true
 
 Inspect
-  pw log                         recent receipts  [--tail N --denied --would-block --unfinished --target X --json]
-  pw stats                       totals, spend, busiest tools
-  pw policy test [file]          replay the log against a policy  [--fail-on-change --json]
-  pw dash                        browsable dashboard  [--port 7788]
+  vw log                         recent receipts  [--tail N --denied --would-block --unfinished --target X --json]
+  vw stats                       totals, spend, busiest tools
+  vw policy test [file]          replay the log against a policy  [--fail-on-change --json]
+  vw dash                        browsable dashboard  [--port 7788]
 
 Prove
-  pw verify                      audit the local log end to end  [--fail-on-unfinished]
-  pw prove <seq>                 inclusion proof for one receipt
-  pw export [file]               evidence bundle for a third party
-  pw check <file>                verify a bundle with nothing but itself
-  pw report                      evidence pack for auditors (AI Act, SOC 2); see docs/EVIDENCE.md
+  vw verify                      audit the local log end to end  [--fail-on-unfinished]
+  vw prove <seq>                 inclusion proof for one receipt
+  vw export [file]               evidence bundle for a third party
+  vw check <file>                verify a bundle with nothing but itself
+  vw report                      evidence pack for auditors (AI Act, SOC 2); see docs/EVIDENCE.md
 
 Hub
-  pw remote add --url <hub> --token <key>   connect this machine (https, or
+  vw remote add --url <hub> --token <key>   connect this machine (https, or
                                  http to localhost; --insecure to override)
-  pw push                        ship local receipts the hub is missing
-  pw remote-verify <log>         verify a hosted log from outside
-  pw policy push|pull|list       manage the org's shared policy
-  pw cosign                      have witnesses counter-sign your latest root
+  vw push                        ship local receipts the hub is missing
+  vw remote-verify <log>         verify a hosted log from outside
+  vw policy push|pull|list       manage the org's shared policy
+  vw cosign                      have witnesses counter-sign your latest root
                                  (--remote a,b, or "witnesses" in the config)
-  pw witnesses list|add|remove   outside witnesses for every hub checkpoint (admin key)
-  pw streams list|add|test       events to Splunk, Datadog, OTel, a webhook (admin key)
+  vw witnesses list|add|remove   outside witnesses for every hub checkpoint (admin key)
+  vw streams list|add|test       events to Splunk, Datadog, OTel, a webhook (admin key)
 
 Govern
-  pw keys                        public keys to publish for verifiers
-  pw witness keygen              create an independent witness identity
-  pw trust <kid> <pubkey>        trust a witness or another signer
-  pw shred --before <date>       destroy payload commitments, keep the audit trail
+  vw keys                        public keys to publish for verifiers
+  vw witness keygen              create an independent witness identity
+  vw trust <kid> <pubkey>        trust a witness or another signer
+  vw shred --before <date>       destroy payload commitments, keep the audit trail
 ```
 
-`pw verify` exits non-zero when a log has been altered — put it in CI. It also
+`vw verify` exits non-zero when a log has been altered — put it in CI. It also
 lists calls that were authorised and sent but never finished (the agent died
 mid-call); `--fail-on-unfinished` makes those exit 3.
 
@@ -408,13 +412,13 @@ Not on MCP? Wrap the tools themselves. The core is a small, dependency-free ES m
 
 ```js
 import fs from 'node:fs';
-import { ProofLog, Policy, Recorder, PolicyDenied } from '@proof_wire/core';
+import { ProofLog, Policy, Recorder, PolicyDenied } from '@vouchwell/core';
 
 const rec = new Recorder({
-  log: ProofLog.open('.proofwire'),
+  log: ProofLog.open('.vouchwell'),
   agent: 'support-bot',
   principal: 'ops@acme.com',
-  policy: Policy.parse(fs.readFileSync('proofwire.policy.json', 'utf8')),
+  policy: Policy.parse(fs.readFileSync('vouchwell.policy.json', 'utf8')),
   metrics: (tool, args) => (tool === 'stripe.refund' ? { amount_usd: args.amount } : {}),
   approver: async (req) => askSomeone(req),   // optional: who answers an escalation
 });
@@ -423,7 +427,7 @@ const refund = rec.wrap('stripe.refund', async ({ order, amount }) => stripe.ref
 await refund({ order: 'o_1', amount: 45 });   // checked, recorded, then run; throws PolicyDenied if refused
 ```
 
-The same rules as `pw proxy`, receipt for receipt: the policy (budgets and
+The same rules as `vw proxy`, receipt for receipt: the policy (budgets and
 rate limits included) decides first; an allowed call gets an intent receipt
 *before* it runs and a linked outcome after; a refused one never runs;
 `monitor: true` records what would have been blocked without blocking it.
@@ -433,11 +437,11 @@ Tools described as objects with an `execute` function (the Vercel AI SDK's
 `tool()`, Mastra) can be wrapped in one go:
 
 ```js
-import { recordTools } from '@proof_wire/core';
+import { recordTools } from '@vouchwell/core';
 const result = await generateText({ model, tools: recordTools(rec, { weather, refund }), prompt });
 ```
 
-Python agents have the same in [`proof-wire`](sdk/python/README.md), with
+Python agents have the same in [`vouchwell`](sdk/python/README.md), with
 adapters for LangChain and the OpenAI Agents SDK.
 
 ---
@@ -447,7 +451,7 @@ adapters for LangChain and the OpenAI Agents SDK.
 Stated plainly, because a security tool that overstates its guarantees is worse
 than none:
 
-- **It cannot prove an action it never saw.** Proofwire records what passes
+- **It cannot prove an action it never saw.** Vouchwell records what passes
   through it. An agent with a second, unwrapped path to the same API leaves no
   receipt. Route tools through the proxy and treat unwrapped credentials as the
   hole they are.

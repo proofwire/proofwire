@@ -1,27 +1,31 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { ProofLog, Policy, verifyBundle, witnessCheckpoint } from '@proof_wire/core';
-import { RemoteSink, fetchPolicy, trimSlashes } from '@proof_wire/proxy/remote';
+import { ProofLog, Policy, verifyBundle, witnessCheckpoint } from '@vouchwell/core';
+import { RemoteSink, fetchPolicy, trimSlashes } from '@vouchwell/proxy/remote';
 import { c, out, ok, bad, warn, info, heading, kv, table } from './ui.js';
 import { witnessKeysFrom } from './witness-keys.js';
+import { LOG_DIR, POLICY_FILE, credentialsToRead } from './legacy-paths.js';
 
 /**
- * Commands that connect a local log to a Proofwire hub.
+ * Commands that connect a local log to a Vouchwell hub.
  *
- * Credentials live in `~/.proofwire/credentials.json`, not in the project, so
+ * Credentials live in `~/.vouchwell/credentials.json`, not in the project, so
  * a token cannot be committed by accident and one machine's credentials serve
  * every project on it.
  */
 
-const CRED_DIR = path.join(os.homedir(), '.proofwire');
+const CRED_DIR = path.join(os.homedir(), '.vouchwell');
 const CRED_FILE = path.join(CRED_DIR, 'credentials.json');
 
 /** @returns {Record<string, { url: string, token: string, log?: string }>} */
 export function loadRemotes() {
-  if (!fs.existsSync(CRED_FILE)) return {};
+  // Read from ~/.proofwire if that's all there is (set up before the rename);
+  // saving always writes ~/.vouchwell, which is read from then on.
+  const file = credentialsToRead();
+  if (!fs.existsSync(file)) return {};
   try {
-    return JSON.parse(fs.readFileSync(CRED_FILE, 'utf8'));
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch {
     return {};
   }
@@ -48,7 +52,7 @@ export function resolveRemote(args) {
     throw new Error(
       known.length
         ? `no remote "${name}" (have: ${known.join(', ')})`
-        : 'no hub configured — run `pw remote add --url <hub> --token <key>`',
+        : 'no hub configured — run `vw remote add --url <hub> --token <key>`',
     );
   }
   return { name, ...remote };
@@ -86,7 +90,7 @@ export async function cmdRemote(args) {
     if (names.length === 0) {
       out('  ' + c.grey('none configured'));
       out('');
-      info(`add one:  ${c.cyan('pw remote add --url https://hub.acme.com --token <key>')}`);
+      info(`add one:  ${c.cyan('vw remote add --url https://hub.acme.com --token <key>')}`);
       out('');
       return 0;
     }
@@ -106,7 +110,7 @@ export async function cmdRemote(args) {
 
   if (action === 'add') {
     if (!args.url || !args.token) {
-      bad('usage: pw remote add --url <hub url> --token <api key> [--name default] [--log <slug>]');
+      bad('usage: vw remote add --url <hub url> --token <api key> [--name default] [--log <slug>]');
       return 2;
     }
     const name = args.name ?? 'default';
@@ -162,7 +166,7 @@ export async function cmdRemote(args) {
     ]);
     out('');
     if (who.scopes.includes('witness:sign') && !who.scopes.includes('receipts:write')) {
-      info(`A witness key: it co-signs this log's checkpoints with ${c.cyan(`pw cosign --remote ${name}`)}.`);
+      info(`A witness key: it co-signs this log's checkpoints with ${c.cyan(`vw cosign --remote ${name}`)}.`);
       out('');
     } else if (!who.scopes.includes('receipts:write')) {
       warn('This key cannot push receipts. That is right for an auditor, wrong for an agent.');
@@ -184,7 +188,7 @@ export async function cmdRemote(args) {
     return 0;
   }
 
-  bad('usage: pw remote <list|add|remove>');
+  bad('usage: vw remote <list|add|remove>');
   return 2;
 }
 
@@ -195,7 +199,7 @@ export async function cmdRemote(args) {
  */
 export async function cmdPush(args) {
   const remote = resolveRemote(args);
-  const dir = path.resolve(args.log ?? '.proofwire');
+  const dir = path.resolve(args.log ?? LOG_DIR());
   const localLog = ProofLog.open(dir, { readOnly: true });
   const slug = args.name ?? remote.log ?? localLog.logId;
 
@@ -250,7 +254,7 @@ export async function cmdRemoteVerify(args) {
   const remote = resolveRemote(args);
   const slug = args._[1] ?? args.name ?? remote.log;
   if (!slug) {
-    bad('which log? `pw remote-verify <log>`');
+    bad('which log? `vw remote-verify <log>`');
     return 2;
   }
 
@@ -290,7 +294,7 @@ export async function cmdRemoteVerify(args) {
 
   // A hub could still show two histories. Comparing against a local copy is
   // the cheapest way to catch that, and costs nothing when one exists.
-  const dir = path.resolve(args.compare ?? '.proofwire');
+  const dir = path.resolve(args.compare ?? LOG_DIR());
   if (fs.existsSync(path.join(dir, 'config.json'))) {
     const localLog = ProofLog.open(dir, { readOnly: true });
     if (localLog.size === bundle.treeSize && localLog.root !== bundle.root) {
@@ -321,7 +325,7 @@ export async function cmdPolicy(args) {
   const headers = { authorization: `Bearer ${remote.token}`, 'content-type': 'application/json' };
 
   if (action === 'push') {
-    const file = args._[2] ?? 'proofwire.policy.json';
+    const file = args._[2] ?? POLICY_FILE();
     const slug = args.name ?? path.basename(file).replace(/\.policy\.json$|\.json$/, '');
     const text = fs.readFileSync(file, 'utf8');
 
@@ -366,7 +370,7 @@ export async function cmdPolicy(args) {
   if (action === 'pull') {
     const slug = args._[2] ?? args.name;
     if (!slug) {
-      bad('usage: pw policy pull <slug> [--out file]');
+      bad('usage: vw policy pull <slug> [--out file]');
       return 2;
     }
     const active = await fetchPolicy({ url: remote.url, token: remote.token, slug });
@@ -407,7 +411,7 @@ export async function cmdPolicy(args) {
     return 0;
   }
 
-  bad('usage: pw policy <list|push|pull>');
+  bad('usage: vw policy <list|push|pull>');
   return 2;
 }
 
@@ -473,7 +477,7 @@ export function explainRefusal(e, localLog, say) {
 }
 
 /**
- * `pw cosign`: have witnesses counter-sign the latest checkpoint of a local
+ * `vw cosign`: have witnesses counter-sign the latest checkpoint of a local
  * log. Asks every witness named by `--remote a,b`, or listed in the config's
  * `witnesses`, or the default remote.
  *
@@ -513,7 +517,7 @@ export async function cmdCosign(args, where) {
       ]);
       out('');
       info('An auditor can now require this signature, pinning the witness they trust:');
-      out(`  ${c.cyan(`pw check evidence.json --witnesses 1 --witness-key ${res.witness.kid}=${res.witness.publicKey}`)}`);
+      out(`  ${c.cyan(`vw check evidence.json --witnesses 1 --witness-key ${res.witness.kid}=${res.witness.publicKey}`)}`);
       out('');
     } catch (e) {
       failed++;
@@ -528,12 +532,12 @@ export async function cmdCosign(args, where) {
 }
 
 /**
- * `pw slack connect|status|test|disconnect` — Slack approvals for the hub's
+ * `vw slack connect|status|test|disconnect` — Slack approvals for the hub's
  * organization. Needs an admin key.
  *
  * The webhook URL and signing secret are credentials, so they can come from
  * the environment rather than the command line, where they would land in
- * shell history: PROOFWIRE_SLACK_WEBHOOK_URL and PROOFWIRE_SLACK_SIGNING_SECRET.
+ * shell history: VOUCHWELL_SLACK_WEBHOOK_URL and VOUCHWELL_SLACK_SIGNING_SECRET.
  *
  * @param {any} args
  */
@@ -553,11 +557,11 @@ export async function cmdSlack(args) {
 
   try {
     if (action === 'connect') {
-      const webhookUrl = args['webhook-url'] ?? process.env.PROOFWIRE_SLACK_WEBHOOK_URL;
-      const signingSecret = args['signing-secret'] ?? process.env.PROOFWIRE_SLACK_SIGNING_SECRET;
+      const webhookUrl = args['webhook-url'] ?? process.env.VOUCHWELL_SLACK_WEBHOOK_URL;
+      const signingSecret = args['signing-secret'] ?? process.env.VOUCHWELL_SLACK_SIGNING_SECRET;
       if (!webhookUrl || !signingSecret) {
-        bad('usage: pw slack connect --webhook-url <url> --signing-secret <secret> [--approver U123,U456]');
-        info('or set PROOFWIRE_SLACK_WEBHOOK_URL and PROOFWIRE_SLACK_SIGNING_SECRET, to keep them out of shell history.');
+        bad('usage: vw slack connect --webhook-url <url> --signing-secret <secret> [--approver U123,U456]');
+        info('or set VOUCHWELL_SLACK_WEBHOOK_URL and VOUCHWELL_SLACK_SIGNING_SECRET, to keep them out of shell history.');
         info('See docs/SLACK.md for creating the Slack app.');
         return 2;
       }
@@ -570,7 +574,7 @@ export async function cmdSlack(args) {
       ]);
       out('');
       info('Set that URL as the Request URL under Interactivity in the Slack app, then:');
-      out(`    ${c.cyan('pw slack test')}`);
+      out(`    ${c.cyan('vw slack test')}`);
       if (!approvers.length) {
         warn('With no --approver list, anyone who can see the channel can approve. Keep the channel private,');
         warn('or name the Slack user IDs allowed to decide.');
@@ -584,7 +588,7 @@ export async function cmdSlack(args) {
       if (!res.configured) {
         kv([['status', c.grey('not connected')]]);
         out('');
-        info(`connect with ${c.cyan('pw slack connect')} — see docs/SLACK.md`);
+        info(`connect with ${c.cyan('vw slack connect')} — see docs/SLACK.md`);
         out('');
         return 0;
       }
