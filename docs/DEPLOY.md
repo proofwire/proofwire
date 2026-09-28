@@ -93,6 +93,32 @@ In `.env`:
 | `PROOFWIRE_DOMAIN` | The hostname from step 1, e.g. `witness1.yourdomain.com` |
 | `PROOFWIRE_TLS` | An email address for Let's Encrypt expiry notices. Or `internal` for a self-signed certificate, to test before DNS is ready. |
 | `PROOFWIRE_WITNESS_ONLY` | `1` for a witness node (the default). `0` for a full hub. |
+| `PROOFWIRE_JOURNAL_DIR` | Recommended: an absolute path on a separate disk for the witness journal (below). Unset, it gets its own Docker volume on the same disk as the database. |
+
+### Give the witness journal its own disk
+
+Every signature the witness gives is also written to a journal outside its
+database. If the database is ever restored from a backup, the witness catches
+up from the journal instead of forgetting what it signed, which would let it
+vouch for a forked history. That only helps if the journal survives what the
+database didn't, so put it on a different disk: a block volume from your
+provider (Hetzner Volumes, DigitalOcean Volumes, EBS), 10 GB is plenty.
+
+```bash
+# After attaching the volume in the provider's console. Hetzner mounts it for
+# you under /mnt/HC_Volume_<id>; otherwise format and mount it once:
+sudo mkfs.ext4 /dev/sdb                      # check the device name with lsblk first
+sudo mkdir -p /mnt/journal && sudo mount /dev/sdb /mnt/journal
+echo '/dev/sdb /mnt/journal ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+```
+
+Then set `PROOFWIRE_JOURNAL_DIR=/mnt/journal/proofwire` in `.env` and run
+`./setup.sh`. Run as root, it creates the directory owned by the node's user;
+otherwise it prints the one `sudo` command to run. It warns if the directory is
+on the same disk as Docker's volumes after all.
+
+Moving the journal later is safe: on start, a node whose journal is empty fills
+it from the database.
 
 `setup.sh` finishes by printing the node's public keys and the exact command
 that publishes the witness key. If it can't reach the node over HTTPS within
@@ -171,9 +197,12 @@ docker compose cp node:/backups /var/backups/proofwire
 # then ship /var/backups/proofwire elsewhere: rsync, rclone to object storage, etc.
 ```
 
-Read [HUB.md → Backups](HUB.md#backups) before you ever restore. A restored
-node can't tell it is stale, and for a witness that matters: a witness restored
-to an older state would accept a checkpoint it had already seen superseded.
+Backups hold the database only, never the witness journal: that is the point
+of the journal. Read [HUB.md → Backups](HUB.md#backups) before you ever
+restore. A restored witness catches up from its journal when it starts; if the
+journal was lost too, `restore` puts every log on hold until you release it with
+`witness-release`, because a witness restored to an older state could otherwise
+sign a fork of a history it already vouched for.
 
 ### Upgrades
 
@@ -220,6 +249,8 @@ fails if the database stops answering.
 - **Images are pinned.** Caddy is pinned by digest, and Dependabot proposes
   updates as pull requests.
 - **Logs rotate** at 10 MB × 5 files per container, so they can't fill the disk.
+- **The witness journal has its own volume**, `journal`, or the directory in
+  `PROOFWIRE_JOURNAL_DIR`, apart from the database's.
 
 ### What it doesn't do yet
 

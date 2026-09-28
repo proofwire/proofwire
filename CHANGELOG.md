@@ -5,6 +5,18 @@ release together at the same version.
 
 ## Unreleased
 
+### Added
+
+- **The deploy kit keeps the witness journal on its own volume.** It gets a
+  Docker volume of its own by default, or `PROOFWIRE_JOURNAL_DIR` puts it on a
+  separately attached disk, so a lost or restored database disk doesn't take
+  the journal with it. `setup.sh` creates the directory owned by the node's
+  user (or prints the `sudo` command), refuses a relative path, and warns when
+  the directory is on the same disk as Docker's volumes. DEPLOY.md covers
+  attaching a block volume. An existing node that moves its journal fills the
+  new one from its database on start. CI checks the co-signature it makes
+  lands in the journal on its own volume.
+
 ## 0.5.0 — 2026-09-28
 
 ### Security

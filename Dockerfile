@@ -27,7 +27,10 @@ COPY packages/proxy  packages/proxy
 COPY packages/cli    packages/cli
 COPY packages/server packages/server
 
-RUN mkdir -p /data /backups && chown -R proofwire:proofwire /data /backups /app
+# /journal is the witness journal's home: a separate volume, ideally on a
+# separate disk, so a restored database can't make the witness forget what it
+# signed (see witness-journal.js and docs/DEPLOY.md).
+RUN mkdir -p /data /backups /journal && chown -R proofwire:proofwire /data /backups /journal /app
 USER proofwire
 
 ENV NODE_ENV=production \

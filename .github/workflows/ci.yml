@@ -268,6 +268,13 @@ jobs:
           pin="$(node -e "const j=require(process.argv[1]); process.stdout.write(j.witness.kid+'='+j.witness.publicKey)" "$RUNNER_TEMP/identity.json")"
           $pw check evidence.json --witnesses 1 --witness-key "$pin"
 
+      - name: The co-signature is in the witness journal, on its own volume
+        working-directory: deploy
+        run: |
+          docker compose exec -T node test -s /journal/witness-journal.jsonl
+          docker compose exec -T node grep -q '"t":"sign"' /journal/witness-journal.jsonl
+          docker volume inspect proofwire_journal > /dev/null
+
       - name: Backups land on their volume, and keys survive a restart
         working-directory: deploy
         run: |
