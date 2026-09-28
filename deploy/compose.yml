@@ -29,8 +29,10 @@ services:
       - "443:443"
       - "443:443/udp"
     environment:
-      VOUCHWELL_DOMAIN: ${VOUCHWELL_DOMAIN:-${PROOFWIRE_DOMAIN:?set VOUCHWELL_DOMAIN in deploy/.env}}
-      VOUCHWELL_TLS: ${VOUCHWELL_TLS:-${PROOFWIRE_TLS:?set VOUCHWELL_TLS in deploy/.env}}
+      # No ${...:?} here: some Compose versions evaluate a nested one even when
+      # the outer variable is set. setup.sh refuses to start without both.
+      VOUCHWELL_DOMAIN: ${VOUCHWELL_DOMAIN:-${PROOFWIRE_DOMAIN:-}}
+      VOUCHWELL_TLS: ${VOUCHWELL_TLS:-${PROOFWIRE_TLS:-}}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       # Certificates and the ACME account. Losing these only costs a reissue.
