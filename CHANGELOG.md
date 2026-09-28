@@ -5,6 +5,8 @@ release together at the same version.
 
 ## Unreleased
 
+## 0.5.0 — 2026-09-28
+
 ### Security
 
 - **The console's forms were refused in real browsers.** The hub sent

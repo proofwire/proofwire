@@ -5,7 +5,7 @@ passes ``pw verify``, a bundle exported here passes ``pw check``, and logs
 and bundles written by the JavaScript side open and verify here.
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 from .canonical import canonical_bytes, canonicalize
 from .checkpoint import build_checkpoint, checkpoint_digest, cosign, sign_checkpoint, verify_checkpoint

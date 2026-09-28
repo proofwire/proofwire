@@ -1,6 +1,6 @@
 {
   "name": "@proof_wire/proxy",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "Drop-in MCP proxy that enforces Proofwire policy and writes receipts.",
   "license": "Apache-2.0",
@@ -25,7 +25,7 @@
     "src"
   ],
   "dependencies": {
-    "@proof_wire/core": "0.4.0"
+    "@proof_wire/core": "0.5.0"
   },
   "engines": {
     "node": ">=20.11"

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "proof-wire"
-version = "0.4.0"
+version = "0.5.0"
 description = "Tamper-evident receipts for AI agent actions. Python SDK, wire-compatible with the proofwire CLI."
 readme = "README.md"
 requires-python = ">=3.9"
