@@ -67,9 +67,14 @@ services:
       PROOFWIRE_BACKUP_KEEP: ${PROOFWIRE_BACKUP_KEEP:-28}
       PROOFWIRE_SELFCHECK_MINUTES: "60"
       PROOFWIRE_CHECKPOINT_EVERY: "500"
+      PROOFWIRE_WITNESS_JOURNAL: /journal/witness-journal.jsonl
     volumes:
       # The database: keys, positions, bindings. This is what must survive.
       - data:/data
+      # What the witness signed, kept apart from the database so a restore
+      # from backup can't make it forget. A named volume by default; set
+      # PROOFWIRE_JOURNAL_DIR in .env to a directory on a separate disk.
+      - ${PROOFWIRE_JOURNAL_DIR:-journal}:/journal
       # Scheduled, verified snapshots. Copy them off this server; see DEPLOY.md.
       - backups:/backups
     read_only: true
@@ -83,6 +88,7 @@ services:
 
 volumes:
   data:
+  journal:
   backups:
   caddy-data:
   caddy-config:

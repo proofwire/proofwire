@@ -42,8 +42,46 @@ if [ "$PROOFWIRE_TLS" != internal ] && command -v getent >/dev/null 2>&1; then
     say "! $PROOFWIRE_DOMAIN does not resolve yet. The certificate cannot be issued until its DNS record points here."
 fi
 
-say "Building and starting. The first build takes a minute or two."
-docker compose up -d --build
+# Checked here, before Compose reads it: Compose takes anything else as the
+# name of a volume that doesn't exist, and says so less helpfully.
+case "${PROOFWIRE_JOURNAL_DIR:-}" in
+  '' | /*) ;;
+  *) fail "PROOFWIRE_JOURNAL_DIR must be an absolute path, or unset." ;;
+esac
+
+say "Building. The first build takes a minute or two."
+docker compose build
+
+# The witness journal: everything the witness signed, kept apart from the
+# database so a restore from backup can't make it forget (docs/DEPLOY.md).
+# Its own Docker volume by default; PROOFWIRE_JOURNAL_DIR puts it on another
+# disk, owned by the user the node runs as.
+case "${PROOFWIRE_JOURNAL_DIR:-}" in
+  '')
+    say "! The witness journal is on the same disk as the database. A lost disk takes both;"
+    say "  put it on a separate one with PROOFWIRE_JOURNAL_DIR in deploy/.env (see docs/DEPLOY.md)."
+    ;;
+  /*)
+    dir="$PROOFWIRE_JOURNAL_DIR"
+    owner="$(docker run --rm --entrypoint id proofwire-node:local -u):$(docker run --rm --entrypoint id proofwire-node:local -g)"
+    if [ "$(id -u)" = 0 ]; then
+      mkdir -p "$dir"
+      chown "$owner" "$dir"
+      chmod 700 "$dir"
+    elif [ ! -d "$dir" ] || [ "$(stat -c %u:%g "$dir")" != "$owner" ]; then
+      fail "The journal directory must exist and belong to the node's user. Run: sudo mkdir -p $dir && sudo chown $owner $dir && sudo chmod 700 $dir, then this again."
+    fi
+    root="$(docker info -f '{{.DockerRootDir}}' 2>/dev/null || true)"
+    if [ -n "$root" ] && [ "$(df -P "$dir" | awk 'NR==2 {print $1}')" = "$(df -P "$root" | awk 'NR==2 {print $1}')" ]; then
+      say "! $dir is on the same disk as Docker's volumes, where the database is. Mount a separate disk there."
+    else
+      say "Witness journal: $dir"
+    fi
+    ;;
+esac
+
+say "Starting."
+docker compose up -d
 
 # Checked through Caddy, on this machine, so what passes is the real path:
 # TLS, the proxy and the node. --resolve keeps it local without hairpinning
