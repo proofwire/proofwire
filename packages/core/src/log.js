@@ -16,6 +16,9 @@ import {
 } from './receipt.js';
 import { buildCheckpoint, signCheckpoint, verifyCheckpoint } from './checkpoint.js';
 
+/** Bundle kinds this verifier accepts: the current one, and the one written before the rename. */
+const BUNDLE_KINDS = new Set(['vouchwell.bundle', 'proofwire.bundle']);
+
 /**
  * A local, file-backed transparency log.
  *
@@ -84,7 +87,7 @@ export class ProofLog {
    */
   static create(dir, opts = {}) {
     if (fs.existsSync(path.join(dir, FILES.config))) {
-      throw new Error(`a Proofwire log already exists at ${dir}`);
+      throw new Error(`a Vouchwell log already exists at ${dir}`);
     }
     fs.mkdirSync(dir, { recursive: true });
 
@@ -121,7 +124,7 @@ export class ProofLog {
   static open(dir, opts = {}) {
     const configPath = path.join(dir, FILES.config);
     if (!fs.existsSync(configPath)) {
-      throw new Error(`no Proofwire log at ${dir} (run \`pw init\` first)`);
+      throw new Error(`no Vouchwell log at ${dir} (run \`vw init\` first)`);
     }
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
@@ -439,7 +442,7 @@ export class ProofLog {
     const checkpoints = this.checkpoints();
     return {
       v: 1,
-      kind: 'proofwire.bundle',
+      kind: 'vouchwell.bundle',
       log: this.config.log,
       exported: new Date().toISOString(),
       treeSize: this.size,
@@ -500,8 +503,11 @@ function verifyBundleUnchecked(bundle, opts = {}) {
   /** @type {string[]} */
   const issues = [];
 
-  if (bundle?.kind !== 'proofwire.bundle' || bundle.v !== 1) {
-    return { ok: false, issues: ['not a Proofwire v1 bundle'], checked: 0 };
+  // `proofwire.bundle` is what the project wrote before it was renamed
+  // Vouchwell (0.5.0 and earlier). The kind is a label, not signed; the
+  // receipts and checkpoints inside verify exactly as they always did.
+  if (!BUNDLE_KINDS.has(bundle?.kind) || bundle.v !== 1) {
+    return { ok: false, issues: ['not a Vouchwell v1 bundle'], checked: 0 };
   }
   const keyring = bundle.keyring ?? {};
   let root;

@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { createHmac } from 'node:crypto';
-import { generateIdentity } from '@proof_wire/core';
+import { generateIdentity } from '@vouchwell/core';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 import { verifySlackSignature, slackUrlProblem, approvalMessage, slackActor } from '../src/slack.js';
@@ -113,7 +113,7 @@ async function click(payload, opts = {}) {
   return res.status;
 }
 
-/** @param {string} approvalId @param {'proofwire_approve'|'proofwire_deny'} actionId @param {string} [user] */
+/** @param {string} approvalId @param {'vouchwell_approve'|'vouchwell_deny'|'proofwire_approve'|'proofwire_deny'} actionId @param {string} [user] */
 const payloadFor = (approvalId, actionId, user = 'U024BE7LH') => ({
   type: 'block_actions',
   user: { id: user, username: 'dana' },
@@ -205,7 +205,7 @@ test('connecting Slack is for admins, validates what it stores, and never echoes
 
   const test_ = await api('POST', '/v1/integrations/slack/test', { token: acme.admin });
   assert.equal(test_.status, 200);
-  assert.match(inbox.webhook.at(-1).text, /Proofwire is connected/);
+  assert.match(inbox.webhook.at(-1).text, /Vouchwell is connected/);
 });
 
 test("the console's settings show Slack as connected, and never the credentials", async () => {
@@ -249,11 +249,11 @@ test('an escalation posts to Slack, a signed click approves it, and the agent se
   const posted = inbox.webhook.at(-1);
   assert.match(posted.text, /Approval needed: crm\.refund/);
   const buttons = posted.blocks.find((b) => b.type === 'actions').elements;
-  assert.deepEqual(buttons.map((b) => b.action_id), ['proofwire_approve', 'proofwire_deny']);
+  assert.deepEqual(buttons.map((b) => b.action_id), ['vouchwell_approve', 'vouchwell_deny']);
   const approvalId = buttons[0].value;
 
   const responses = inbox.response.length;
-  assert.equal(await click(payloadFor(approvalId, 'proofwire_approve')), 200);
+  assert.equal(await click(payloadFor(approvalId, 'vouchwell_approve')), 200);
 
   const result = await verdict;
   assert.equal(result.approved, true);
@@ -269,13 +269,24 @@ test('an escalation posts to Slack, a signed click approves it, and the agent se
   assert.equal(ev.actor, 'slack:U024BE7LH (dana)');
 });
 
+test('buttons on messages posted before the rename still decide the right way', async () => {
+  // Slack keeps old messages, and their buttons carry proofwire_* ids. Anything
+  // that isn't an approve button is a denial, so an old Approve must approve.
+  const approve = await escalate('crm.old-approve');
+  assert.equal(await click(payloadFor(approve, 'proofwire_approve')), 200);
+  assert.equal((await api('GET', `/v1/approvals/${approve}`, { token: acme.agent })).json.status, 'approved');
+  const deny = await escalate('crm.old-deny');
+  assert.equal(await click(payloadFor(deny, 'proofwire_deny')), 200);
+  assert.equal((await api('GET', `/v1/approvals/${deny}`, { token: acme.agent })).json.status, 'denied');
+});
+
 test('a second click, or a click after the console decided, changes nothing and says who got there first', async () => {
   const id = await escalate();
   const first = inbox.response.length;
-  assert.equal(await click(payloadFor(id, 'proofwire_deny')), 200);
+  assert.equal(await click(payloadFor(id, 'vouchwell_deny')), 200);
   await settle(inbox.response, first + 1);
   const n = inbox.response.length;
-  assert.equal(await click(payloadFor(id, 'proofwire_approve', 'W0123ABC')), 200);
+  assert.equal(await click(payloadFor(id, 'vouchwell_approve', 'W0123ABC')), 200);
   await settle(inbox.response, n + 1);
   assert.match(JSON.stringify(inbox.response.at(-1)), /Denied by slack:U024BE7LH.*before this click/);
   const row = (await api('GET', `/v1/approvals/${id}`, { token: acme.admin })).json;
@@ -284,10 +295,10 @@ test('a second click, or a click after the console decided, changes nothing and 
 
 test('an unsigned, mis-signed, stale or altered click is refused and decides nothing', async () => {
   const id = await escalate();
-  const ok = payloadFor(id, 'proofwire_approve');
+  const ok = payloadFor(id, 'vouchwell_approve');
   assert.equal(await click(ok, { secret: 'f'.repeat(32) }), 401);
   assert.equal(await click(ok, { ts: Math.floor(Date.now() / 1000) - 3600 }), 401);
-  assert.equal(await click(ok, { tamper: (raw) => raw.replace('proofwire_approve', 'proofwire_deny') }), 401);
+  assert.equal(await click(ok, { tamper: (raw) => raw.replace('vouchwell_approve', 'vouchwell_deny') }), 401);
   const unsigned = await fetch(base + '/v1/integrations/slack/interactions', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -295,7 +306,7 @@ test('an unsigned, mis-signed, stale or altered click is refused and decides not
   });
   assert.equal(unsigned.status, 401);
   // A made-up id gets the same answer as a bad signature: no probing for ids.
-  assert.equal(await click(payloadFor('approval_nope', 'proofwire_approve')), 401);
+  assert.equal(await click(payloadFor('approval_nope', 'vouchwell_approve')), 401);
   assert.equal((await api('GET', `/v1/approvals/${id}`, { token: acme.admin })).json.status, 'pending');
 });
 
@@ -304,14 +315,14 @@ test("one org's signing secret cannot decide another org's approvals", async () 
   const globexSecret = 'a'.repeat(32);
   await api('PUT', '/v1/integrations/slack', { token: globex.admin, body: { webhookUrl: `http://${slackHost}/webhook/globex`, signingSecret: globexSecret } });
   const id = await escalate();
-  assert.equal(await click(payloadFor(id, 'proofwire_approve'), { secret: globexSecret }), 401);
+  assert.equal(await click(payloadFor(id, 'vouchwell_approve'), { secret: globexSecret }), 401);
   assert.equal((await api('GET', `/v1/approvals/${id}`, { token: acme.admin })).json.status, 'pending');
 });
 
 test('someone outside the approver list is told so, and the request stays pending', async () => {
   const id = await escalate();
   const n = inbox.response.length;
-  assert.equal(await click(payloadFor(id, 'proofwire_approve', 'U999OUTSIDER')), 200);
+  assert.equal(await click(payloadFor(id, 'vouchwell_approve', 'U999OUTSIDER')), 200);
   await settle(inbox.response, n + 1);
   assert.equal(inbox.response.at(-1).response_type, 'ephemeral');
   assert.equal((await api('GET', `/v1/approvals/${id}`, { token: acme.admin })).json.status, 'pending');
@@ -321,7 +332,7 @@ test('someone outside the approver list is told so, and the request stays pendin
 test('a response_url off Slack is not called, even on a validly signed click', async () => {
   const id = await escalate();
   const n = inbox.response.length;
-  const p = { ...payloadFor(id, 'proofwire_deny'), response_url: 'http://169.254.169.254/latest/meta-data' };
+  const p = { ...payloadFor(id, 'vouchwell_deny'), response_url: 'http://169.254.169.254/latest/meta-data' };
   assert.equal(await click(p), 200);
   await new Promise((r) => setTimeout(r, 100));
   assert.equal(inbox.response.length, n);

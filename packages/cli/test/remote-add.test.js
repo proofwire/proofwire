@@ -11,7 +11,7 @@ const BIN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src/b
 
 /** @param {string[]} args */
 function pw(args) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'proofwire-remote-'));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-remote-'));
   const res = spawnSync(process.execPath, [BIN, ...args], {
     cwd: home,
     encoding: 'utf8',
@@ -25,7 +25,7 @@ test('a hub URL over plain HTTP to another machine is refused, and nothing is st
   const res = pw(['remote', 'add', '--url', 'http://hub.example.com', '--token', 'pk_live_secret']);
   assert.equal(res.code, 2);
   assert.match(res.stderr, /plain HTTP/);
-  assert.equal(fs.existsSync(path.join(res.home, '.proofwire', 'credentials.json')), false);
+  assert.equal(fs.existsSync(path.join(res.home, '.vouchwell', 'credentials.json')), false);
 });
 
 test('which URLs may carry a token', () => {

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 /**
- * Storage for the Proofwire hub.
+ * Storage for the Vouchwell hub.
  *
  * SQLite, via Node's built-in driver, because the hub's correctness depends on
  * transactional appends and this brings no supply chain with it. A receipt

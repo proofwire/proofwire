@@ -15,7 +15,7 @@ function fixture() {
     fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
     fs.copyFileSync(path.join(ROOT, rel), path.join(dir, rel));
   };
-  for (const rel of ['package.json', 'CHANGELOG.md', 'sdk/python/pyproject.toml', 'sdk/python/src/proof_wire/__init__.py']) copy(rel);
+  for (const rel of ['package.json', 'CHANGELOG.md', 'sdk/python/pyproject.toml', 'sdk/python/src/vouchwell/__init__.py']) copy(rel);
   for (const p of PACKAGES) copy(`${p}/package.json`);
   return dir;
 }
@@ -45,7 +45,7 @@ test('a bump moves every version, every internal pin, the Python SDK and the CHA
     const pkg = JSON.parse(fs.readFileSync(path.join(dir, p, 'package.json'), 'utf8'));
     assert.equal(pkg.version, to, p);
     for (const [dep, v] of Object.entries(pkg.dependencies ?? {})) {
-      if (dep.startsWith('@proof_wire/')) assert.equal(v, to, `${p} → ${dep}`);
+      if (dep.startsWith('@vouchwell/')) assert.equal(v, to, `${p} → ${dep}`);
     }
   }
   const changelog = fs.readFileSync(log, 'utf8');
@@ -70,12 +70,12 @@ test('the release preflight names each kind of mismatch', () => {
   const dir = fixture();
   const cli = path.join(dir, 'packages/cli/package.json');
   const pkg = JSON.parse(fs.readFileSync(cli, 'utf8'));
-  pkg.dependencies['@proof_wire/core'] = '0.0.1';
+  pkg.dependencies['@vouchwell/core'] = '0.0.1';
   fs.writeFileSync(cli, JSON.stringify(pkg, null, 2));
-  const pyinit = path.join(dir, 'sdk/python/src/proof_wire/__init__.py');
+  const pyinit = path.join(dir, 'sdk/python/src/vouchwell/__init__.py');
   fs.writeFileSync(pyinit, fs.readFileSync(pyinit, 'utf8').replace(/__version__ = "[^"]+"/, '__version__ = "0.0.1"'));
   const problems = versionProblems(dir).problems.join('\n');
-  assert.match(problems, /depends on @proof_wire\/core@0\.0\.1/);
+  assert.match(problems, /depends on @vouchwell\/core@0\.0\.1/);
   assert.match(problems, /Python SDK/);
 });
 

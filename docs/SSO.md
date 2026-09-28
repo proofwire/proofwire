@@ -96,7 +96,7 @@ On every sign-in, before anyone gets a session:
   that resolves to an internal address (cloud metadata, a private network) is
   refused, even if the name re-points after it was configured. Redirects
   aren't followed. On a self-hosted hub whose provider is on your own network,
-  set `PROOFWIRE_OIDC_ALLOW_PRIVATE=1`; never on a hub others use.
+  set `VOUCHWELL_OIDC_ALLOW_PRIVATE=1`; never on a hub others use.
 
 SSO sessions last a day, and password sessions fourteen. Re-authenticating
 daily keeps the hub in step with your provider: someone disabled there can't

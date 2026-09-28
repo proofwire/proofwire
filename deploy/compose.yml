@@ -1,16 +1,22 @@
-# One Proofwire node on one server, behind Caddy.
+# One Vouchwell node on one server, behind Caddy.
 #
 #   cp env.example .env     # set the domain and TLS email
 #   ./setup.sh              # build, start, wait for HTTPS, print the node's keys
 #
 # docs/DEPLOY.md is the full runbook. The default is a witness-only node, the
-# free-beta service; set PROOFWIRE_WITNESS_ONLY=0 in .env for a full hub.
+# free-beta service; set VOUCHWELL_WITNESS_ONLY=0 in .env for a full hub.
 #
 # What faces the internet is Caddy on 80 and 443 and nothing else. It gets
 # and renews the TLS certificate by itself, redirects HTTP to HTTPS, and is the
 # only thing that can reach the node, whose port is never published.
 
-name: proofwire
+# Volumes are named after this: vouchwell_data and so on. A server set up
+# before the rename has proofwire_* volumes; COMPOSE_PROJECT_NAME=proofwire in
+# .env keeps it on them (see env.example).
+name: vouchwell
+
+# Every setting below also reads its PROOFWIRE_* name, so a .env written
+# before the rename keeps working unchanged.
 
 services:
   caddy:
@@ -23,8 +29,10 @@ services:
       - "443:443"
       - "443:443/udp"
     environment:
-      PROOFWIRE_DOMAIN: ${PROOFWIRE_DOMAIN:?set PROOFWIRE_DOMAIN in deploy/.env}
-      PROOFWIRE_TLS: ${PROOFWIRE_TLS:?set PROOFWIRE_TLS in deploy/.env}
+      # No ${...:?} here: some Compose versions evaluate a nested one even when
+      # the outer variable is set. setup.sh refuses to start without both.
+      VOUCHWELL_DOMAIN: ${VOUCHWELL_DOMAIN:-${PROOFWIRE_DOMAIN:-}}
+      VOUCHWELL_TLS: ${VOUCHWELL_TLS:-${PROOFWIRE_TLS:-}}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       # Certificates and the ACME account. Losing these only costs a reissue.
@@ -51,30 +59,30 @@ services:
   node:
     build:
       context: ..
-    image: proofwire-node:local
+    image: vouchwell-node:local
     restart: unless-stopped
     # Reachable by Caddy on the compose network, and by nothing else.
     expose:
       - "8787"
     environment:
-      PROOFWIRE_WITNESS_ONLY: ${PROOFWIRE_WITNESS_ONLY:-1}
-      PROOFWIRE_PUBLIC_URL: https://${PROOFWIRE_DOMAIN}
+      VOUCHWELL_WITNESS_ONLY: ${VOUCHWELL_WITNESS_ONLY:-${PROOFWIRE_WITNESS_ONLY:-1}}
+      VOUCHWELL_PUBLIC_URL: https://${VOUCHWELL_DOMAIN:-${PROOFWIRE_DOMAIN}}
       # Safe only because Caddy is the sole way in, and it replaces any
       # X-Forwarded-For a client sends with the address it actually saw.
-      PROOFWIRE_TRUST_PROXY: "1"
-      PROOFWIRE_BACKUP_DIR: /backups
-      PROOFWIRE_BACKUP_HOURS: ${PROOFWIRE_BACKUP_HOURS:-6}
-      PROOFWIRE_BACKUP_KEEP: ${PROOFWIRE_BACKUP_KEEP:-28}
-      PROOFWIRE_SELFCHECK_MINUTES: "60"
-      PROOFWIRE_CHECKPOINT_EVERY: "500"
-      PROOFWIRE_WITNESS_JOURNAL: /journal/witness-journal.jsonl
+      VOUCHWELL_TRUST_PROXY: "1"
+      VOUCHWELL_BACKUP_DIR: /backups
+      VOUCHWELL_BACKUP_HOURS: ${VOUCHWELL_BACKUP_HOURS:-${PROOFWIRE_BACKUP_HOURS:-6}}
+      VOUCHWELL_BACKUP_KEEP: ${VOUCHWELL_BACKUP_KEEP:-${PROOFWIRE_BACKUP_KEEP:-28}}
+      VOUCHWELL_SELFCHECK_MINUTES: "60"
+      VOUCHWELL_CHECKPOINT_EVERY: "500"
+      VOUCHWELL_WITNESS_JOURNAL: /journal/witness-journal.jsonl
     volumes:
       # The database: keys, positions, bindings. This is what must survive.
       - data:/data
       # What the witness signed, kept apart from the database so a restore
       # from backup can't make it forget. A named volume by default; set
-      # PROOFWIRE_JOURNAL_DIR in .env to a directory on a separate disk.
-      - ${PROOFWIRE_JOURNAL_DIR:-journal}:/journal
+      # VOUCHWELL_JOURNAL_DIR in .env to a directory on a separate disk.
+      - ${VOUCHWELL_JOURNAL_DIR:-${PROOFWIRE_JOURNAL_DIR:-journal}}:/journal
       # Scheduled, verified snapshots. Copy them off this server; see DEPLOY.md.
       - backups:/backups
     read_only: true

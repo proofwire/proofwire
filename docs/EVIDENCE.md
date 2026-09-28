@@ -1,6 +1,6 @@
 # Evidence packs for auditors
 
-`pw report` turns a Proofwire log into a directory you can hand to an auditor,
+`vw report` turns a Vouchwell log into a directory you can hand to an auditor,
 an assessor or a regulator. The report inside is an index to the evidence, not
 a verdict: it shows what your agents did, what the policy decided, who approved
 or declined what, and that none of it has been altered. Whether that meets a
@@ -8,10 +8,10 @@ particular obligation is the assessor's call, so the report says what the
 evidence *supports*, never that you *comply*.
 
 ```bash
-pw report                                   # the whole log, both frameworks
-pw report --since 2026-07-01 --until 2026-09-30 --out q3-evidence
-pw report --framework ai-act                # or soc2
-pw report --witness-keys witnesses/keys.json   # count witnesses against keys you pinned
+vw report                                   # the whole log, both frameworks
+vw report --since 2026-07-01 --until 2026-09-30 --out q3-evidence
+vw report --framework ai-act                # or soc2
+vw report --witness-keys witnesses/keys.json   # count witnesses against keys you pinned
 ```
 
 ## What's in the pack
@@ -45,10 +45,10 @@ The report is produced by the party being audited, so **don't rely on the
 HTML**. Verify the evidence directly:
 
 ```bash
-npm install -g proofwire
+npm install -g vouchwell
 cd q3-evidence
 sha256sum -c SHA256SUMS                     # the files are the ones produced
-pw check evidence.bundle.json               # every receipt is signed and in the log
+vw check evidence.bundle.json               # every receipt is signed and in the log
 ```
 
 If the log is witnessed, pin witness keys you got from somewhere other than
@@ -56,10 +56,10 @@ the pack, e.g. [`witnesses/keys.json`](../witnesses/keys.json) in this
 repository, at a commit you trust:
 
 ```bash
-pw check evidence.bundle.json --witnesses 1 --witness-keys keys.json
+vw check evidence.bundle.json --witnesses 1 --witness-keys keys.json
 ```
 
-Then compare the root that `pw check` prints with the one in `report.html`,
+Then compare the root that `vw check` prints with the one in `report.html`,
 and with any root you received earlier. A root you got earlier that the new log
 doesn't extend means history was rewritten.
 

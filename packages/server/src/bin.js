@@ -1,29 +1,33 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import { randomBytes } from 'node:crypto';
-import { identityFromPublicKey, checkpointDigest, verify as verifyBytes } from '@proof_wire/core';
-import { Hub, VERSION } from './app.js';
+import { identityFromPublicKey, checkpointDigest, verify as verifyBytes, adoptLegacyEnv } from '@vouchwell/core';
+import { Hub, VERSION, DEFAULT_CONFIG } from './app.js';
+import { resolveDatabase } from './legacy.js';
 import { Auth } from './auth.js';
 import { selfTest } from './signer.js';
 import {
   cmdBackup, cmdVerifyBackup, cmdRestore, cmdReconcile, scheduleBackups,
 } from './backup-cmds.js';
 
+// PROOFWIRE_* settings from before the rename keep working.
+adoptLegacyEnv();
+
 /**
  * Hub entry point.
  *
- *   proofwire-hub serve                 start the server
- *   proofwire-hub bootstrap             create the first org, admin and keys
- *   proofwire-hub witness-key <name>    give a customer a key to this node's witness
- *   proofwire-hub witness-rebind <customer> <log> <public key>
+ *   vouchwell-hub serve                 start the server
+ *   vouchwell-hub bootstrap             create the first org, admin and keys
+ *   vouchwell-hub witness-key <name>    give a customer a key to this node's witness
+ *   vouchwell-hub witness-rebind <customer> <log> <public key>
  *                                       rebind a log to a rotated signing key
- *   proofwire-hub witness-release <customer> <log> --checkpoint <file> | --no-evidence
+ *   vouchwell-hub witness-release <customer> <log> --checkpoint <file> | --no-evidence
  *                                       resume co-signing a log held after a restore
- *   proofwire-hub check                 verify every stored log
- *   proofwire-hub identity [--json]     this node's public keys, for publishing
- *   proofwire-hub retention <org> [--days N|forever] [--cap N|none]
+ *   vouchwell-hub check                 verify every stored log
+ *   vouchwell-hub identity [--json]     this node's public keys, for publishing
+ *   vouchwell-hub retention <org> [--days N|forever] [--cap N|none]
  *
- * PROOFWIRE_WITNESS_ONLY=1 turns the server into a witness and nothing else:
+ * VOUCHWELL_WITNESS_ONLY=1 turns the server into a witness and nothing else:
  * see WITNESS_ONLY_ROUTES in app.js for the whole of what it then answers.
  *
  * Configuration is environment-only. A hub reads secrets and binds ports; a
@@ -31,28 +35,36 @@ import {
  * more thing to get wrong in a container.
  */
 
+let legacyNoted = false;
+
 /** @returns {Partial<typeof import('./app.js').DEFAULT_CONFIG>} */
 function configFromEnv() {
   const env = process.env;
   /** @type {any} */
   const config = {};
-  if (env.PROOFWIRE_PORT) config.port = Number(env.PROOFWIRE_PORT);
-  if (env.PROOFWIRE_HOST) config.host = env.PROOFWIRE_HOST;
-  if (env.PROOFWIRE_DB) config.database = env.PROOFWIRE_DB;
-  if (env.PROOFWIRE_PUBLIC_URL) config.publicUrl = env.PROOFWIRE_PUBLIC_URL;
+  if (env.VOUCHWELL_PORT) config.port = Number(env.VOUCHWELL_PORT);
+  if (env.VOUCHWELL_HOST) config.host = env.VOUCHWELL_HOST;
+  // A hub upgraded from before the rename keeps using its proofwire.db.
+  const db = resolveDatabase(env.VOUCHWELL_DB ?? DEFAULT_CONFIG.database);
+  if (db.legacy && !legacyNoted) {
+    legacyNoted = true;
+    console.error(`  note: using ${db.file}, the database from before the rename to Vouchwell. Nothing to do.`);
+  }
+  config.database = db.file;
+  if (env.VOUCHWELL_PUBLIC_URL) config.publicUrl = env.VOUCHWELL_PUBLIC_URL;
   // Only honour X-Forwarded-For when explicitly told to: behind no proxy, it
   // is a header any client can set to evade a per-address rate limit.
-  if (env.PROOFWIRE_TRUST_PROXY === '1') config.trustProxy = true;
-  if (env.PROOFWIRE_CHECKPOINT_EVERY) config.checkpointEvery = Number(env.PROOFWIRE_CHECKPOINT_EVERY);
-  if (env.PROOFWIRE_APPROVAL_TTL) config.approvalTtlSeconds = Number(env.PROOFWIRE_APPROVAL_TTL);
-  if (env.PROOFWIRE_WITNESS_ONLY === '1') config.witnessOnly = true;
+  if (env.VOUCHWELL_TRUST_PROXY === '1') config.trustProxy = true;
+  if (env.VOUCHWELL_CHECKPOINT_EVERY) config.checkpointEvery = Number(env.VOUCHWELL_CHECKPOINT_EVERY);
+  if (env.VOUCHWELL_APPROVAL_TTL) config.approvalTtlSeconds = Number(env.VOUCHWELL_APPROVAL_TTL);
+  if (env.VOUCHWELL_WITNESS_ONLY === '1') config.witnessOnly = true;
   // A self-hosted hub whose identity provider is on its own network. Never on
   // a hub whose tenants choose the issuer: see oidc.js.
-  if (env.PROOFWIRE_OIDC_ALLOW_PRIVATE === '1') config.oidcAllowPrivate = true;
-  if (env.PROOFWIRE_EGRESS_ALLOW_PRIVATE === '1') config.egressAllowPrivate = true;
+  if (env.VOUCHWELL_OIDC_ALLOW_PRIVATE === '1') config.oidcAllowPrivate = true;
+  if (env.VOUCHWELL_EGRESS_ALLOW_PRIVATE === '1') config.egressAllowPrivate = true;
   // Where the witness journal lives; `off` disables it. See witness-journal.js.
-  if (env.PROOFWIRE_WITNESS_JOURNAL) {
-    config.witnessJournal = env.PROOFWIRE_WITNESS_JOURNAL === 'off' ? false : env.PROOFWIRE_WITNESS_JOURNAL;
+  if (env.VOUCHWELL_WITNESS_JOURNAL) {
+    config.witnessJournal = env.VOUCHWELL_WITNESS_JOURNAL === 'off' ? false : env.VOUCHWELL_WITNESS_JOURNAL;
   }
   return config;
 }
@@ -69,7 +81,7 @@ async function serve() {
 
   const witnessOnly = hub.config.witnessOnly;
   console.error('');
-  console.error(B(witnessOnly ? '  Proofwire witness' : '  Proofwire hub') + DIM(`  ${VERSION}`));
+  console.error(B(witnessOnly ? '  Vouchwell witness' : '  Vouchwell hub') + DIM(`  ${VERSION}`));
   console.error(DIM(`  ${url}`));
   console.error(DIM(`  db       ${hub.config.database}`));
   if (!witnessOnly) console.error(DIM(`  hub key  ${hub.hubSigner.kid}  [${hub.hubSigner.kind}]`));
@@ -102,7 +114,7 @@ async function serve() {
     console.error(
       DIM('  note: a signing key is stored in this database. For a hosted deployment set'),
     );
-    console.error(DIM('        PROOFWIRE_SIGNER=command|http so key material stays out of it.'));
+    console.error(DIM('        VOUCHWELL_SIGNER=command|http so key material stays out of it.'));
   }
   if (hub.witnessJournal) {
     console.error(DIM(`  witness journal  ${hub.witnessJournal.file}`));
@@ -114,14 +126,14 @@ async function serve() {
   }
   const held = hub.db.prepare('SELECT COUNT(*) AS n FROM witness_holds WHERE witness_kid = ?').get(hub.witnessSigner.kid);
   if (Number(held?.n) > 0) {
-    console.error(RED(`  ${held.n} log(s) on hold after a restore; release each with proofwire-hub witness-release.`));
+    console.error(RED(`  ${held.n} log(s) on hold after a restore; release each with vouchwell-hub witness-release.`));
   }
   console.error('');
 
   // A hub that never re-reads its own storage is taking itself at its word.
   // Re-verifying every log on a schedule is cheap and is the difference
   // between detecting silent corruption in an hour and in a deposition.
-  const interval = Number(process.env.PROOFWIRE_SELFCHECK_MINUTES ?? 60);
+  const interval = Number(process.env.VOUCHWELL_SELFCHECK_MINUTES ?? 60);
   if (interval > 0) {
     const timer = setInterval(() => {
       for (const org of hub.db.prepare('SELECT id FROM orgs').all()) {
@@ -148,7 +160,7 @@ async function serve() {
   // retention period. Hourly is plenty for a period measured in days; the
   // first run is a minute after start, not at start, so a restart loop can't
   // turn into a pruning loop.
-  const sweepMinutes = Number(process.env.PROOFWIRE_RETENTION_SWEEP_MINUTES ?? 60);
+  const sweepMinutes = Number(process.env.VOUCHWELL_RETENTION_SWEEP_MINUTES ?? 60);
   if (sweepMinutes > 0) {
     const sweep = () => {
       try {
@@ -167,7 +179,7 @@ async function serve() {
 
   if (scheduleBackups(hub.config.database)) {
     console.error(
-      DIM(`  backups  every ${process.env.PROOFWIRE_BACKUP_HOURS ?? 6}h to ${process.env.PROOFWIRE_BACKUP_DIR}`),
+      DIM(`  backups  every ${process.env.VOUCHWELL_BACKUP_HOURS ?? 6}h to ${process.env.VOUCHWELL_BACKUP_DIR}`),
     );
   }
 
@@ -193,17 +205,17 @@ async function bootstrap() {
     // they should.
     console.error(RED('  bootstrap is for a hub; this is a witness-only node.'));
     console.error(DIM('  Give each customer their own key instead:'));
-    console.error(`    ${CYAN('proofwire-hub witness-key <customer name>')}`);
+    console.error(`    ${CYAN('vouchwell-hub witness-key <customer name>')}`);
     process.exitCode = 1;
     return;
   }
   const hub = new Hub(config);
   const auth = new Auth(hub.store);
 
-  const orgName = process.env.PROOFWIRE_ORG ?? 'Acme';
-  const slug = (process.env.PROOFWIRE_ORG_SLUG ?? orgName).toLowerCase().replace(/[^a-z0-9-]+/g, '-');
-  const email = process.env.PROOFWIRE_ADMIN_EMAIL ?? 'admin@example.com';
-  const password = process.env.PROOFWIRE_ADMIN_PASSWORD ?? randomBytes(9).toString('base64url');
+  const orgName = process.env.VOUCHWELL_ORG ?? 'Acme';
+  const slug = (process.env.VOUCHWELL_ORG_SLUG ?? orgName).toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+  const email = process.env.VOUCHWELL_ADMIN_EMAIL ?? 'admin@example.com';
+  const password = process.env.VOUCHWELL_ADMIN_PASSWORD ?? randomBytes(9).toString('base64url');
 
   if (hub.store.orgBySlug(slug)) {
     console.error(RED(`  an organization "${slug}" already exists`));
@@ -251,7 +263,7 @@ async function bootstrap() {
   console.error(DIM('             read-only: the credential to hand an outside firm'));
   console.error('');
   console.error(DIM('  Point an agent at it:'));
-  console.error(`    ${CYAN(`pw remote add --url http://localhost:${hub.config.port} --token <agent token>`)}`);
+  console.error(`    ${CYAN(`vw remote add --url http://localhost:${hub.config.port} --token <agent token>`)}`);
   console.error('');
 
   await hub.close();
@@ -274,7 +286,7 @@ async function witnessKey() {
   const name = process.argv.slice(3).join(' ').trim();
   const slug = name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
   if (!slug) {
-    console.error(RED('  usage: proofwire-hub witness-key <customer name>'));
+    console.error(RED('  usage: vouchwell-hub witness-key <customer name>'));
     process.exitCode = 2;
     return;
   }
@@ -286,7 +298,7 @@ async function witnessKey() {
   const key = hub.auth.createKey({
     orgId: org.id,
     name: 'witness-client',
-    // logs:read only so `pw remote add` can prove the key works via /v1/me.
+    // logs:read only so `vw remote add` can prove the key works via /v1/me.
     // On a witness-only node there are no logs for it to read.
     scopes: ['witness:sign', 'logs:read'],
     createdBy: 'witness-key',
@@ -315,10 +327,10 @@ async function witnessKey() {
   console.error(`  public key ${publicKey}`);
   console.error('');
   console.error(DIM('  The customer connects with:'));
-  console.error(`    ${CYAN(`pw remote add --name witness --url ${url} --token <token>`)}`);
-  console.error(`    ${CYAN('pw cosign --remote witness')}`);
+  console.error(`    ${CYAN(`vw remote add --name witness --url ${url} --token <token>`)}`);
+  console.error(`    ${CYAN('vw cosign --remote witness')}`);
   console.error(DIM('  and their auditors pin this witness with:'));
-  console.error(`    ${CYAN(`pw check evidence.json --witnesses 1 --witness-key ${kid}=${publicKey}`)}`);
+  console.error(`    ${CYAN(`vw check evidence.json --witnesses 1 --witness-key ${kid}=${publicKey}`)}`);
   console.error('');
 
   await hub.close();
@@ -327,10 +339,10 @@ async function witnessKey() {
 /**
  * Show or set an organisation's retention, from the host.
  *
- *   proofwire-hub retention <org>                     show
- *   proofwire-hub retention <org> --cap 365           the plan's limit (operator only)
- *   proofwire-hub retention <org> --days 90           the organisation's own choice
- *   proofwire-hub retention <org> --days forever --cap none
+ *   vouchwell-hub retention <org>                     show
+ *   vouchwell-hub retention <org> --cap 365           the plan's limit (operator only)
+ *   vouchwell-hub retention <org> --days 90           the organisation's own choice
+ *   vouchwell-hub retention <org> --days forever --cap none
  *
  * The cap exists only here, not in the API: an organisation's admins can
  * shorten what the hub keeps, but only the operator can decide how long the
@@ -344,7 +356,7 @@ async function retention() {
     return i === -1 ? undefined : args[i + 1];
   };
   if (!slug || slug.startsWith('--')) {
-    console.error(RED('  usage: proofwire-hub retention <org> [--days N|forever] [--cap N|none]'));
+    console.error(RED('  usage: vouchwell-hub retention <org> [--days N|forever] [--cap N|none]'));
     process.exitCode = 2;
     return;
   }
@@ -414,8 +426,8 @@ async function retention() {
  * rather than from the node's own HTTP API: a key a server serves about
  * itself is only as trustworthy as that server.
  *
- *   proofwire-hub identity          for people
- *   proofwire-hub identity --json   for scripts
+ *   vouchwell-hub identity          for people
+ *   vouchwell-hub identity --json   for scripts
  */
 async function identity() {
   const hub = new Hub(configFromEnv());
@@ -440,10 +452,10 @@ async function identity() {
   out(`  witness kid  ${witness.kid}`);
   out(`  witness key  ${witness.publicKey}`);
   out('');
-  out(DIM('  To publish the witness key, from a checkout of the proofwire repo, in a commit of its own:'));
+  out(DIM('  To publish the witness key, from a checkout of the vouchwell repo, in a commit of its own:'));
   out(
     `    ${CYAN(
-      `node scripts/witness-record.mjs add --operator Proofwire --public-key ${witness.publicKey}` +
+      `node scripts/witness-record.mjs add --operator Vouchwell --public-key ${witness.publicKey}` +
         (url ? ` --node ${url}` : ''),
     )}`,
   );
@@ -467,7 +479,7 @@ async function identity() {
 async function witnessRebind() {
   const [customer, log, publicKey] = process.argv.slice(3);
   if (!customer || !log || !publicKey) {
-    console.error(RED('  usage: proofwire-hub witness-rebind <customer> <log> <new public key>'));
+    console.error(RED('  usage: vouchwell-hub witness-rebind <customer> <log> <new public key>'));
     process.exitCode = 2;
     return;
   }
@@ -544,7 +556,7 @@ async function witnessRebind() {
  *
  * The safe way is with evidence: a checkpoint of the log carrying this
  * witness's own signature, as late as the customer has (a bundle from
- * `pw export` works: every checkpoint in it is considered). The signature
+ * `vw export` works: every checkpoint in it is considered). The signature
  * proves this witness vouched for that root, so the position moves up to it
  * and the witness carries on from where it really was. `--no-evidence`
  * resumes from the restored position instead, accepting that a later
@@ -564,9 +576,9 @@ async function witnessRelease() {
   const noEvidence = flag('--no-evidence');
   const all = flag('--all');
   if (!customer || (!log && !all) || (!evidenceFile && !noEvidence) || (all && !noEvidence)) {
-    console.error(RED('  usage: proofwire-hub witness-release <customer> <log> --checkpoint <checkpoint or bundle.json>'));
-    console.error(RED('         proofwire-hub witness-release <customer> <log> --no-evidence'));
-    console.error(RED('         proofwire-hub witness-release <customer> --all --no-evidence'));
+    console.error(RED('  usage: vouchwell-hub witness-release <customer> <log> --checkpoint <checkpoint or bundle.json>'));
+    console.error(RED('         vouchwell-hub witness-release <customer> <log> --no-evidence'));
+    console.error(RED('         vouchwell-hub witness-release <customer> --all --no-evidence'));
     process.exitCode = 2;
     return;
   }
@@ -608,7 +620,7 @@ async function witnessRelease() {
         }
         if (!best) {
           console.error(RED(`  ${evidenceFile} holds no checkpoint of ${name} signed by this witness (${kid}).`));
-          console.error(DIM('  Ask the customer for their latest witnessed checkpoint, or a bundle from pw export.'));
+          console.error(DIM('  Ask the customer for their latest witnessed checkpoint, or a bundle from vw export.'));
           process.exitCode = 1;
           return;
         }

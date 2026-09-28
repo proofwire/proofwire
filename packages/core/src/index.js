@@ -1,7 +1,7 @@
 /**
- * Proofwire core — tamper-evident receipts for AI agent actions.
+ * Vouchwell core — tamper-evident receipts for AI agent actions.
  *
- * @see https://github.com/proofwire/proofwire#readme
+ * @see https://github.com/vouchwell/vouchwell#readme
  */
 
 export { canonicalize, canonicalBytes } from './canonical.js';
@@ -65,3 +65,4 @@ export { findUnfinished, DEFAULT_GRACE_MS } from './unfinished.js';
 export { Recorder, PolicyDenied, NO_POLICY, recordTools } from './recorder.js';
 export { POLICY_TEMPLATES, policyTemplate, composePolicy } from './templates.js';
 export { witnessCheckpoint, WitnessRefusal } from './witness-client.js';
+export { adoptLegacyEnv } from './legacy.js';

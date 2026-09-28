@@ -3,4 +3,4 @@ node_modules
 .git
 data
 *.bundle.json
-.proofwire
+.vouchwell

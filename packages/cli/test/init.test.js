@@ -8,17 +8,17 @@ import { fileURLToPath } from 'node:url';
 
 const BIN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src/bin.js');
 
-test('pw init never overwrites an existing policy or config', () => {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'proofwire-init-'));
-  fs.writeFileSync(path.join(cwd, 'proofwire.policy.json'), 'MINE');
-  fs.writeFileSync(path.join(cwd, 'proofwire.config.json'), 'MINE TOO');
+test('vw init never overwrites an existing policy or config', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-init-'));
+  fs.writeFileSync(path.join(cwd, 'vouchwell.policy.json'), 'MINE');
+  fs.writeFileSync(path.join(cwd, 'vouchwell.config.json'), 'MINE TOO');
   const res = spawnSync(process.execPath, [BIN, 'init'], {
     cwd,
     encoding: 'utf8',
     env: { ...process.env, HOME: cwd, USERPROFILE: cwd, NO_COLOR: '1' },
   });
   assert.equal(res.status, 0, res.stderr);
-  assert.equal(fs.readFileSync(path.join(cwd, 'proofwire.policy.json'), 'utf8'), 'MINE');
-  assert.equal(fs.readFileSync(path.join(cwd, 'proofwire.config.json'), 'utf8'), 'MINE TOO');
-  assert.match(fs.readFileSync(path.join(cwd, '.gitignore'), 'utf8'), /\.proofwire\/key\.pem/);
+  assert.equal(fs.readFileSync(path.join(cwd, 'vouchwell.policy.json'), 'utf8'), 'MINE');
+  assert.equal(fs.readFileSync(path.join(cwd, 'vouchwell.config.json'), 'utf8'), 'MINE TOO');
+  assert.match(fs.readFileSync(path.join(cwd, '.gitignore'), 'utf8'), /\.vouchwell\/key\.pem/);
 });

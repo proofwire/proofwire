@@ -1,8 +1,8 @@
 """The local log, and bundle verification. Mirrors packages/core/src/log.js.
 
 The directory layout is the one the JavaScript CLI reads and writes, so a log
-written here passes ``pw verify``, and a bundle exported here passes
-``pw check``, and the other way round:
+written here passes ``vw verify``, and a bundle exported here passes
+``vw check``, and the other way round:
 
     config.json        {log, created, kid}
     key.pem            the log's Ed25519 key, PKCS#8 (keep private)
@@ -88,7 +88,7 @@ class ProofLog:
     def create(cls, directory: PathLike, log_id: Optional[str] = None) -> "ProofLog":
         d = Path(directory)
         if (d / FILES["config"]).exists():
-            raise FileExistsError(f"a Proofwire log already exists at {d}")
+            raise FileExistsError(f"a Vouchwell log already exists at {d}")
         d.mkdir(parents=True, exist_ok=True)
         identity, pem = generate_identity()
         config = {"log": log_id or "lg_" + os.urandom(8).hex(), "created": now_iso(), "kid": identity.kid}
@@ -104,7 +104,7 @@ class ProofLog:
     def open(cls, directory: PathLike, read_only: bool = False) -> "ProofLog":
         d = Path(directory)
         if not (d / FILES["config"]).exists():
-            raise FileNotFoundError(f"no Proofwire log at {d} (create one with ProofLog.create or `pw init`)")
+            raise FileNotFoundError(f"no Vouchwell log at {d} (create one with ProofLog.create or `vw init`)")
         config = json.loads((d / FILES["config"]).read_bytes().decode("utf-8"))
         keyring = json.loads((d / FILES["keyring"]).read_bytes().decode("utf-8"))
         if read_only:
@@ -261,7 +261,7 @@ class ProofLog:
         checkpoints = self.checkpoints()
         return {
             "v": 1,
-            "kind": "proofwire.bundle",
+            "kind": "vouchwell.bundle",
             "log": self.config["log"],
             "exported": now_iso(),
             "treeSize": self.size,
@@ -278,7 +278,7 @@ class ProofLog:
 def consistency_for(tree: MerkleTree, checkpoints: list[dict]) -> dict:
     """A consistency proof from the latest witnessed checkpoint to the tree's
     current root, keyed by size, so a filtered bundle can tie its witnesses to
-    its own root. Mirrors ``consistencyFor`` in @proof_wire/core."""
+    its own root. Mirrors ``consistencyFor`` in @vouchwell/core."""
     sizes = [
         cp["body"]["size"]
         for cp in checkpoints
@@ -299,7 +299,7 @@ def verify_bundle(
     trusted_witnesses: Optional[dict] = None,
 ) -> dict:
     """Verify an evidence bundle with nothing but itself (and, optionally,
-    witness keys you obtained elsewhere). The same checks as ``pw check``."""
+    witness keys you obtained elsewhere). The same checks as ``vw check``."""
     try:
         return _verify_bundle(bundle, expect_root, min_witnesses, trusted_witnesses)
     except Exception as err:  # a malformed bundle must fail verification, never crash it
@@ -308,8 +308,10 @@ def verify_bundle(
 
 def _verify_bundle(bundle: Any, expect_root: Optional[str], min_witnesses: int, trusted: Optional[dict]) -> dict:
     issues: list[str] = []
-    if not isinstance(bundle, dict) or bundle.get("kind") != "proofwire.bundle" or bundle.get("v") != 1:
-        return {"ok": False, "issues": ["not a Proofwire v1 bundle"], "checked": 0}
+    # "proofwire.bundle" is what the project wrote before it was renamed
+    # Vouchwell (0.5.0 and earlier); the receipts inside verify as they always did.
+    if not isinstance(bundle, dict) or bundle.get("kind") not in ("vouchwell.bundle", "proofwire.bundle") or bundle.get("v") != 1:
+        return {"ok": False, "issues": ["not a Vouchwell v1 bundle"], "checked": 0}
     keyring = bundle.get("keyring") or {}
     try:
         root = from_hex(bundle.get("root"))

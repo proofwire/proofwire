@@ -1,5 +1,5 @@
 /**
- * Ships locally-signed receipts to a Proofwire hub.
+ * Ships locally-signed receipts to a Vouchwell hub.
  *
  * The local log stays the source of truth and the hub is a replica. That
  * ordering is the whole design: receipts are signed and durable on disk before
@@ -39,7 +39,7 @@ export class RemoteSink {
    * @param {string} opts.url       Hub base URL.
    * @param {string} opts.token     API key with `receipts:write`.
    * @param {string} opts.log       Log slug.
-   * @param {import('@proof_wire/core').ProofLog} opts.localLog
+   * @param {import('@vouchwell/core').ProofLog} opts.localLog
    * @param {number} [opts.flushMs]
    * @param {number} [opts.batchSize]
    * @param {(level: string, msg: string) => void} [opts.onLog]
@@ -201,7 +201,7 @@ export class RemoteSink {
           this.onLog(
             'error',
             `hub refused receipts permanently: ${this.lastError.message}. ` +
-              `Local log is intact; run \`pw push\` after fixing this.`,
+              `Local log is intact; run \`vw push\` after fixing this.`,
           );
           return sent;
         }
@@ -223,7 +223,7 @@ export class RemoteSink {
    * A short digest of a batch, so the same receipts always produce the same
    * batch id and a different set never does.
    *
-   * @param {import('@proof_wire/core').Receipt[]} slice
+   * @param {import('@vouchwell/core').Receipt[]} slice
    */
   _salt(slice) {
     return slice[slice.length - 1].attest.sig.slice(0, 16).replace(/[^A-Za-z0-9]/g, '');
@@ -267,7 +267,7 @@ export class RemoteSink {
       this.onLog(
         'warn',
         `${behind} receipt(s) never reached the hub. They are safe in the local log; ` +
-          `run \`pw push\` to ship them.`,
+          `run \`vw push\` to ship them.`,
       );
     }
     return behind;

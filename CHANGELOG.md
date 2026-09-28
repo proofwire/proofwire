@@ -5,6 +5,34 @@ release together at the same version.
 
 ## Unreleased
 
+### Changed
+
+- **Renamed from Proofwire to Vouchwell.** Another developer tools company was
+  already using "Proofwire" for an API sold to AI-agent developers, and had been
+  since before this project's first release. New names: npm `vouchwell` and
+  `@vouchwell/{core,proxy,dashboard,server}`, PyPI `vouchwell` (import
+  `vouchwell`), the `vouchwell` and `vw` commands (was `pw`), `vouchwell-hub`,
+  `VOUCHWELL_*` settings, `.vouchwell/`, `vouchwell.config.json`,
+  `vouchwell.policy.json`, `~/.vouchwell/`, `/.well-known/vouchwell`, the
+  `vouchwell-signature` webhook header and `vouchwell.bundle` evidence.
+  **Nothing existing breaks:**
+  - evidence bundles labelled `proofwire.bundle` verify in the CLI, the Python
+    SDK and the website (the label was never signed; nothing inside changes);
+  - the CLI finds a `.proofwire/` log, `proofwire.*.json` files and
+    `~/.proofwire/credentials.json` when those are what exist;
+  - every `PROOFWIRE_*` setting is read as its `VOUCHWELL_*` name, with a
+    one-line notice, in the CLI, the hub and the deploy kit;
+  - a hub keeps using its `proofwire.db` (including the Docker image's
+    `/data/proofwire.db`) rather than starting an empty `vouchwell.db`, and
+    still answers at `/.well-known/proofwire`;
+  - Slack messages posted before the rename still approve and deny correctly
+    (an old Approve button would otherwise have counted as a denial);
+  - the deploy kit refuses to start a server that has `proofwire_*` volumes on
+    new empty ones, and says to set `COMPOSE_PROJECT_NAME=proofwire`.
+  Key ids (`pw1…`) and API tokens (`pwk_…`) keep their prefixes: they are
+  identifiers of existing keys, not branding. The webhook signature header is
+  now `vouchwell-signature` (streaming shipped in 0.5.0, the day before).
+
 ### Added
 
 - **The deploy kit keeps the witness journal on its own volume.** It gets a

@@ -2,8 +2,12 @@ node_modules/
 *.log
 .DS_Store
 
-# A Proofwire log's signing key and commitment salts never get committed.
+# A Vouchwell log's signing key and commitment salts never get committed.
 # Entries and checkpoints are safe — and worth committing.
+**/.vouchwell/key.pem
+**/.vouchwell/salts.jsonl
+.vouchwell-witness/
+# The same, as named before the project was renamed Vouchwell. Still private.
 **/.proofwire/key.pem
 **/.proofwire/salts.jsonl
 .proofwire-witness/

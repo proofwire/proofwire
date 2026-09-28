@@ -1,5 +1,5 @@
 #!/bin/sh
-# Bring up, or upgrade, the Proofwire node on this server.
+# Bring up, or upgrade, the Vouchwell node on this server.
 #
 #   ./setup.sh
 #
@@ -23,47 +23,62 @@ command -v curl >/dev/null 2>&1 || fail "curl is needed to check the node once i
 if [ ! -f .env ]; then
   cp env.example .env
   chmod 600 .env
-  fail "Created deploy/.env from env.example. Set PROOFWIRE_DOMAIN and PROOFWIRE_TLS in it, then run this again."
+  fail "Created deploy/.env from env.example. Set VOUCHWELL_DOMAIN and VOUCHWELL_TLS in it, then run this again."
 fi
 
 set -a
 . ./.env
 set +a
 
-case "${PROOFWIRE_DOMAIN:-}" in
-  '' | witness.example.com) fail "Set PROOFWIRE_DOMAIN in deploy/.env to this server's hostname." ;;
+# A .env from before the rename uses PROOFWIRE_* names: read them as the
+# VOUCHWELL_* ones they are, unless the new name is set too.
+for name in DOMAIN TLS WITNESS_ONLY JOURNAL_DIR BACKUP_HOURS BACKUP_KEEP; do
+  eval "[ -n \"\${VOUCHWELL_$name+x}\" ] || [ -z \"\${PROOFWIRE_$name+x}\" ] || export VOUCHWELL_$name=\"\$PROOFWIRE_$name\""
+done
+
+case "${VOUCHWELL_DOMAIN:-}" in
+  '' | witness.example.com) fail "Set VOUCHWELL_DOMAIN in deploy/.env to this server's hostname." ;;
 esac
-case "${PROOFWIRE_TLS:-}" in
-  '' | you@example.com) fail "Set PROOFWIRE_TLS in deploy/.env to your email (for Let's Encrypt), or to 'internal'." ;;
+case "${VOUCHWELL_TLS:-}" in
+  '' | you@example.com) fail "Set VOUCHWELL_TLS in deploy/.env to your email (for Let's Encrypt), or to 'internal'." ;;
 esac
 
-if [ "$PROOFWIRE_TLS" != internal ] && command -v getent >/dev/null 2>&1; then
-  getent hosts "$PROOFWIRE_DOMAIN" >/dev/null 2>&1 ||
-    say "! $PROOFWIRE_DOMAIN does not resolve yet. The certificate cannot be issued until its DNS record points here."
+if [ "$VOUCHWELL_TLS" != internal ] && command -v getent >/dev/null 2>&1; then
+  getent hosts "$VOUCHWELL_DOMAIN" >/dev/null 2>&1 ||
+    say "! $VOUCHWELL_DOMAIN does not resolve yet. The certificate cannot be issued until its DNS record points here."
 fi
 
 # Checked here, before Compose reads it: Compose takes anything else as the
 # name of a volume that doesn't exist, and says so less helpfully.
-case "${PROOFWIRE_JOURNAL_DIR:-}" in
+case "${VOUCHWELL_JOURNAL_DIR:-}" in
   '' | /*) ;;
-  *) fail "PROOFWIRE_JOURNAL_DIR must be an absolute path, or unset." ;;
+  *) fail "VOUCHWELL_JOURNAL_DIR must be an absolute path, or unset." ;;
 esac
+
+# Set up before the rename from Proofwire, this server's data is in the
+# proofwire_* volumes. Compose would otherwise start the node on new, empty
+# vouchwell_* ones: a hub without its logs, a witness without its keys.
+if [ -z "${COMPOSE_PROJECT_NAME:-}" ] &&
+  docker volume inspect proofwire_data >/dev/null 2>&1 &&
+  ! docker volume inspect vouchwell_data >/dev/null 2>&1; then
+  fail "This server was set up before the rename from Proofwire; its data is in the proofwire_data volume. Add COMPOSE_PROJECT_NAME=proofwire to deploy/.env so the node keeps it, then run this again."
+fi
 
 say "Building. The first build takes a minute or two."
 docker compose build
 
 # The witness journal: everything the witness signed, kept apart from the
 # database so a restore from backup can't make it forget (docs/DEPLOY.md).
-# Its own Docker volume by default; PROOFWIRE_JOURNAL_DIR puts it on another
+# Its own Docker volume by default; VOUCHWELL_JOURNAL_DIR puts it on another
 # disk, owned by the user the node runs as.
-case "${PROOFWIRE_JOURNAL_DIR:-}" in
+case "${VOUCHWELL_JOURNAL_DIR:-}" in
   '')
     say "! The witness journal is on the same disk as the database. A lost disk takes both;"
-    say "  put it on a separate one with PROOFWIRE_JOURNAL_DIR in deploy/.env (see docs/DEPLOY.md)."
+    say "  put it on a separate one with VOUCHWELL_JOURNAL_DIR in deploy/.env (see docs/DEPLOY.md)."
     ;;
   /*)
-    dir="$PROOFWIRE_JOURNAL_DIR"
-    owner="$(docker run --rm --entrypoint id proofwire-node:local -u):$(docker run --rm --entrypoint id proofwire-node:local -g)"
+    dir="$VOUCHWELL_JOURNAL_DIR"
+    owner="$(docker run --rm --entrypoint id vouchwell-node:local -u):$(docker run --rm --entrypoint id vouchwell-node:local -g)"
     if [ "$(id -u)" = 0 ]; then
       mkdir -p "$dir"
       chown "$owner" "$dir"
@@ -87,22 +102,22 @@ docker compose up -d
 # TLS, the proxy and the node. --resolve keeps it local without hairpinning
 # out through the public address.
 insecure=''
-[ "$PROOFWIRE_TLS" = internal ] && insecure='-k'
+[ "$VOUCHWELL_TLS" = internal ] && insecure='-k'
 i=0
-until curl -fsS $insecure --max-time 5 --resolve "$PROOFWIRE_DOMAIN:443:127.0.0.1" \
-  "https://$PROOFWIRE_DOMAIN/ready" >/dev/null 2>&1; do
+until curl -fsS $insecure --max-time 5 --resolve "$VOUCHWELL_DOMAIN:443:127.0.0.1" \
+  "https://$VOUCHWELL_DOMAIN/ready" >/dev/null 2>&1; do
   i=$((i + 1))
   if [ "$i" -ge 90 ]; then
     docker compose logs --tail 40
-    fail "https://$PROOFWIRE_DOMAIN never answered. If the certificate failed, check that DNS points here and ports 80 and 443 are open."
+    fail "https://$VOUCHWELL_DOMAIN never answered. If the certificate failed, check that DNS points here and ports 80 and 443 are open."
   fi
   sleep 2
 done
 
-say "https://$PROOFWIRE_DOMAIN is up."
+say "https://$VOUCHWELL_DOMAIN is up."
 docker compose exec -T node node packages/server/src/bin.js identity
 
-if [ "${PROOFWIRE_WITNESS_ONLY:-1}" = 1 ]; then
+if [ "${VOUCHWELL_WITNESS_ONLY:-1}" = 1 ]; then
   say "Give a customer a key:"
   say "  docker compose exec node node packages/server/src/bin.js witness-key \"<customer name>\""
 else

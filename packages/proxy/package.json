@@ -1,18 +1,18 @@
 {
-  "name": "@proof_wire/proxy",
+  "name": "@vouchwell/proxy",
   "version": "0.5.0",
   "type": "module",
-  "description": "Drop-in MCP proxy that enforces Proofwire policy and writes receipts.",
+  "description": "Drop-in MCP proxy that enforces Vouchwell policy and writes receipts.",
   "license": "Apache-2.0",
   "author": "IdeaboticsAI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/proofwire/proofwire.git",
+    "url": "git+https://github.com/vouchwell/vouchwell.git",
     "directory": "packages/proxy"
   },
-  "homepage": "https://github.com/proofwire/proofwire#readme",
+  "homepage": "https://github.com/vouchwell/vouchwell#readme",
   "bugs": {
-    "url": "https://github.com/proofwire/proofwire/issues"
+    "url": "https://github.com/vouchwell/vouchwell/issues"
   },
   "main": "./src/proxy.js",
   "exports": {
@@ -25,7 +25,7 @@
     "src"
   ],
   "dependencies": {
-    "@proof_wire/core": "0.5.0"
+    "@vouchwell/core": "0.5.0"
   },
   "engines": {
     "node": ">=20.11"

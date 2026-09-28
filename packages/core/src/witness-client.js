@@ -2,7 +2,7 @@ import { hex } from './hash.js';
 
 /**
  * Ask a witness to counter-sign a checkpoint: the client half of
- * `POST /v1/witness/cosign`, shared by `pw cosign`, `pw proxy` and the hub.
+ * `POST /v1/witness/cosign`, shared by `vw cosign`, `vw proxy` and the hub.
  *
  * A witness only signs a root that provably extends the last one it signed
  * for this log, so the request has to carry a consistency proof from exactly

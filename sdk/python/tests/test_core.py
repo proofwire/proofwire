@@ -5,7 +5,7 @@ import hashlib
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from proof_wire import (
+from vouchwell import (
     MerkleTree,
     canonicalize,
     consistency_proof,
@@ -17,8 +17,8 @@ from proof_wire import (
     verify_consistency,
     verify_inclusion,
 )
-from proof_wire.hashing import b64url, from_b64url
-from proof_wire.keys import Identity, key_id_for, sign
+from vouchwell.hashing import b64url, from_b64url
+from vouchwell.keys import Identity, key_id_for, sign
 
 from vectors import CT_LEAVES, CT_ROOTS, ED25519
 
