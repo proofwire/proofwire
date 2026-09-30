@@ -234,6 +234,23 @@ test('a receipt carries no salt, so it is publishable as written', () => {
   assert.ok(verifyChain([r], keyring).ok);
 });
 
+test('previews can be left out, leaving only the commitments', () => {
+  const full = make(0, GENESIS_PREV);
+  assert.deepEqual(full.action.params.preview, { amount: 100 });
+  assert.deepEqual(full.result.payload.preview, { id: 're_1' });
+
+  const bare = make(0, GENESIS_PREV, { previews: { params: false, result: false } });
+  assert.equal(bare.action.params.preview, undefined);
+  assert.equal(bare.result.payload.preview, undefined);
+  assert.match(bare.action.params.hash, /^[0-9a-f]{64}$/);
+  assert.ok(!('previews' in bare), 'the option is not part of the receipt');
+  assert.ok(verifyChain([bare], keyring).ok);
+
+  const paramsOnly = make(0, GENESIS_PREV, { previews: { result: false } });
+  assert.deepEqual(paramsOnly.action.params.preview, { amount: 100 });
+  assert.equal(paramsOnly.result.payload.preview, undefined);
+});
+
 test('without the salt, a commitment cannot be opened even by us', () => {
   // Crypto-shredding: destroy the salt and the payload is unrecoverable, while
   // the signature and chain link still verify.

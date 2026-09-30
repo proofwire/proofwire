@@ -108,6 +108,18 @@ jobs:
           else
             echo "no committed log yet — skipping"
           fi
+      - name: Verify the evidence of how Vouchwell was built
+        # One bundle per recorded log: every tool call an agent made working
+        # on this repository (evidence/README.md). Each must verify on its own.
+        run: |
+          shopt -s nullglob
+          bundles=(evidence/*.json)
+          if [ ${#bundles[@]} -eq 0 ]; then echo "no evidence yet — skipping"; exit 0; fi
+          for b in "${bundles[@]}"; do
+            echo "::group::$b"
+            node packages/cli/src/bin.js check "$b"
+            echo "::endgroup::"
+          done
 
   load:
     runs-on: ubuntu-latest

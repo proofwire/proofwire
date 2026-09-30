@@ -173,6 +173,9 @@ function requireField(value, field) {
  * @param {'atomic'|'intent'|'outcome'} [args.phase]
  * @param {string} [args.ref]
  * @param {string} [args.ts]
+ * @param {{ params?: boolean, result?: boolean }} [args.previews]  Set either to
+ *   false to store only the commitment, with no redacted copy: for logs that
+ *   will be published, where even a redacted file or command is too much.
  * @returns {{ body: ReceiptBody, salts: { params: string, result?: string } }}
  *   The salts are the caller's to store separately — see `seal`.
  */
@@ -184,8 +187,8 @@ export function buildReceipt(args) {
   requireField(args.action?.target, 'action.target');
   requireField(args.decision?.outcome, 'decision.outcome');
 
-  const params = seal(args.action.params);
-  const payload = args.result ? seal(args.result.payload) : null;
+  const params = seal(args.action.params, { preview: args.previews?.params !== false });
+  const payload = args.result ? seal(args.result.payload, { preview: args.previews?.result !== false }) : null;
 
   /** @type {ReceiptBody} */
   const body = {

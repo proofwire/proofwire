@@ -5,6 +5,48 @@ up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same ver
 
 ## Unreleased
 
+### Added
+
+- **`vw hook`: record and gate Claude Code's own tools.** Claude Code runs
+  `vw hook` before and after every tool call: shell commands, file reads and
+  edits, fetches. Before a call, the policy decides:
+  - refused calls are denied in Claude Code, with the reason;
+  - escalations are put to the person at the keyboard;
+  - allowed calls get an intent receipt before they run.
+
+  After it, an outcome receipt links back to the intent: success, error,
+  interruption, or refusal by Claude Code's own permissions. At session end,
+  calls that never reported back are closed as not run, and the log is
+  checkpointed.
+  - Parallel tool calls keep one unbroken chain.
+  - When enforcing, a call that cannot be recorded is refused.
+    `VOUCHWELL_HOOK=off` turns it off.
+  - `vw hook install` and `vw hook uninstall` edit Claude Code's settings
+    without touching other hooks. `vw hook evidence` writes a checkpointed
+    bundle to publish.
+  - See `docs/CODING-AGENTS.md`.
+- **The `coding-agent` policy template** refuses reading or writing secret
+  files and touching the agent's own audit log, and escalates shell commands
+  that name a secret file and `--no-verify`.
+- **Receipts can leave out their previews** (`previews: { params, result }` on
+  `ProofLog.append`), keeping only the commitments, for logs that will be
+  published. `vw hook` has a `previews` setting: `params` (the default),
+  `all` or `none`.
+- **This repository records its own development.** Its Claude Code hooks
+  record every tool call an agent makes working on Vouchwell, and publish the
+  logs in `evidence/` with previews off. CI verifies every bundle on every
+  push.
+
+- **The deploy kit keeps the witness journal on its own volume.** It gets a
+  Docker volume of its own by default, or `PROOFWIRE_JOURNAL_DIR` puts it on a
+  separately attached disk, so a lost or restored database disk doesn't take
+  the journal with it. `setup.sh` creates the directory owned by the node's
+  user (or prints the `sudo` command), refuses a relative path, and warns when
+  the directory is on the same disk as Docker's volumes. DEPLOY.md covers
+  attaching a block volume. An existing node that moves its journal fills the
+  new one from its database on start. CI checks the co-signature it makes
+  lands in the journal on its own volume.
+
 ### Changed
 
 - **The logo says Vouchwell everywhere.** It is written in two coloured
@@ -36,18 +78,6 @@ up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same ver
   Key ids (`pw1…`) and API tokens (`pwk_…`) keep their prefixes: they are
   identifiers of existing keys, not branding. The webhook signature header is
   now `vouchwell-signature` (streaming shipped in 0.5.0, the day before).
-
-### Added
-
-- **The deploy kit keeps the witness journal on its own volume.** It gets a
-  Docker volume of its own by default, or `PROOFWIRE_JOURNAL_DIR` puts it on a
-  separately attached disk, so a lost or restored database disk doesn't take
-  the journal with it. `setup.sh` creates the directory owned by the node's
-  user (or prints the `sudo` command), refuses a relative path, and warns when
-  the directory is on the same disk as Docker's volumes. DEPLOY.md covers
-  attaching a block volume. An existing node that moves its journal fills the
-  new one from its database on start. CI checks the co-signature it makes
-  lands in the journal on its own volume.
 
 ## 0.5.0 — 2026-09-28
 
