@@ -38,8 +38,6 @@ const EVENTS = ['PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'PermissionDe
 const TOOL_EVENTS = new Set(['PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'PermissionDenied']);
 const PENDING = 'hook-pending.json';
 const LOCK = 'hook.lock';
-const LOCK_WAIT_MS = 15_000;
-const LOCK_STALE_MS = 30_000;
 
 /**
  * @param {any} args
@@ -264,8 +262,8 @@ function hookCommand(args) {
 
 /** @param {string} file */
 function readSettings(file) {
-  if (!fs.existsSync(file)) return {};
-  const text = fs.readFileSync(file, 'utf8');
+  const text = readIfPresent(file);
+  if (text === null) return {};
   try {
     return text.trim() ? JSON.parse(text) : {};
   } catch {
@@ -322,11 +320,16 @@ function install(args) {
 function uninstall(args) {
   const file = settingsPath(args);
   const command = hookCommand(args);
+  // No settings file: nothing was installed, and nothing is created.
+  if (readIfPresent(file) === null) {
+    ok(`${file} does not exist; nothing to remove`);
+    return 0;
+  }
   const settings = readSettings(file);
   const hooks = withoutOurs(settings, command);
   const next = { ...settings, hooks };
   if (Object.keys(hooks).length === 0) delete next.hooks;
-  if (fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify(next, null, 2) + '\n');
+  fs.writeFileSync(file, JSON.stringify(next, null, 2) + '\n');
   ok(`removed ${c.cyan(command)} from ${file}`);
   return 0;
 }
@@ -429,7 +432,9 @@ function callKey(event) {
 
 /** @param {string} dir */
 function openOrCreate(dir) {
-  if (fs.existsSync(path.join(dir, 'config.json'))) return ProofLog.open(dir);
+  // Opened or created in one step each, never "check, then act": the hook
+  // lock is held, but a log is a directory anyone can write to.
+  if (readIfPresent(path.join(dir, 'config.json')) !== null) return ProofLog.open(dir);
   const log = ProofLog.create(dir);
   err(`vouchwell hook: started a new log at ${dir} (${log.logId})`);
   return log;
@@ -452,6 +457,34 @@ function writePending(dir, pending) {
   fs.renameSync(tmp, file);
 }
 
+/** @param {string} file @returns {string | null} */
+function readIfPresent(file) {
+  try {
+    return fs.readFileSync(file, 'utf8');
+  } catch (e) {
+    if (/** @type {NodeJS.ErrnoException} */ (e).code === 'ENOENT') return null;
+    throw e;
+  }
+}
+
+/**
+ * Whether the process a lock file names is still running. A lock that is gone,
+ * or not yet written, is treated as held: the next attempt settles it.
+ *
+ * @param {string | null} text
+ */
+function holderAlive(text) {
+  const pid = Number(text);
+  if (text === null || !Number.isInteger(pid) || pid <= 0) return true;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (e) {
+    // EPERM: it exists and belongs to someone else.
+    return /** @type {NodeJS.ErrnoException} */ (e).code !== 'ESRCH';
+  }
+}
+
 /**
  * Run `fn` holding the log's hook lock: one writer at a time.
  *
@@ -463,7 +496,8 @@ function writePending(dir, pending) {
 export function withLock(dir, fn) {
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, LOCK);
-  const deadline = Date.now() + LOCK_WAIT_MS;
+  const waitMs = Number(process.env.VOUCHWELL_HOOK_LOCK_WAIT_MS) || 15_000;
+  const deadline = Date.now() + waitMs;
   const nap = new Int32Array(new SharedArrayBuffer(4));
   for (;;) {
     try {
@@ -472,12 +506,9 @@ export function withLock(dir, fn) {
     } catch (e) {
       if (/** @type {NodeJS.ErrnoException} */ (e).code !== 'EEXIST') throw e;
       // A writer that died holding the lock must not stop every later one.
-      try {
-        if (Date.now() - fs.statSync(file).mtimeMs > LOCK_STALE_MS) fs.rmSync(file, { force: true });
-      } catch {
-        // Gone already: try again.
-      }
-      if (Date.now() > deadline) throw new Error(`the log at ${dir} stayed locked for ${LOCK_WAIT_MS / 1000}s`);
+      // The lock names its holder, so a dead holder's lock is taken over.
+      if (!holderAlive(readIfPresent(file))) fs.rmSync(file, { force: true });
+      if (Date.now() > deadline) throw new Error(`the log at ${dir} stayed locked for ${waitMs / 1000}s`);
       Atomics.wait(nap, 0, 0, 20);
     }
   }

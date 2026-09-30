@@ -2,10 +2,10 @@
   "v": 1,
   "kind": "vouchwell.bundle",
   "log": "lg_f221159d4ee6af35",
-  "exported": "2026-09-30T09:14:50.703Z",
-  "treeSize": 35,
-  "root": "5e7f92fb5a5af8eaeb390c24c58ded94d81f76ef9b4fcf374be854d621135a17",
-  "head": "ef6aa96b84a276fa12b0d0e08418591dded75a36debfccdabe0d4a705c00014f",
+  "exported": "2026-09-30T09:21:23.239Z",
+  "treeSize": 77,
+  "root": "36364e842fbd34f9260f58edabc273a2af8a3aceb122f6a5ef469e8f2c12771c",
+  "head": "262a8f6ee5339dd560680dffc5b0792c1b2c5203b63959cf39a12c9e8c0c56ce",
   "keyring": {
     "pw1ac0d4e069cab79fd653cf1dd1281d7b6": "7S5Z888HKkp3GHzGxYA7PVgmL_C6UBAqsjx3g63kQQA"
   },
@@ -41,6 +41,23 @@
           "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
           "role": "log",
           "sig": "l-As-ndc5X6vjh5KF8S6KrSHzM7cU5G1w5zir1SVAM51X9Lv6wTjQb8BdUI93gBSZZ1vaSR3pLQ0wCe6k7iVBw"
+        }
+      ]
+    },
+    {
+      "body": {
+        "head": "262a8f6ee5339dd560680dffc5b0792c1b2c5203b63959cf39a12c9e8c0c56ce",
+        "log": "lg_f221159d4ee6af35",
+        "root": "36364e842fbd34f9260f58edabc273a2af8a3aceb122f6a5ef469e8f2c12771c",
+        "size": 77,
+        "ts": "2026-09-30T09:21:23.238Z",
+        "v": 1
+      },
+      "sigs": [
+        {
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "role": "log",
+          "sig": "aCu5hqECQVdW2X0q1SGyjK8JoHaU0W5UTEV4JDKBYqEAOJcAhhfE-I2LzosW9nCy8TALQMKd4owhn9I8bObCAw"
         }
       ]
     }
@@ -90,7 +107,8 @@
         "e606129ac7c3125a1677a03a3350faf6f3912b0d2d11f59eedcdc34a08d5a0c6",
         "ad89774aa38ee00fd806bab8c7a003e5657d5199a380d30af9ae434dab9c2f6c",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -143,7 +161,8 @@
         "e606129ac7c3125a1677a03a3350faf6f3912b0d2d11f59eedcdc34a08d5a0c6",
         "ad89774aa38ee00fd806bab8c7a003e5657d5199a380d30af9ae434dab9c2f6c",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -188,7 +207,8 @@
         "e606129ac7c3125a1677a03a3350faf6f3912b0d2d11f59eedcdc34a08d5a0c6",
         "ad89774aa38ee00fd806bab8c7a003e5657d5199a380d30af9ae434dab9c2f6c",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -241,7 +261,8 @@
         "e606129ac7c3125a1677a03a3350faf6f3912b0d2d11f59eedcdc34a08d5a0c6",
         "ad89774aa38ee00fd806bab8c7a003e5657d5199a380d30af9ae434dab9c2f6c",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -286,7 +307,8 @@
         "361c8145665905f8d7d64b2e06955d60cb420486b5a9a0d259e6790db71c5690",
         "ad89774aa38ee00fd806bab8c7a003e5657d5199a380d30af9ae434dab9c2f6c",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -339,7 +361,8 @@
         "361c8145665905f8d7d64b2e06955d60cb420486b5a9a0d259e6790db71c5690",
         "ad89774aa38ee00fd806bab8c7a003e5657d5199a380d30af9ae434dab9c2f6c",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -384,7 +407,8 @@
         "361c8145665905f8d7d64b2e06955d60cb420486b5a9a0d259e6790db71c5690",
         "ad89774aa38ee00fd806bab8c7a003e5657d5199a380d30af9ae434dab9c2f6c",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -437,7 +461,8 @@
         "361c8145665905f8d7d64b2e06955d60cb420486b5a9a0d259e6790db71c5690",
         "ad89774aa38ee00fd806bab8c7a003e5657d5199a380d30af9ae434dab9c2f6c",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -482,7 +507,8 @@
         "059a34a2f5e38d9e97fd41c9c9edca409742bfa4b895984fd011fdba89c411e5",
         "8d8139f8730137c9cc76ad18772b967b6266b2a7e1939fc95c2de16b25acef2b",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -535,7 +561,8 @@
         "059a34a2f5e38d9e97fd41c9c9edca409742bfa4b895984fd011fdba89c411e5",
         "8d8139f8730137c9cc76ad18772b967b6266b2a7e1939fc95c2de16b25acef2b",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -580,7 +607,8 @@
         "059a34a2f5e38d9e97fd41c9c9edca409742bfa4b895984fd011fdba89c411e5",
         "8d8139f8730137c9cc76ad18772b967b6266b2a7e1939fc95c2de16b25acef2b",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -633,7 +661,8 @@
         "059a34a2f5e38d9e97fd41c9c9edca409742bfa4b895984fd011fdba89c411e5",
         "8d8139f8730137c9cc76ad18772b967b6266b2a7e1939fc95c2de16b25acef2b",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -678,7 +707,8 @@
         "fd94c154df23fe69b3cfca70db686277ba8bf1af87c68ff120c228f257118485",
         "8d8139f8730137c9cc76ad18772b967b6266b2a7e1939fc95c2de16b25acef2b",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -731,7 +761,8 @@
         "fd94c154df23fe69b3cfca70db686277ba8bf1af87c68ff120c228f257118485",
         "8d8139f8730137c9cc76ad18772b967b6266b2a7e1939fc95c2de16b25acef2b",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -776,7 +807,8 @@
         "fd94c154df23fe69b3cfca70db686277ba8bf1af87c68ff120c228f257118485",
         "8d8139f8730137c9cc76ad18772b967b6266b2a7e1939fc95c2de16b25acef2b",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -829,7 +861,8 @@
         "fd94c154df23fe69b3cfca70db686277ba8bf1af87c68ff120c228f257118485",
         "8d8139f8730137c9cc76ad18772b967b6266b2a7e1939fc95c2de16b25acef2b",
         "462968ecee99ec6cc35de2c87a5d5f9ede0007e74d87bb4a8edd31eee3d4ff15",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -874,7 +907,8 @@
         "7b24f7d658a5104eae19b71e6e24963c1cee6d62447e10432ded3a3c1f6d0d7d",
         "0ab6321203c773ec525d39d241659572c9acefb78cacfb5e6c86fed5da6f7977",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -927,7 +961,8 @@
         "7b24f7d658a5104eae19b71e6e24963c1cee6d62447e10432ded3a3c1f6d0d7d",
         "0ab6321203c773ec525d39d241659572c9acefb78cacfb5e6c86fed5da6f7977",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -972,7 +1007,8 @@
         "7b24f7d658a5104eae19b71e6e24963c1cee6d62447e10432ded3a3c1f6d0d7d",
         "0ab6321203c773ec525d39d241659572c9acefb78cacfb5e6c86fed5da6f7977",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1025,7 +1061,8 @@
         "7b24f7d658a5104eae19b71e6e24963c1cee6d62447e10432ded3a3c1f6d0d7d",
         "0ab6321203c773ec525d39d241659572c9acefb78cacfb5e6c86fed5da6f7977",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1070,7 +1107,8 @@
         "71a0cad809eac48a4d120a1d47f8a4fc82bf3d2c6e24b2e22ebebf52885fce04",
         "0ab6321203c773ec525d39d241659572c9acefb78cacfb5e6c86fed5da6f7977",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1123,7 +1161,8 @@
         "71a0cad809eac48a4d120a1d47f8a4fc82bf3d2c6e24b2e22ebebf52885fce04",
         "0ab6321203c773ec525d39d241659572c9acefb78cacfb5e6c86fed5da6f7977",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1168,7 +1207,8 @@
         "71a0cad809eac48a4d120a1d47f8a4fc82bf3d2c6e24b2e22ebebf52885fce04",
         "0ab6321203c773ec525d39d241659572c9acefb78cacfb5e6c86fed5da6f7977",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1221,7 +1261,8 @@
         "71a0cad809eac48a4d120a1d47f8a4fc82bf3d2c6e24b2e22ebebf52885fce04",
         "0ab6321203c773ec525d39d241659572c9acefb78cacfb5e6c86fed5da6f7977",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1266,7 +1307,8 @@
         "180bc7a520b403f5b07d909d645897e3aaab5a92dd24d8c169f515d5e158902e",
         "24695b2b5fda0bcfbb3e613b9e5a3341ce7df886f084b9fea5f61de802e61993",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1319,7 +1361,8 @@
         "180bc7a520b403f5b07d909d645897e3aaab5a92dd24d8c169f515d5e158902e",
         "24695b2b5fda0bcfbb3e613b9e5a3341ce7df886f084b9fea5f61de802e61993",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1364,7 +1407,8 @@
         "180bc7a520b403f5b07d909d645897e3aaab5a92dd24d8c169f515d5e158902e",
         "24695b2b5fda0bcfbb3e613b9e5a3341ce7df886f084b9fea5f61de802e61993",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1417,7 +1461,8 @@
         "180bc7a520b403f5b07d909d645897e3aaab5a92dd24d8c169f515d5e158902e",
         "24695b2b5fda0bcfbb3e613b9e5a3341ce7df886f084b9fea5f61de802e61993",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1465,7 +1510,8 @@
         "014cb15a0ad63ec974043d8396d5ef67db777a4efc467cf723c68e3e36e208ce",
         "24695b2b5fda0bcfbb3e613b9e5a3341ce7df886f084b9fea5f61de802e61993",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1521,7 +1567,8 @@
         "014cb15a0ad63ec974043d8396d5ef67db777a4efc467cf723c68e3e36e208ce",
         "24695b2b5fda0bcfbb3e613b9e5a3341ce7df886f084b9fea5f61de802e61993",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1566,7 +1613,8 @@
         "014cb15a0ad63ec974043d8396d5ef67db777a4efc467cf723c68e3e36e208ce",
         "24695b2b5fda0bcfbb3e613b9e5a3341ce7df886f084b9fea5f61de802e61993",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1620,7 +1668,8 @@
         "014cb15a0ad63ec974043d8396d5ef67db777a4efc467cf723c68e3e36e208ce",
         "24695b2b5fda0bcfbb3e613b9e5a3341ce7df886f084b9fea5f61de802e61993",
         "80ef114a39018e6fe85317422b05a403cdcff1b9342d3e3fbaedc0ea7444f379",
-        "224943bb1c3b042d17ae2d43d9b90792475ec6a72edcaf54704805369b2433c2"
+        "e2e089d6ed744a4fe87da65292f705166694a5026d787d68317bda3e171a51fb",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1661,8 +1710,12 @@
       },
       "proof": [
         "794fee93c8ed5e97e718a4a7340540bdd018738bdac6aa90dae3e494df443410",
-        "ef6aa96b84a276fa12b0d0e08418591dded75a36debfccdabe0d4a705c00014f",
-        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a"
+        "4a0ddbb6da997ffb09ec41fe648ed8566e026a06466c85d4d5d815eea2e85bbd",
+        "c73f72b38dc3468449bcbf6593302373c3244ab22af79a08fb5e3afd7fad0197",
+        "c1da0e717e7f36df4f5168f6e042d4c816fff7f1d9336e088c3b7da5ccb3ce4f",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1711,8 +1764,12 @@
       },
       "proof": [
         "b698f87efbd7b0deb733212bf98be8249b127835fb765e4083ac9411b0c70cc5",
-        "ef6aa96b84a276fa12b0d0e08418591dded75a36debfccdabe0d4a705c00014f",
-        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a"
+        "4a0ddbb6da997ffb09ec41fe648ed8566e026a06466c85d4d5d815eea2e85bbd",
+        "c73f72b38dc3468449bcbf6593302373c3244ab22af79a08fb5e3afd7fad0197",
+        "c1da0e717e7f36df4f5168f6e042d4c816fff7f1d9336e088c3b7da5ccb3ce4f",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
       ]
     },
     {
@@ -1752,8 +1809,2085 @@
         "v": 1
       },
       "proof": [
+        "c1e8e506f39a6d34bfadd32931b502a03b1f00d730d6aa9c3a787be140edf634",
         "e34f2982cb26793ea5422296e78fbb9feec213ee33942f65cc21cce148873535",
-        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a"
+        "c73f72b38dc3468449bcbf6593302373c3244ab22af79a08fb5e3afd7fad0197",
+        "c1da0e717e7f36df4f5168f6e042d4c816fff7f1d9336e088c3b7da5ccb3ce4f",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "ad50f5a03ea641fa199eb8830faa76638df7425d3460a10d2f1caaf67cd4d9e0",
+            "size": 2118
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "tZefdY0187alUEvI4xGlH8agh5_M8dk3_DVJ4u5SZxLds5VWbV8eOdV-ZOORIBatJwwk5sZUhZCLeiUMNIihAw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "ef6aa96b84a276fa12b0d0e08418591dded75a36debfccdabe0d4a705c00014f",
+        "ref": "ef6aa96b84a276fa12b0d0e08418591dded75a36debfccdabe0d4a705c00014f",
+        "result": {
+          "latencyMs": 3158,
+          "payload": {
+            "hash": "03a2e5597f4a6460b76f9e82ad122e48f6908e19e13ebba3d5983df4c6c337ab",
+            "size": 735
+          },
+          "status": "ok"
+        },
+        "seq": 35,
+        "ts": "2026-09-30T09:14:53.670Z",
+        "v": 1
+      },
+      "proof": [
+        "ef6aa96b84a276fa12b0d0e08418591dded75a36debfccdabe0d4a705c00014f",
+        "e34f2982cb26793ea5422296e78fbb9feec213ee33942f65cc21cce148873535",
+        "c73f72b38dc3468449bcbf6593302373c3244ab22af79a08fb5e3afd7fad0197",
+        "c1da0e717e7f36df4f5168f6e042d4c816fff7f1d9336e088c3b7da5ccb3ce4f",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "911d8a305fc206825674e347065c05f28e4e5619492346f6ee76bb73770799be",
+            "size": 150
+          },
+          "target": "claude-code.ToolSearch"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "xA9P0tKDJJc4-EHnb59btLjLJRReYboPUOtcb-ToY2KI_AGyropqyOh_eXX4uVgHI8PPAMmV1UI5BYuDjY2tDQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "c1e8e506f39a6d34bfadd32931b502a03b1f00d730d6aa9c3a787be140edf634",
+        "result": null,
+        "seq": 36,
+        "ts": "2026-09-30T09:14:56.660Z",
+        "v": 1
+      },
+      "proof": [
+        "e2929a1047e99eaab058991205e2650be70fdf74ae1f406db16df044a553a693",
+        "4805e7ac7223fb5e1529292f7f1d98103aa699c8cf209610522fe3c9ed217063",
+        "e077dc5b5db9069bdc4c650eaf5039d2daf1a87815e7bde4a279001966e8d443",
+        "c1da0e717e7f36df4f5168f6e042d4c816fff7f1d9336e088c3b7da5ccb3ce4f",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "b8276370addc70867b7ef4de020ca83564a5245364db6484461d20f02505d3e2",
+            "size": 150
+          },
+          "target": "claude-code.ToolSearch"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "hqr53s33h9snnQjFxwq3i2gRAheV0ZVxUutvsZFc4HnvE9rrKznQ2HSggYzpUqLzYdwKAw-ACpxODat_uinnDA"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "15e3d19913ece27023dafa9f4f3e1ad351fc1e5b22ef47f677917fa478ef36d8",
+        "ref": "15e3d19913ece27023dafa9f4f3e1ad351fc1e5b22ef47f677917fa478ef36d8",
+        "result": {
+          "latencyMs": 3,
+          "payload": {
+            "hash": "f2e504d01c7eb621de8f40708dc670ff1e67f6ea16845d17551e883a6c272611",
+            "size": 295
+          },
+          "status": "ok"
+        },
+        "seq": 37,
+        "ts": "2026-09-30T09:14:56.777Z",
+        "v": 1
+      },
+      "proof": [
+        "15e3d19913ece27023dafa9f4f3e1ad351fc1e5b22ef47f677917fa478ef36d8",
+        "4805e7ac7223fb5e1529292f7f1d98103aa699c8cf209610522fe3c9ed217063",
+        "e077dc5b5db9069bdc4c650eaf5039d2daf1a87815e7bde4a279001966e8d443",
+        "c1da0e717e7f36df4f5168f6e042d4c816fff7f1d9336e088c3b7da5ccb3ce4f",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "ea99fe1d09aea44fcd83e25cbad3437377168260d54cb61b3b93948443940cb0",
+            "size": 4699
+          },
+          "target": "claude-code.mcp__github__create_pull_request"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "AQHm4THYaGUsEEE7hljLX359hNMc8ZfzjIiJcPhP4IxRTZ0bLpGmiq5iSLHI3mRpxd8kQoUIogLEXT4Rw4ttAA"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "e2929a1047e99eaab058991205e2650be70fdf74ae1f406db16df044a553a693",
+        "result": null,
+        "seq": 38,
+        "ts": "2026-09-30T09:15:13.171Z",
+        "v": 1
+      },
+      "proof": [
+        "5cbe50c3b7341e0f85b1714aed57f6a827497a51295dd7a823812d63cd3ae09b",
+        "2cb471ef383e6cd48148caca31beba1dd4619015ddb96f2115276a6789d16019",
+        "e077dc5b5db9069bdc4c650eaf5039d2daf1a87815e7bde4a279001966e8d443",
+        "c1da0e717e7f36df4f5168f6e042d4c816fff7f1d9336e088c3b7da5ccb3ce4f",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "e0ea698000e6a1dfc130d52a06affd49ffada3c01e512c90e355ee96c2d78ef0",
+            "size": 4699
+          },
+          "target": "claude-code.mcp__github__create_pull_request"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "GhV51h0rYpupcr7fA0it7pAijI-vHJwyRU8MX5AO7b_HuAzASUSyROYrV0hJNLYj5vmOAfEJJJ1tDqrLeCAOAg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "c8bc65800f95f350961a9bacb7eb89c6027f4ccea87f97c7a5177a402660f284",
+        "ref": "c8bc65800f95f350961a9bacb7eb89c6027f4ccea87f97c7a5177a402660f284",
+        "result": {
+          "latencyMs": 1898,
+          "payload": {
+            "hash": "19f3c38420bb8eb7b62c53125ae7bdb5baf372aed5e1f9addab2b7e9d2b6d9ae",
+            "size": 109
+          },
+          "status": "ok"
+        },
+        "seq": 39,
+        "ts": "2026-09-30T09:15:15.190Z",
+        "v": 1
+      },
+      "proof": [
+        "c8bc65800f95f350961a9bacb7eb89c6027f4ccea87f97c7a5177a402660f284",
+        "2cb471ef383e6cd48148caca31beba1dd4619015ddb96f2115276a6789d16019",
+        "e077dc5b5db9069bdc4c650eaf5039d2daf1a87815e7bde4a279001966e8d443",
+        "c1da0e717e7f36df4f5168f6e042d4c816fff7f1d9336e088c3b7da5ccb3ce4f",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "8ee27e5efbaadd731a730bdd658ba6c7081fad5f15fa7e7b954b03fc36b87d41",
+            "size": 56
+          },
+          "target": "claude-code.mcp__Claude_Code_Remote__subscribe_pr_activity"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "EObpB6MgNdHXYNvOgob4z26kc4AP11Zti8YgU3nFDCyS6RpLjqIyVAdPxBkVzoJo7IHFstCkhxawtrl9zJRTAQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "5cbe50c3b7341e0f85b1714aed57f6a827497a51295dd7a823812d63cd3ae09b",
+        "result": null,
+        "seq": 40,
+        "ts": "2026-09-30T09:15:17.468Z",
+        "v": 1
+      },
+      "proof": [
+        "3253e01c02b2a0a86c833225a0a1941d3cd062a8ee10107d8fe6146157766312",
+        "f294aff2b28a405c21eec778d436066d37d9869ffeab8178a9d9be78fb62d8fc",
+        "e8a44ae837a0496c37485c673272fb5df656845b5fbc4db33d66b67b2f2176f0",
+        "b884c1bd25223f1473adda3b8cc2bb225fdde6920ebdbe6211d924d0ab43f9dd",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "b15e8f45ed5f192211a59dc4e8b6276ecae8bbf13e535951875e68ed386dc5c3",
+            "size": 56
+          },
+          "target": "claude-code.mcp__Claude_Code_Remote__subscribe_pr_activity"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "skhuDQ4680D3NH3HX5S_WQL1ur1_WBxd5maUUzDrcFGHP1oCKuwEo3n-v_u1UNxuPUKQ94ASHZG8m_5HbW-iDw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "6d5edea686830fff47bae30897845144159fd6a0dce342647856b2805d765a45",
+        "ref": "6d5edea686830fff47bae30897845144159fd6a0dce342647856b2805d765a45",
+        "result": {
+          "latencyMs": 2285,
+          "payload": {
+            "hash": "b3f077ee9fd817287af72c6c2a2b0834fadbc25436a6f7a3d8de70858fe65810",
+            "size": 255
+          },
+          "status": "ok"
+        },
+        "seq": 41,
+        "ts": "2026-09-30T09:18:50.614Z",
+        "v": 1
+      },
+      "proof": [
+        "6d5edea686830fff47bae30897845144159fd6a0dce342647856b2805d765a45",
+        "f294aff2b28a405c21eec778d436066d37d9869ffeab8178a9d9be78fb62d8fc",
+        "e8a44ae837a0496c37485c673272fb5df656845b5fbc4db33d66b67b2f2176f0",
+        "b884c1bd25223f1473adda3b8cc2bb225fdde6920ebdbe6211d924d0ab43f9dd",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "14f85d42178211bb4d44d76e1cb0f74efe4eb57cb843a43d711640fcbf776476",
+            "size": 330
+          },
+          "target": "claude-code.mcp__Claude_Code_Remote__send_later"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "kzswHVZqy29TlEmfmLdz9lJd-typ3y25oM1xopSkVgGmcbyt2z_x3rwOT31JmkhAY503aZtDlSEryd6E3BD9DQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "3253e01c02b2a0a86c833225a0a1941d3cd062a8ee10107d8fe6146157766312",
+        "result": null,
+        "seq": 42,
+        "ts": "2026-09-30T09:18:50.873Z",
+        "v": 1
+      },
+      "proof": [
+        "c0d90018f096e1e76b0b580dd29ac94f889f1f70bf40f1ecce93568add2669d9",
+        "0932c91e40074a424bee31513281f6eb4b4d83cf0eb4fb8c6d2389c6a6d6b602",
+        "e8a44ae837a0496c37485c673272fb5df656845b5fbc4db33d66b67b2f2176f0",
+        "b884c1bd25223f1473adda3b8cc2bb225fdde6920ebdbe6211d924d0ab43f9dd",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "bb00aeb0bf5cf7a07c51553b4d2d75d12eff33022ad66291f49db071072239c0",
+            "size": 330
+          },
+          "target": "claude-code.mcp__Claude_Code_Remote__send_later"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "W2biaq1763AZDxbLdIjVcF2ewJ2vktQ0IYSKcmawjVhDcJEEmsFDcj4KXkldN0GI_AcO3cKWb7cz3au5NAKuBQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "a75f30cb5036892ece5c4da02ba0bf7edc82187f08495384e04841a2acf6dc52",
+        "ref": "a75f30cb5036892ece5c4da02ba0bf7edc82187f08495384e04841a2acf6dc52",
+        "result": {
+          "latencyMs": 513,
+          "payload": {
+            "hash": "2ab147f0f6fa688709120b43509692d6678166792fd4474c16b5ac5e3aea0652",
+            "size": 147
+          },
+          "status": "ok"
+        },
+        "seq": 43,
+        "ts": "2026-09-30T09:18:54.469Z",
+        "v": 1
+      },
+      "proof": [
+        "a75f30cb5036892ece5c4da02ba0bf7edc82187f08495384e04841a2acf6dc52",
+        "0932c91e40074a424bee31513281f6eb4b4d83cf0eb4fb8c6d2389c6a6d6b602",
+        "e8a44ae837a0496c37485c673272fb5df656845b5fbc4db33d66b67b2f2176f0",
+        "b884c1bd25223f1473adda3b8cc2bb225fdde6920ebdbe6211d924d0ab43f9dd",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "a822c79813f0506ed9c91f021f1fb1cf1a53fcf2f9e38888a78a0bfb6ae24014",
+            "size": 36
+          },
+          "target": "claude-code.TaskUpdate"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "1ut7pVLwDf1VZOHDNBBzMzMe4qJREdWnG12bGBE55zwBj0RJ4qXhLslH1kb2_ZJIIoJtWU8Ky3goS6uPNJCpCg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "c0d90018f096e1e76b0b580dd29ac94f889f1f70bf40f1ecce93568add2669d9",
+        "result": null,
+        "seq": 44,
+        "ts": "2026-09-30T09:18:56.182Z",
+        "v": 1
+      },
+      "proof": [
+        "eaed6dc09b8cc568403294548865024133217de3919f30d98702a6f493ed25c2",
+        "b62481ee363a669bd3041426a64cdc5a927a7743f9061bcb27e154d144ba3c60",
+        "160aeae95830c6782dd7d23453c33844af976c8eb571830b0004728c6321617a",
+        "b884c1bd25223f1473adda3b8cc2bb225fdde6920ebdbe6211d924d0ab43f9dd",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "20955fb2f1778c680e3e2d8217b4825645fbe6b638756eb47e03d4196bc719c0",
+            "size": 36
+          },
+          "target": "claude-code.TaskUpdate"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "D_vWHzrN6MLJ2alDYWDy5pN7-qVb3abr14l9xEyQK-DU3G7gLm8-qIz6xduhQBRcvgCxOHR5UjKKkKnVqTtgDQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "e80a94621449dbbb94ade9908194585b97f212b5589e346d10c847b822e86552",
+        "ref": "e80a94621449dbbb94ade9908194585b97f212b5589e346d10c847b822e86552",
+        "result": {
+          "latencyMs": 7,
+          "payload": {
+            "hash": "9cce088e749e58295027af95ef53eb8291ae852da6a9436b8786f2cd776ffc41",
+            "size": 112
+          },
+          "status": "ok"
+        },
+        "seq": 45,
+        "ts": "2026-09-30T09:18:56.307Z",
+        "v": 1
+      },
+      "proof": [
+        "e80a94621449dbbb94ade9908194585b97f212b5589e346d10c847b822e86552",
+        "b62481ee363a669bd3041426a64cdc5a927a7743f9061bcb27e154d144ba3c60",
+        "160aeae95830c6782dd7d23453c33844af976c8eb571830b0004728c6321617a",
+        "b884c1bd25223f1473adda3b8cc2bb225fdde6920ebdbe6211d924d0ab43f9dd",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "d653acf5ee86b78a5b745ac62f63661a3f9d5c304f54ab499e9ab11163635e9f",
+            "size": 2
+          },
+          "target": "claude-code.ReadNotifications"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "BBKB7Fos6gSv8Svo9w9xSCoiI7hZ3f3VXlAbBt5sy65Kg1d1l5oPezobtXf0MeN8_BBdPrrkZb5sZT_YaNgvBQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "eaed6dc09b8cc568403294548865024133217de3919f30d98702a6f493ed25c2",
+        "result": null,
+        "seq": 46,
+        "ts": "2026-09-30T09:19:09.462Z",
+        "v": 1
+      },
+      "proof": [
+        "743b63d3786625ea01b52fd2a0efbc5b70893ee51d982049db9970eb1f1f2fba",
+        "7de431917806a893249a92bb5c41a2c6dd0dda4e3c5d8040fab4cf80f0156d95",
+        "160aeae95830c6782dd7d23453c33844af976c8eb571830b0004728c6321617a",
+        "b884c1bd25223f1473adda3b8cc2bb225fdde6920ebdbe6211d924d0ab43f9dd",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "5a0d0e85d41d6132a9c4ec4ab0c744755ac41bcb9bcf21369acb08d587093e88",
+            "size": 2
+          },
+          "target": "claude-code.ReadNotifications"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "TYRN92caPFKMMM5K_DMn_6_YVnePriVg9nARhLpgHTBP6pdh3aG_GHkA2xkO-lOB6EY04vr2aRL8TnC7TD5JDw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "8dfc5f785cddc999fadb72cebdbd77c54dc851426c8e2fa45b814ab3faf61730",
+        "ref": "8dfc5f785cddc999fadb72cebdbd77c54dc851426c8e2fa45b814ab3faf61730",
+        "result": {
+          "latencyMs": 2,
+          "payload": {
+            "hash": "8abf59abbea8ffc89f0f8fcd0522defb34c6a5c61d7323f2fc0ea414cabe3bc4",
+            "size": 11139
+          },
+          "status": "ok"
+        },
+        "seq": 47,
+        "ts": "2026-09-30T09:19:09.738Z",
+        "v": 1
+      },
+      "proof": [
+        "8dfc5f785cddc999fadb72cebdbd77c54dc851426c8e2fa45b814ab3faf61730",
+        "7de431917806a893249a92bb5c41a2c6dd0dda4e3c5d8040fab4cf80f0156d95",
+        "160aeae95830c6782dd7d23453c33844af976c8eb571830b0004728c6321617a",
+        "b884c1bd25223f1473adda3b8cc2bb225fdde6920ebdbe6211d924d0ab43f9dd",
+        "05d0088580cdd76d30f23cb6d9d54bbfc6fb13337354363fbf3c4e0c3c3f927e",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "7185f8b005fbfbf094cdde7e1d8a8fc39fea17e3fe058f0cea512792caad9081",
+            "size": 65
+          },
+          "target": "claude-code.ToolSearch"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "8kZxxr4oOkFkT1OObqTDi8TOdkAFY6sKli0Dr_EGpdtd1PGEofbaQfKApSYJf6qXfPPIg7t6PypiEIerg0g6Dg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "743b63d3786625ea01b52fd2a0efbc5b70893ee51d982049db9970eb1f1f2fba",
+        "result": null,
+        "seq": 48,
+        "ts": "2026-09-30T09:19:11.585Z",
+        "v": 1
+      },
+      "proof": [
+        "5fdd5d78e13e4b80b1853eabcd5f5322ca63d7c2078e6f206b0977ace115e0fc",
+        "450639c697659041829f5704cd33dbc30048ac0383ffcdf4c4cf48b92949e2e4",
+        "ab765fdb3ecdc0f71cdc59254916ff32ee5bf7d19687b072255223c5d575242a",
+        "7c0bbdf6b64878a67904ebeda6566fdc154290c9d37213acef25dca6bb642b7a",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "19a220874507518d7b88ac363b7d2ac40be05d21d8a13532f36f08ef774db1d3",
+            "size": 65
+          },
+          "target": "claude-code.ToolSearch"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "PGqvgF0s742JZcTT8gN72llS9SBs4IRo2PxKqFdh4V525_Nb8-taK6FEDSA5DNanP6iyV2j0gV6bD3SaItuBCA"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "91c1acbafdfd2dc5ce6cf56cd9cf3025b3165270dac39aeb560600132919a250",
+        "ref": "91c1acbafdfd2dc5ce6cf56cd9cf3025b3165270dac39aeb560600132919a250",
+        "result": {
+          "latencyMs": 2,
+          "payload": {
+            "hash": "7d837c2960f3f67ed782dfa9ead43c414ac2bdc114343eb01a623f1051df674e",
+            "size": 121
+          },
+          "status": "ok"
+        },
+        "seq": 49,
+        "ts": "2026-09-30T09:19:11.715Z",
+        "v": 1
+      },
+      "proof": [
+        "91c1acbafdfd2dc5ce6cf56cd9cf3025b3165270dac39aeb560600132919a250",
+        "450639c697659041829f5704cd33dbc30048ac0383ffcdf4c4cf48b92949e2e4",
+        "ab765fdb3ecdc0f71cdc59254916ff32ee5bf7d19687b072255223c5d575242a",
+        "7c0bbdf6b64878a67904ebeda6566fdc154290c9d37213acef25dca6bb642b7a",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "e337c68e71d11a2c79aacc85226f38c62dd0d67f41e831ad064dedae41c7a1d2",
+            "size": 61
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "87cvb35hJ4sNonq4l8pT-c6KbHt_Q0L0DCQ34Z-rJ_fbrkcJK0Zx956z8wh2P9uo08aW4a2cWh2TvHDGA2vSAA"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "5fdd5d78e13e4b80b1853eabcd5f5322ca63d7c2078e6f206b0977ace115e0fc",
+        "result": null,
+        "seq": 50,
+        "ts": "2026-09-30T09:19:13.890Z",
+        "v": 1
+      },
+      "proof": [
+        "3d4b4dc9f6a2623fa91db71a68102dda8e015bdd746733f01e1a29999ebb802a",
+        "8dfc0de3a7c308ee2c872bff0e23a00d49eb360008bed84a0d7a34b04d380344",
+        "ab765fdb3ecdc0f71cdc59254916ff32ee5bf7d19687b072255223c5d575242a",
+        "7c0bbdf6b64878a67904ebeda6566fdc154290c9d37213acef25dca6bb642b7a",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "30c14f3d81fc0a802f1f20f67a55ed853eda20aacd13d5b13e4280123820ec71",
+            "size": 82
+          },
+          "target": "claude-code.mcp__github__pull_request_read"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "_oHEqLB8_Fx6TcsZqdkrpUdTSodD_I5MHkfIn-YO6hWQpVs3fcVG0yaDIrhDyJ0-bIRdwFqLODrjmO93-G6IAg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "833fed08d74ba771cf98fc3887d92b8cfe7589f83808c82e67b52d164951f6f8",
+        "result": null,
+        "seq": 51,
+        "ts": "2026-09-30T09:19:14.086Z",
+        "v": 1
+      },
+      "proof": [
+        "833fed08d74ba771cf98fc3887d92b8cfe7589f83808c82e67b52d164951f6f8",
+        "8dfc0de3a7c308ee2c872bff0e23a00d49eb360008bed84a0d7a34b04d380344",
+        "ab765fdb3ecdc0f71cdc59254916ff32ee5bf7d19687b072255223c5d575242a",
+        "7c0bbdf6b64878a67904ebeda6566fdc154290c9d37213acef25dca6bb642b7a",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "78fbe9304683f0a1046d6e9d3aadc6055823c12f259688f7332c7035c35bd36b",
+            "size": 61
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "vEyJEZKOLVCLzPGdED79DngtqwwgXjnFMf1JzYCoqtfqGHMDnRHaw6di-gPCdcjM5BTKh93Kz59_38t0_--ADA"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "3d4b4dc9f6a2623fa91db71a68102dda8e015bdd746733f01e1a29999ebb802a",
+        "ref": "833fed08d74ba771cf98fc3887d92b8cfe7589f83808c82e67b52d164951f6f8",
+        "result": {
+          "latencyMs": 1045,
+          "payload": {
+            "hash": "c6cb93b0c4ba4bf64be7191aa08065f5e5273aff50736b28a50344b843d112cc",
+            "size": 86
+          },
+          "status": "ok"
+        },
+        "seq": 52,
+        "ts": "2026-09-30T09:19:15.112Z",
+        "v": 1
+      },
+      "proof": [
+        "9bbd32fcc922528150fa6db4b10d5bd32e8c6e6d2b80014ccdf2c3e6711850d2",
+        "70dfa22f327c033a531f3f4eb585391bbf3b62f446f8224e8bb4701567294424",
+        "40c9b78ad8d18150319087f4d32672240802cf4e9ef2dfc50fa53c95621872d8",
+        "7c0bbdf6b64878a67904ebeda6566fdc154290c9d37213acef25dca6bb642b7a",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "50ae82edb48deab2c6cad86f1bda4eb54654e9db151e4ac307c38dfe0bd5287b",
+            "size": 82
+          },
+          "target": "claude-code.mcp__github__pull_request_read"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "DNDGK8oHZfIqUPfoXiTcqnt52ms4XaDpVlLeKxu-C8pGT6Ic5cJUxCX-yoinD-lcHZuwG1f4vPVe443V109YBw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "c285330fad88ffe85b9786edf67d379bf9f76c453dfdbc0a76894b4a35cc0e0a",
+        "ref": "3d4b4dc9f6a2623fa91db71a68102dda8e015bdd746733f01e1a29999ebb802a",
+        "result": {
+          "latencyMs": 1381,
+          "payload": {
+            "hash": "c57245fc8d6d18502e8b31a8b1889a7a129cf8266560b688880bf8b88e3cf0d3",
+            "size": 7397
+          },
+          "status": "ok"
+        },
+        "seq": 53,
+        "ts": "2026-09-30T09:19:15.605Z",
+        "v": 1
+      },
+      "proof": [
+        "c285330fad88ffe85b9786edf67d379bf9f76c453dfdbc0a76894b4a35cc0e0a",
+        "70dfa22f327c033a531f3f4eb585391bbf3b62f446f8224e8bb4701567294424",
+        "40c9b78ad8d18150319087f4d32672240802cf4e9ef2dfc50fa53c95621872d8",
+        "7c0bbdf6b64878a67904ebeda6566fdc154290c9d37213acef25dca6bb642b7a",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "b0456a0a310e1b4f3435d42fb9e5900171ffff94f2cb2daa0569cfa58c1b63e4",
+            "size": 61
+          },
+          "target": "claude-code.ToolSearch"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "gc3lrgTS9C-rgmbuKjgfJ1J5xlp79TzlMNmJKjizpLrFtBfmx0O2Kw9Z7T3k6294Ae1RELOegEl5wb9u2gRTAQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "9bbd32fcc922528150fa6db4b10d5bd32e8c6e6d2b80014ccdf2c3e6711850d2",
+        "result": null,
+        "seq": 54,
+        "ts": "2026-09-30T09:19:17.679Z",
+        "v": 1
+      },
+      "proof": [
+        "9e174f960b2fe4dd52813603cd7d70bb5f685905f49d675cf5ff31d8dd6bd214",
+        "b338badf92a814f61a0c41f5d3089228c6611ba301e3bb4e7a934612739e66c6",
+        "40c9b78ad8d18150319087f4d32672240802cf4e9ef2dfc50fa53c95621872d8",
+        "7c0bbdf6b64878a67904ebeda6566fdc154290c9d37213acef25dca6bb642b7a",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "d1eb500aa381b347450d2495500d3b3ccd3b6a870d46c4ef25901648a71cc1de",
+            "size": 61
+          },
+          "target": "claude-code.ToolSearch"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "QogbELHK-0mAU86WYNov-EEy6J_OtP-VbNfxrZ5uBMjwLSMDpb4j3VgQWNKwCVGhcjPH2-qVfx4b_XT0KLTADQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "0609804e6d7bec7767f61c2f7313682f7cd45de267557561d6dc0f1829fdf468",
+        "ref": "0609804e6d7bec7767f61c2f7313682f7cd45de267557561d6dc0f1829fdf468",
+        "result": {
+          "latencyMs": 2,
+          "payload": {
+            "hash": "5d74e7f150a4c4c0fc248cb9230ce4d9b4989500459dcd09d0ce6f6a287251f5",
+            "size": 113
+          },
+          "status": "ok"
+        },
+        "seq": 55,
+        "ts": "2026-09-30T09:19:17.792Z",
+        "v": 1
+      },
+      "proof": [
+        "0609804e6d7bec7767f61c2f7313682f7cd45de267557561d6dc0f1829fdf468",
+        "b338badf92a814f61a0c41f5d3089228c6611ba301e3bb4e7a934612739e66c6",
+        "40c9b78ad8d18150319087f4d32672240802cf4e9ef2dfc50fa53c95621872d8",
+        "7c0bbdf6b64878a67904ebeda6566fdc154290c9d37213acef25dca6bb642b7a",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "343f52334f53783c9a26854e3a9daf058755182e9541a3d05e745f31dce3e355",
+            "size": 83
+          },
+          "target": "claude-code.mcp__github__get_check_run"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "I4sgCZVwpwHIwNdX19tXjgt0Ga9kJ4PPNv3XeRB4GJLBM05EexqNIhBEoEwwbxRHSYtuhjZvNXhaCcK9KC57Bw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "9e174f960b2fe4dd52813603cd7d70bb5f685905f49d675cf5ff31d8dd6bd214",
+        "result": null,
+        "seq": 56,
+        "ts": "2026-09-30T09:19:19.607Z",
+        "v": 1
+      },
+      "proof": [
+        "bbbe640ba87931a148779173004bd38f489b657d0e54d862458c34972ba6b3f3",
+        "368ce150111889df090776a9cbb52404f8760680aa9ec87f7c3d6bb48e034105",
+        "8ec9c6f01d9fa7a5d77c805010f07636607a579b394b84117a487d48245d8492",
+        "32519606f2c9c675f656fb6d570475be1a49502d58cbffda4d8e416d7c66b520",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "4658af571f21309e7f9d8091a47e1ee62c05ad6de80188d3b8b12be48ec7a4bf",
+            "size": 83
+          },
+          "target": "claude-code.mcp__github__get_check_run"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "3tlF8yWWagpnVYaeIx79REqRTOlhJW-2pbJ5fvFECreIZA1MDYcpHZQHI0t8UskbpTi_ZJf8lZyMBFa4mAgjCw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "f6c07b42d1e60712d52039b9b29067a643bae2f0b50de112e432e46d13c9958a",
+        "ref": "f6c07b42d1e60712d52039b9b29067a643bae2f0b50de112e432e46d13c9958a",
+        "result": {
+          "latencyMs": 426,
+          "payload": {
+            "hash": "dbceb6797dd7e6202347f7d71026ccc9a1ddf7550ca1c71dea55a4ebdd34bb8d",
+            "size": 919
+          },
+          "status": "ok"
+        },
+        "seq": 57,
+        "ts": "2026-09-30T09:19:20.158Z",
+        "v": 1
+      },
+      "proof": [
+        "f6c07b42d1e60712d52039b9b29067a643bae2f0b50de112e432e46d13c9958a",
+        "368ce150111889df090776a9cbb52404f8760680aa9ec87f7c3d6bb48e034105",
+        "8ec9c6f01d9fa7a5d77c805010f07636607a579b394b84117a487d48245d8492",
+        "32519606f2c9c675f656fb6d570475be1a49502d58cbffda4d8e416d7c66b520",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "a0f6cd17700d44c1c8e8cb2cd44f771cfb3864f12c3980e9c6ade56736cd04e1",
+            "size": 59
+          },
+          "target": "claude-code.ToolSearch"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "r5xC4oDRN64urHw7Z4mE9H0c2kqk2F18qM46X0xfvD0of8H68scf913N8RboVwPncZacXU4KRddVN85W-safDQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "bbbe640ba87931a148779173004bd38f489b657d0e54d862458c34972ba6b3f3",
+        "result": null,
+        "seq": 58,
+        "ts": "2026-09-30T09:19:25.430Z",
+        "v": 1
+      },
+      "proof": [
+        "62d51a9fb9edaa500c85a7dc7841f4693eb60791b283ab8a552786e96dd871f1",
+        "97f0b7bea5fcaddfba2a6b730cd9f958700ffebe9977b465d3d340037aa05f49",
+        "8ec9c6f01d9fa7a5d77c805010f07636607a579b394b84117a487d48245d8492",
+        "32519606f2c9c675f656fb6d570475be1a49502d58cbffda4d8e416d7c66b520",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "0c727bbf2bf947d739a43bfef03bcf1e27e1b194f1757244f861d94baad79d95",
+            "size": 59
+          },
+          "target": "claude-code.ToolSearch"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "ev7UYbpu028jexYQQPlmouSF_eheQ_CZs-pIUYA31GRx1RHmBgjNUec5NTiEodfI89uVnuNbdc0JUjlHmax-Cg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "9a36e18d9c776c9c9b1c93caf0312f03e574c8c4a6a468f4238a8fd43858f4f4",
+        "ref": "9a36e18d9c776c9c9b1c93caf0312f03e574c8c4a6a468f4238a8fd43858f4f4",
+        "result": {
+          "latencyMs": 9,
+          "payload": {
+            "hash": "4699d626652a2faf462c059b1383c5da65a0a9908150c81a43313abf1e672008",
+            "size": 296
+          },
+          "status": "ok"
+        },
+        "seq": 59,
+        "ts": "2026-09-30T09:19:25.590Z",
+        "v": 1
+      },
+      "proof": [
+        "9a36e18d9c776c9c9b1c93caf0312f03e574c8c4a6a468f4238a8fd43858f4f4",
+        "97f0b7bea5fcaddfba2a6b730cd9f958700ffebe9977b465d3d340037aa05f49",
+        "8ec9c6f01d9fa7a5d77c805010f07636607a579b394b84117a487d48245d8492",
+        "32519606f2c9c675f656fb6d570475be1a49502d58cbffda4d8e416d7c66b520",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "2d14942981d3a94d38fcc62532a3749b265cb1612019e453058039fa76c4c383",
+            "size": 254
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "hdzBlRXRcKlwyP3bVU1EiTV_q_0ps5BjFaAkR4tgGnNwsG5KSE_ZLeUXta_vm2bJ3kIVLa7n5D3YJoVjVZtmDQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "62d51a9fb9edaa500c85a7dc7841f4693eb60791b283ab8a552786e96dd871f1",
+        "result": null,
+        "seq": 60,
+        "ts": "2026-09-30T09:19:35.929Z",
+        "v": 1
+      },
+      "proof": [
+        "9a5ef689c31d61b2bf392b5798d5f91d31a048bca621de4b7c80c3d27c254eb6",
+        "6590861cc34b6ac3b61b4e14f1e61a5b9f509c1ef5c718e276e462a299fcde32",
+        "ed028a8c3e9f2f2f58d55cf96307387ba00f01bca4f327598060f50e5b12e461",
+        "32519606f2c9c675f656fb6d570475be1a49502d58cbffda4d8e416d7c66b520",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "a9e7abc8894c61e031595f13c1dc99374a485d7f4d2ed7625cb7e8e98284c126",
+            "size": 254
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "hEgBaSN1mTsmKDO9YxI9aqia4ecL6h9qAB1XRrp3-RA8hDnW2ciAHmmpHI1-dCsGnoZC4Yqc3FTGAvu9crynBw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "d8015cc1185a2054158986c45c5af50872c50d07e584eeb4c5946af97560ecd5",
+        "ref": "d8015cc1185a2054158986c45c5af50872c50d07e584eeb4c5946af97560ecd5",
+        "result": {
+          "latencyMs": 642,
+          "payload": {
+            "hash": "7e7b523346c0a5ec89714c97bda62291f40d570edb58b4d25fae83e5b6b5906f",
+            "size": 94
+          },
+          "status": "ok"
+        },
+        "seq": 61,
+        "ts": "2026-09-30T09:19:36.772Z",
+        "v": 1
+      },
+      "proof": [
+        "d8015cc1185a2054158986c45c5af50872c50d07e584eeb4c5946af97560ecd5",
+        "6590861cc34b6ac3b61b4e14f1e61a5b9f509c1ef5c718e276e462a299fcde32",
+        "ed028a8c3e9f2f2f58d55cf96307387ba00f01bca4f327598060f50e5b12e461",
+        "32519606f2c9c675f656fb6d570475be1a49502d58cbffda4d8e416d7c66b520",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "5cbc1b8698a6e56787e422d44b3565fc8391d6ba811688f6e76af2e876c53f70",
+            "size": 139
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "Aevqm8LSN0338QBfmZdmJHiORyPdHErKOpZ0RV2cKkTeaVp-uwbe5Ct3KjMsE3Jfmkn-eG5CbwkmQWvVX_LUCw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "9a5ef689c31d61b2bf392b5798d5f91d31a048bca621de4b7c80c3d27c254eb6",
+        "result": null,
+        "seq": 62,
+        "ts": "2026-09-30T09:19:53.448Z",
+        "v": 1
+      },
+      "proof": [
+        "82ac59c12a3d5f2baf169f4825274876f7b21e1c1812523cd4980edd9398d8c7",
+        "a9c33317630000a712453658f451ad44362f94ef261fed105f51da66703dc9b0",
+        "ed028a8c3e9f2f2f58d55cf96307387ba00f01bca4f327598060f50e5b12e461",
+        "32519606f2c9c675f656fb6d570475be1a49502d58cbffda4d8e416d7c66b520",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "0bef19087236fb532170a34b8f4005adc336711dd17b1b58744ef7ab5550cc0a",
+            "size": 139
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "eEXClJ_v1ymyCyVnoeqb-qEm1K8tknNXKkyrgU7uSgBGZYn-oOO10NoBOrrc6D3jr072L0skpEMLsdIH1_qTDw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "0bf4f140dcfc16a91c623ce50be51f384241fb43ba3c084e94e41b7c1d983a4c",
+        "ref": "0bf4f140dcfc16a91c623ce50be51f384241fb43ba3c084e94e41b7c1d983a4c",
+        "result": {
+          "latencyMs": 43,
+          "payload": {
+            "hash": "d25082ab2f6bd7aff54f9a3b95160071fdfe8d6f700ceae9ea290a352c7d235b",
+            "size": 457
+          },
+          "status": "ok"
+        },
+        "seq": 63,
+        "ts": "2026-09-30T09:19:53.607Z",
+        "v": 1
+      },
+      "proof": [
+        "0bf4f140dcfc16a91c623ce50be51f384241fb43ba3c084e94e41b7c1d983a4c",
+        "a9c33317630000a712453658f451ad44362f94ef261fed105f51da66703dc9b0",
+        "ed028a8c3e9f2f2f58d55cf96307387ba00f01bca4f327598060f50e5b12e461",
+        "32519606f2c9c675f656fb6d570475be1a49502d58cbffda4d8e416d7c66b520",
+        "b0d0ec7566b98935b5ed40984deed0484f052afed78be7a979b887e44c28b6b0",
+        "ac41e9341f66150673039b1796455487950d5d99b6858e250cac5709043b3d3a",
+        "4cea298416a06516ebf23c2b271e435162c28897b9b03fa6e7f485620aeaddad"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "754d08eef2c36cd9da5b5981c7b6a2ab5dd9fe2e69677e2098e6f20e57edf9b9",
+            "size": 228
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "3hI23NAMsZOubwUWQJc3zq5b4nUyszwCuNyVTfvR5xm3lBu4YijVb6gIFDrVtdVjjfYlpU1pn7gjqJMy4NvWCg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "82ac59c12a3d5f2baf169f4825274876f7b21e1c1812523cd4980edd9398d8c7",
+        "result": null,
+        "seq": 64,
+        "ts": "2026-09-30T09:19:55.857Z",
+        "v": 1
+      },
+      "proof": [
+        "86e5190e283e52a1262becad90399ab9c41366a717714e489234ab58c03d76be",
+        "e09b6e375d0278e3fb3ea0db30e7c9723bc6608849bacc79d881a84c706b9321",
+        "a4622f4332caa555cd6addd9c0b6b91fdc84fd2f520c6a6fbc2a8a18eccc171d",
+        "6a544fb173cea8a0e50e660fe208e5ef4c633c85e9dcd0224e9e5f17a0f8c6c2",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "7f21b4b930dde4e9effdedb6d13e819358e7230e384864ddb351fd39ed369d27",
+            "size": 228
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "ds341Cg1qPAUBR_pWXQoYxRWakAIno2PP8HAg-vzgVTH5RviFsVmCc29H4TjJR4TGYBVlgqnETyKrNkntgQ1Cg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "b56ee7bb0f47d52027ceee6049405f5bacdf3c712920574d6bad482ddfd6a9a5",
+        "ref": "b56ee7bb0f47d52027ceee6049405f5bacdf3c712920574d6bad482ddfd6a9a5",
+        "result": {
+          "latencyMs": 64,
+          "payload": {
+            "hash": "3ae9f803147820169aee334f24c5ed5228ca478922e3fd3d822028537aa15185",
+            "size": 2370
+          },
+          "status": "ok"
+        },
+        "seq": 65,
+        "ts": "2026-09-30T09:19:56.037Z",
+        "v": 1
+      },
+      "proof": [
+        "b56ee7bb0f47d52027ceee6049405f5bacdf3c712920574d6bad482ddfd6a9a5",
+        "e09b6e375d0278e3fb3ea0db30e7c9723bc6608849bacc79d881a84c706b9321",
+        "a4622f4332caa555cd6addd9c0b6b91fdc84fd2f520c6a6fbc2a8a18eccc171d",
+        "6a544fb173cea8a0e50e660fe208e5ef4c633c85e9dcd0224e9e5f17a0f8c6c2",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "438e0b57ff0787cb5fa11ee3a9f95b94d39b54ee8461a66d6b050b539386b228",
+            "size": 3326
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "fUJi4f6VYLP5YdbsXYRD-Ne6raCffxCeCcyqMYE-uXpsXRfmOQHb5_uz2xbm1k78wQNaGhuUgqXCXxwzVIAkAQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "86e5190e283e52a1262becad90399ab9c41366a717714e489234ab58c03d76be",
+        "result": null,
+        "seq": 66,
+        "ts": "2026-09-30T09:20:10.816Z",
+        "v": 1
+      },
+      "proof": [
+        "ffc7d00e4076df23744013051bacf6361b08698163df94e191e3d7ab887e6ee5",
+        "989bc70390a6cef78902ab0dcd0d7f336684f4e9e22e1329c326605f402025db",
+        "a4622f4332caa555cd6addd9c0b6b91fdc84fd2f520c6a6fbc2a8a18eccc171d",
+        "6a544fb173cea8a0e50e660fe208e5ef4c633c85e9dcd0224e9e5f17a0f8c6c2",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "af78f86f0745e3ba41c32fc29576ad8f8916ed0808ed655298ce00cf9ec1fc41",
+            "size": 3326
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "viuMdOXl7xrZSQLL2PD4Yj-uRbKe_W5hlIFcwIAwRoSgXinEQVbNU_u4EmFy0M_zlRcuASxsPXna0SSlezZZAA"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "6dec34402291216dc81042a66f1ab7247821f5cb1b09c23834074e1131bf259f",
+        "ref": "6dec34402291216dc81042a66f1ab7247821f5cb1b09c23834074e1131bf259f",
+        "result": {
+          "latencyMs": 83,
+          "payload": {
+            "hash": "e40b18e2ef93d9677915e3ac299ba11974c4e9a4bafd8d8e928253752d8d158c",
+            "size": 88
+          },
+          "status": "ok"
+        },
+        "seq": 67,
+        "ts": "2026-09-30T09:20:11.058Z",
+        "v": 1
+      },
+      "proof": [
+        "6dec34402291216dc81042a66f1ab7247821f5cb1b09c23834074e1131bf259f",
+        "989bc70390a6cef78902ab0dcd0d7f336684f4e9e22e1329c326605f402025db",
+        "a4622f4332caa555cd6addd9c0b6b91fdc84fd2f520c6a6fbc2a8a18eccc171d",
+        "6a544fb173cea8a0e50e660fe208e5ef4c633c85e9dcd0224e9e5f17a0f8c6c2",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "1e7567186ea4a2f29cdf1eecd053047d633553cf009b3ef468bee9e48dc3a8f9",
+            "size": 1308
+          },
+          "target": "claude-code.Edit"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "HUl2327rgvPfMejY3IU0jB3Nzqu2TYkqkrb-iIsislMlPHE64HT2DE4c8MgS4-qxj8M0a55gZY8Vm0b_k4xOAA"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "ffc7d00e4076df23744013051bacf6361b08698163df94e191e3d7ab887e6ee5",
+        "result": null,
+        "seq": 68,
+        "ts": "2026-09-30T09:20:18.243Z",
+        "v": 1
+      },
+      "proof": [
+        "5e30d40af7fa0948f2f3e41b0df0600b9d468fa5ec0d2a402c3b24a22f8ba522",
+        "a0e51ffc3c0f2d313465721ece3f51ad9032c8a04e25947fc9d07b51260fc400",
+        "5d1d18db9daa102d7855553f9a3fe2be6e5bf4fd4f48681f931e40a353d2ef22",
+        "6a544fb173cea8a0e50e660fe208e5ef4c633c85e9dcd0224e9e5f17a0f8c6c2",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "097726b06a00edc2abf43d210934e75fae36cce95e53ccd5c7f58aca33eddb7d",
+            "size": 1308
+          },
+          "target": "claude-code.Edit"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "i16BNbaA9t4xs4RdZeHorgZWyyc6g2iKT44yCJUbUQfr8zb-hixkU3BTeWy52eqjwtTkwdeJDsKpSZZ3499gBA"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "9d774cd28cc3d2418bfec0a07ec73796c1aefb1b338837141dc792f557051a3b",
+        "ref": "9d774cd28cc3d2418bfec0a07ec73796c1aefb1b338837141dc792f557051a3b",
+        "result": {
+          "latencyMs": 14,
+          "payload": {
+            "hash": "3e9f1c1fe1b2315988b6f80f6bcd2ac807c3c4894b92b8871cbe18cf2d905e42",
+            "size": 15865
+          },
+          "status": "ok"
+        },
+        "seq": 69,
+        "ts": "2026-09-30T09:20:18.400Z",
+        "v": 1
+      },
+      "proof": [
+        "9d774cd28cc3d2418bfec0a07ec73796c1aefb1b338837141dc792f557051a3b",
+        "a0e51ffc3c0f2d313465721ece3f51ad9032c8a04e25947fc9d07b51260fc400",
+        "5d1d18db9daa102d7855553f9a3fe2be6e5bf4fd4f48681f931e40a353d2ef22",
+        "6a544fb173cea8a0e50e660fe208e5ef4c633c85e9dcd0224e9e5f17a0f8c6c2",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "95b5a356fd626c89fa6154a2fd18445e3baaa88331e935f74151d3cf21998f21",
+            "size": 376
+          },
+          "target": "claude-code.Edit"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "S_UscC93gTKs0Qwr5lon9TiqEq8zi1YHodXpBqsMc6q13mRL20Lk-aqq5ZeVCmsVn1dpI78T_BpHe1H-rtNmAw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "5e30d40af7fa0948f2f3e41b0df0600b9d468fa5ec0d2a402c3b24a22f8ba522",
+        "result": null,
+        "seq": 70,
+        "ts": "2026-09-30T09:20:19.793Z",
+        "v": 1
+      },
+      "proof": [
+        "5a7ddd6db61a2bc266bdfa94132cc79137570bcb9a16267efc0953d7e73485b0",
+        "81a88150a2557a16ed251b907581c756d66b554dd1998ff6abf5e0506fbb4a23",
+        "5d1d18db9daa102d7855553f9a3fe2be6e5bf4fd4f48681f931e40a353d2ef22",
+        "6a544fb173cea8a0e50e660fe208e5ef4c633c85e9dcd0224e9e5f17a0f8c6c2",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "c02466be956a05d911e58d0e3debfe15a93f1dac3a4cb49c5d52347dbb10f332",
+            "size": 376
+          },
+          "target": "claude-code.Edit"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "AyKt4xfYUya9BjqZ-W29OvQzHFvS3AHPVuzI4m7D-B8fNfE_Mh6_3B0z7AjOGZXsw7CAYV7D9MsYtOpn92eUCg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "b438c5d2257d347c0958b9d88d0b4873214bc0060be3829963a830f50530cd78",
+        "ref": "b438c5d2257d347c0958b9d88d0b4873214bc0060be3829963a830f50530cd78",
+        "result": {
+          "latencyMs": 10,
+          "payload": {
+            "hash": "eccb2ae40ba5785fbc1bc930b110cb8348929e02309377f51e914d486938af49",
+            "size": 15122
+          },
+          "status": "ok"
+        },
+        "seq": 71,
+        "ts": "2026-09-30T09:20:19.929Z",
+        "v": 1
+      },
+      "proof": [
+        "b438c5d2257d347c0958b9d88d0b4873214bc0060be3829963a830f50530cd78",
+        "81a88150a2557a16ed251b907581c756d66b554dd1998ff6abf5e0506fbb4a23",
+        "5d1d18db9daa102d7855553f9a3fe2be6e5bf4fd4f48681f931e40a353d2ef22",
+        "6a544fb173cea8a0e50e660fe208e5ef4c633c85e9dcd0224e9e5f17a0f8c6c2",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "89ecab2a6f4aade91509669d2c4ca0f41aedf35f88d2a50d4a570dcf6b29bb67",
+            "size": 743
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "90H1USPN2Cv108_ItfMek9blalYmafvtOXc7EoOqa4EapXxP2tDJKBapPX5Cu6LbO_KjYb2BnpVh4b92lnzxBQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "5a7ddd6db61a2bc266bdfa94132cc79137570bcb9a16267efc0953d7e73485b0",
+        "result": null,
+        "seq": 72,
+        "ts": "2026-09-30T09:20:22.847Z",
+        "v": 1
+      },
+      "proof": [
+        "7b6277a35dd21b9c3127a1ec2ae3f19270e913e1a999c3939271612af702ba4c",
+        "9da4e5dbad3e40c2b71b2e870dbeba6028d3ab36d0310385ecbcfea458c9a417",
+        "262a8f6ee5339dd560680dffc5b0792c1b2c5203b63959cf39a12c9e8c0c56ce",
+        "6cae7c8604ca1fe63dfd5c12bd72ece6b3df0253ce07f362b1ff99e40a597cdb",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "e8379b4e3ff608d911c443c3aa99adfbdf21346711262b25079b5b0708b7ceb6",
+            "size": 743
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "mTUe18SjH8ISwcDCopPSkSDTvrRkBMYhHQyu-fgZ0KCOjMqfCX5pcQXi5ZOBT566_RjfECsn_UMLdCnE-JP2DQ"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "bb8c3f2c518166266767caffe9a4623818738d470a62dfa8100ee297847d5ea8",
+        "ref": "bb8c3f2c518166266767caffe9a4623818738d470a62dfa8100ee297847d5ea8",
+        "result": {
+          "latencyMs": 5720,
+          "payload": {
+            "hash": "c2222c6ff59b4a62471c5f53f452fc7c68662cc9a410bd6d10971d0cde18d7e7",
+            "size": 343
+          },
+          "status": "ok"
+        },
+        "seq": 73,
+        "ts": "2026-09-30T09:20:28.702Z",
+        "v": 1
+      },
+      "proof": [
+        "bb8c3f2c518166266767caffe9a4623818738d470a62dfa8100ee297847d5ea8",
+        "9da4e5dbad3e40c2b71b2e870dbeba6028d3ab36d0310385ecbcfea458c9a417",
+        "262a8f6ee5339dd560680dffc5b0792c1b2c5203b63959cf39a12c9e8c0c56ce",
+        "6cae7c8604ca1fe63dfd5c12bd72ece6b3df0253ce07f362b1ff99e40a597cdb",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "7ea33737d67e9c49f7a7fda153cdee930062877091a39aa8713fdfc1d7bf837f",
+            "size": 179
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "closbSxY3nl39zgQ1yeERWVFQ19UFkEXmvFgJCmCMFQLRdfwPxxO22iusKwjurVKLEpZ-GV43AOWUviffbWuDg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "7b6277a35dd21b9c3127a1ec2ae3f19270e913e1a999c3939271612af702ba4c",
+        "result": null,
+        "seq": 74,
+        "ts": "2026-09-30T09:20:42.480Z",
+        "v": 1
+      },
+      "proof": [
+        "4584787f0875e40a9e2a813bd1951d9832b614999061277c35d934c893cf0bc7",
+        "248b2ecf59f98dd3595dc2213f7a06b685939fd69f1cf670af5a17aae9afd608",
+        "262a8f6ee5339dd560680dffc5b0792c1b2c5203b63959cf39a12c9e8c0c56ce",
+        "6cae7c8604ca1fe63dfd5c12bd72ece6b3df0253ce07f362b1ff99e40a597cdb",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "2168c6e89b59a071f66ba2fb7779b5f30875b7da530d67fc99e0fe1efba7cf20",
+            "size": 179
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "lduIpW0P491h_toyv-dEI_avQXeJ2yu6h5yEhuUlVHG3m_-SRUGLAPDeQOcj8gdSKT6TDUIhpRbPYoqYOBIEBw"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "outcome",
+        "prev": "8847687f4ed3643239771d44913f38afac3ff07dd4d07f1cc2b6c3f9340ec5bd",
+        "ref": "8847687f4ed3643239771d44913f38afac3ff07dd4d07f1cc2b6c3f9340ec5bd",
+        "result": {
+          "latencyMs": 29766,
+          "payload": {
+            "hash": "ee94efcbaed38080608714c761624d4112e16b94503808f6691e4eb63f688415",
+            "size": 372
+          },
+          "status": "ok"
+        },
+        "seq": 75,
+        "ts": "2026-09-30T09:21:12.408Z",
+        "v": 1
+      },
+      "proof": [
+        "8847687f4ed3643239771d44913f38afac3ff07dd4d07f1cc2b6c3f9340ec5bd",
+        "248b2ecf59f98dd3595dc2213f7a06b685939fd69f1cf670af5a17aae9afd608",
+        "262a8f6ee5339dd560680dffc5b0792c1b2c5203b63959cf39a12c9e8c0c56ce",
+        "6cae7c8604ca1fe63dfd5c12bd72ece6b3df0253ce07f362b1ff99e40a597cdb",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
+      ]
+    },
+    {
+      "receipt": {
+        "action": {
+          "kind": "tool_call",
+          "params": {
+            "hash": "115785a38a8ddce007c1ff9e8667d71460227fbd85871d517be6ba0ec990801d",
+            "size": 1321
+          },
+          "target": "claude-code.Bash"
+        },
+        "actor": {
+          "agent": "claude-code",
+          "principal": "vouchwell-maintainers",
+          "runtime": "vouchwell-hook/0.5.0",
+          "session": "cc_98555f4b-cf92-57bc-b61f-e1945929ff1f"
+        },
+        "attest": {
+          "alg": "ed25519",
+          "kid": "pw1ac0d4e069cab79fd653cf1dd1281d7b6",
+          "sig": "QyaLjEi1-j4qkLsPCQdJYvkyGunJ0t1nJ3m9yf3c4FfwBt6O_4aSjOoGO0so8Dq1uppVjhkuDfIr4dE08EeQAg"
+        },
+        "decision": {
+          "enforced": false,
+          "outcome": "allow",
+          "policy": "7e952d86e00846d03351d18c6ebebbe418acbd4bb6fa3dec0e351c1189f6bc32",
+          "reason": "no rule matched; policy default is allow",
+          "rules": []
+        },
+        "log": "lg_f221159d4ee6af35",
+        "phase": "intent",
+        "prev": "4584787f0875e40a9e2a813bd1951d9832b614999061277c35d934c893cf0bc7",
+        "result": null,
+        "seq": 76,
+        "ts": "2026-09-30T09:21:19.093Z",
+        "v": 1
+      },
+      "proof": [
+        "e91eb4f62b23ee72aabcdeadc564f4f5da77182cfb80f5a661cf2e278f1a369b",
+        "6cae7c8604ca1fe63dfd5c12bd72ece6b3df0253ce07f362b1ff99e40a597cdb",
+        "72ace4881221c648c678a4c08220779d66c59b2c2cdc772232d7fedab30b9de5"
       ]
     }
   ]

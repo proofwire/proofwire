@@ -176,6 +176,25 @@ test('parallel tool calls from one session, each its own process, keep one unbro
   assert.ok(!fs.existsSync(path.join(cwd, '.vouchwell', 'hook.lock')), 'the lock is released');
 });
 
+test("a lock left by a writer that died is taken over; a live writer's is waited for", () => {
+  const cwd = project();
+  fire(cwd, 'PreToolUse', BASH('npm test'));
+  const lock = path.join(cwd, '.vouchwell', 'hook.lock');
+  const dead = spawnSync(process.execPath, ['-e', 'process.stdout.write(String(process.pid))'], { encoding: 'utf8' }).stdout;
+  fs.writeFileSync(lock, dead);
+  const res = fire(cwd, 'PostToolUse', { ...BASH('npm test'), tool_response: {} });
+  assert.equal(res.code, 0, res.stderr);
+  assert.equal(entries(cwd).length, 2);
+  assert.ok(!fs.existsSync(lock));
+
+  // This test's own process is alive: the hook waits it out and gives up.
+  fs.writeFileSync(lock, String(process.pid));
+  const held = vw(cwd, ['hook'], event('PreToolUse', BASH('npm test', 't2')), { VOUCHWELL_HOOK_LOCK_WAIT_MS: '300' });
+  assert.equal(decision(held.stdout).permissionDecision, 'deny', 'when enforcing, unrecordable means refused');
+  assert.match(decision(held.stdout).permissionDecisionReason, /stayed locked/);
+  fs.rmSync(lock);
+});
+
 test('when enforcing, a call that cannot be recorded is refused; VOUCHWELL_HOOK=off turns recording off', () => {
   const cwd = project();
   fire(cwd, 'PreToolUse', BASH('npm test'));
@@ -227,6 +246,10 @@ test('install adds the hooks beside existing ones, is idempotent, and uninstall 
   assert.equal(vw(cwd, ['hook', 'install', '--user', '--monitor']).code, 0);
   const user = JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'settings.json'), 'utf8'));
   assert.ok(user.hooks.PostToolUse, '--user writes ~/.claude/settings.json (HOME is the project here)');
+
+  const nowhere = project();
+  assert.equal(vw(nowhere, ['hook', 'uninstall']).code, 0);
+  assert.ok(!fs.existsSync(path.join(nowhere, '.claude')), 'uninstall creates nothing');
 
   fs.writeFileSync(file, '{ broken');
   const refused = vw(cwd, ['hook', 'install']);
