@@ -30,6 +30,14 @@ const SHELL_FIELDS = ['params.command', 'params.cmd', 'params.script'];
  */
 const verb = (verbs) => `(^|[._])(${verbs.join('|')})(_|[A-Z]|$)`;
 
+/**
+ * File names that hold secrets: .env files (not .env.example), private keys,
+ * and credential files. SECRET_FILE matches a whole path ending in one.
+ */
+const SECRET_NAME =
+  '(\\.env|\\.env\\.(local|development|production|staging|test)|[^/\\s]*\\.pem|[^/\\s]*\\.key|id_rsa|id_ecdsa|id_ed25519|credentials\\.json|\\.npmrc|\\.netrc)';
+const SECRET_FILE = `(^|/)${SECRET_NAME}$`;
+
 const PAYMENT_TOOLS = '(?i)(refund|payout|transfer|charge|payment|invoice)';
 const SENDING = verb(['send', 'post', 'reply', 'forward', 'publish']);
 
@@ -207,6 +215,50 @@ export const POLICY_TEMPLATES = deepFreeze([
           when: { target: { matches: verb(['delete', 'remove', 'move', 'rename']) } },
           then: 'escalate',
           reason: 'deleting or moving files needs a person',
+        },
+      ],
+    },
+  },
+  {
+    id: 'coding-agent',
+    title: 'Guardrails for coding agents',
+    summary: "Refuse reading or writing secret files and touching the agent's own audit log; a person approves skipping git hooks and shell commands that read secret files.",
+    notes: [
+      "Written for Claude Code's tools as `vw hook` records them (Read, Edit, Write, Bash, …), which take `params.file_path` and `params.command`.",
+      'Pair it with "shell-safety" for destructive commands and force-pushes, and "secrets" for credentials pasted into arguments.',
+      'A pattern list, not a sandbox: a shell can reach a file by another name. What it does guarantee is a signed record of every attempt.',
+    ],
+    policy: {
+      rules: [
+        {
+          id: 'coding-agent.secret-files',
+          when: { 'params.file_path': { matches: SECRET_FILE } },
+          then: 'deny',
+          reason: 'secret files (.env, private keys, credentials) are not for an agent to read or write',
+        },
+        {
+          id: 'coding-agent.audit-log',
+          when: { 'params.file_path': { matches: '(^|/)\\.(vouchwell|proofwire)(/|$)' } },
+          then: 'deny',
+          reason: 'an agent does not edit or read its own audit log directly',
+        },
+        {
+          id: 'coding-agent.audit-log-shell',
+          when: { 'params.command': { matches: '(^|[\\s/"\'=])\\.(vouchwell|proofwire)(/|\\s|$)' } },
+          then: 'deny',
+          reason: 'an agent does not touch its own audit log from the shell',
+        },
+        {
+          id: 'coding-agent.secret-files-shell',
+          when: { 'params.command': { matches: `(^|[\\s/"'=])${SECRET_NAME}(\\s|$|["';|&>])` } },
+          then: 'escalate',
+          reason: 'a shell command naming a secret file needs a person',
+        },
+        {
+          id: 'coding-agent.skip-hooks',
+          when: { 'params.command': { matches: '\\bgit\\s+(commit|push)\\b[^;&|]*\\s--no-verify\\b' } },
+          then: 'escalate',
+          reason: "skipping the repository's git hooks needs a person",
         },
       ],
     },

@@ -13,6 +13,7 @@ import { c, out, err, ok, bad, warn, info, heading, kv, table, outcomeBadge, par
 import { witnessKeysFrom } from './witness-keys.js';
 import { LOG_DIR, CONFIG_FILE, POLICY_FILE } from './legacy-paths.js';
 import { cmdWitnesses, cmdStreams } from './hub-integrations.js';
+import { cmdHook } from './hook.js';
 import {
   cmdRemote, cmdPush, cmdRemoteVerify, cmdPolicy, cmdCosign, cmdSlack, loadRemotes, resolveRemote,
   witnessWith, explainRefusal,
@@ -843,6 +844,8 @@ function cmdHelp() {
   out(`      ${c.grey('--no-remote')}                 record locally only, ignore the hub`);
   out(`      ${c.grey('--monitor')}                   block nothing; record what policy would block`);
   out(`      ${c.grey('--enforce')}                   gate even if the config says "monitor": true`);
+  out(`    ${c.cyan('vw hook install')}                record and gate Claude Code's own tools: shell, edits, reads  ${c.grey('[--user --local --monitor]')}`);
+  out(`    ${c.cyan('vw hook evidence [dir]')}         checkpoint, and write the log as a bundle to publish  ${c.grey('[default evidence/]')}`);
   out('');
   out(`  ${c.bold('Inspect')}`);
   out(`    ${c.cyan('vw log')}                         recent receipts  ${c.grey('[--tail N --denied --would-block --unfinished --target X --json]')}`);
@@ -898,6 +901,7 @@ const COMMANDS = {
   streams: cmdStreams,
   report: (/** @type {any} */ args) => cmdReport(args, loadConfig(args), VERSION),
   proxy: cmdProxy,
+  hook: (/** @type {any} */ args) => cmdHook(args, { loadConfig, loadPolicy, version: VERSION }),
   verify: cmdVerify,
   audit: cmdVerify,
   log: cmdLog,

@@ -188,6 +188,7 @@ export class ProofLog {
    * @param {null | { status: 'ok'|'error', code?: string, latencyMs?: number, payload?: unknown }} [args.result]
    * @param {'atomic'|'intent'|'outcome'} [args.phase]
    * @param {string} [args.ref]
+   * @param {{ params?: boolean, result?: boolean }} [args.previews]  See `buildReceipt`.
    * @returns {import('./receipt.js').Receipt}
    */
   append(args) {

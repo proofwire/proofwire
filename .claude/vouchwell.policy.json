@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "name": "vouchwell-development",
+  "templates": [
+    "coding-agent",
+    "shell-safety"
+  ],
+  "rules": [
+    {
+      "id": "vouchwell-development.own-log",
+      "when": {
+        "params.file_path": {
+          "matches": "(^|/)\\.claude/vouchwell-log(/|$)"
+        }
+      },
+      "then": "deny",
+      "reason": "the log recording this work is not for the agent to read or edit"
+    },
+    {
+      "id": "vouchwell-development.own-log-shell",
+      "when": {
+        "params.command": {
+          "matches": "vouchwell-log"
+        }
+      },
+      "then": "deny",
+      "reason": "the log recording this work is not for the agent to touch from the shell"
+    },
+    {
+      "id": "coding-agent.secret-files",
+      "when": {
+        "params.file_path": {
+          "matches": "(^|/)(\\.env|\\.env\\.(local|development|production|staging|test)|[^/\\s]*\\.pem|[^/\\s]*\\.key|id_rsa|id_ecdsa|id_ed25519|credentials\\.json|\\.npmrc|\\.netrc)$"
+        }
+      },
+      "then": "deny",
+      "reason": "secret files (.env, private keys, credentials) are not for an agent to read or write"
+    },
+    {
+      "id": "shell-safety.dangerous.command",
+      "when": {
+        "params.command": {
+          "matches": "(\\brm\\b(?=[^;&|\\n]*\\s(-[a-zA-Z]*[rR]|--recursive\\b))(?=[^;&|\\n]*\\s(-[a-zA-Z]*f|--force\\b))|\\bmkfs\\b|\\bdd\\s+if=|:\\(\\)\\s*\\{|\\bgit\\s+push\\b[^;&|]*(\\s--force\\b|\\s-f\\b)|\\bchmod\\s+(-R\\s+)?0?777\\b|\\b(curl|wget)\\b[^|;&]*\\|\\s*(sudo\\s+)?(ba|z)?sh\\b|\\b(shutdown|reboot|halt)\\b)"
+        }
+      },
+      "then": "deny",
+      "reason": "a destructive or irreversible shell command"
+    },
+    {
+      "id": "shell-safety.dangerous.cmd",
+      "when": {
+        "params.cmd": {
+          "matches": "(\\brm\\b(?=[^;&|\\n]*\\s(-[a-zA-Z]*[rR]|--recursive\\b))(?=[^;&|\\n]*\\s(-[a-zA-Z]*f|--force\\b))|\\bmkfs\\b|\\bdd\\s+if=|:\\(\\)\\s*\\{|\\bgit\\s+push\\b[^;&|]*(\\s--force\\b|\\s-f\\b)|\\bchmod\\s+(-R\\s+)?0?777\\b|\\b(curl|wget)\\b[^|;&]*\\|\\s*(sudo\\s+)?(ba|z)?sh\\b|\\b(shutdown|reboot|halt)\\b)"
+        }
+      },
+      "then": "deny",
+      "reason": "a destructive or irreversible shell command"
+    },
+    {
+      "id": "shell-safety.dangerous.script",
+      "when": {
+        "params.script": {
+          "matches": "(\\brm\\b(?=[^;&|\\n]*\\s(-[a-zA-Z]*[rR]|--recursive\\b))(?=[^;&|\\n]*\\s(-[a-zA-Z]*f|--force\\b))|\\bmkfs\\b|\\bdd\\s+if=|:\\(\\)\\s*\\{|\\bgit\\s+push\\b[^;&|]*(\\s--force\\b|\\s-f\\b)|\\bchmod\\s+(-R\\s+)?0?777\\b|\\b(curl|wget)\\b[^|;&]*\\|\\s*(sudo\\s+)?(ba|z)?sh\\b|\\b(shutdown|reboot|halt)\\b)"
+        }
+      },
+      "then": "deny",
+      "reason": "a destructive or irreversible shell command"
+    },
+    {
+      "id": "coding-agent.secret-files-shell",
+      "when": {
+        "params.command": {
+          "matches": "(^|[\\s/\"'=])(\\.env|\\.env\\.(local|development|production|staging|test)|[^/\\s]*\\.pem|[^/\\s]*\\.key|id_rsa|id_ecdsa|id_ed25519|credentials\\.json|\\.npmrc|\\.netrc)(\\s|$|[\"';|&>])"
+        }
+      },
+      "then": "escalate",
+      "reason": "a shell command naming a secret file needs a person"
+    },
+    {
+      "id": "coding-agent.skip-hooks",
+      "when": {
+        "params.command": {
+          "matches": "\\bgit\\s+(commit|push)\\b[^;&|]*\\s--no-verify\\b"
+        }
+      },
+      "then": "escalate",
+      "reason": "skipping the repository's git hooks needs a person"
+    },
+    {
+      "id": "shell-safety.file-changes",
+      "when": {
+        "target": {
+          "matches": "(^|[._])(delete|remove|move|rename)(_|[A-Z]|$)"
+        }
+      },
+      "then": "escalate",
+      "reason": "deleting or moving files needs a person"
+    },
+    {
+      "id": "vouchwell-development.own-hooks",
+      "when": {
+        "params.file_path": {
+          "matches": "(^|/)\\.claude/(settings|vouchwell\\.config|vouchwell\\.policy)\\.json$"
+        }
+      },
+      "then": "escalate",
+      "reason": "changing what records the agent needs a person"
+    }
+  ],
+  "budgets": [],
+  "rateLimits": []
+}

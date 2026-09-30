@@ -446,6 +446,35 @@ adapters for LangChain and the OpenAI Agents SDK.
 
 ---
 
+## Coding agents
+
+Claude Code does most of its work with its own tools (the shell, file reads
+and edits, fetches), not MCP servers. `vw hook` records and gates those too,
+through Claude Code's hooks:
+
+```bash
+vw policy template coding-agent shell-safety secrets --out vouchwell.policy.json
+vw hook install
+```
+
+From the next session, every tool call is checked against the policy before it
+runs, and gets a receipt:
+- a refused call is denied, with the policy's reason;
+- an escalated one goes to the person at the keyboard;
+- the rest are recorded.
+
+See [`docs/CODING-AGENTS.md`](docs/CODING-AGENTS.md).
+
+### How this repository was built
+
+An AI agent builds Vouchwell, and this repository records it doing so. Its
+Claude Code hooks run `vw hook` on every tool call made while working here.
+The logs are published in [`evidence/`](evidence/README.md) as bundles that
+hold commitments only, so nothing from the machine leaks. CI verifies each one
+on every push.
+
+---
+
 ## What it does not do
 
 Stated plainly, because a security tool that overstates its guarantees is worse
