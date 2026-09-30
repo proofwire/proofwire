@@ -148,7 +148,7 @@ function layout(args) {
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${esc(args.title)} · Vouchwell</title><style>${STYLE}</style></head><body>
 ${args.principal ? `<header><div class="wrap bar">
-  <a class="brand" href="/">proof<em>wire</em></a>
+  <a class="brand" href="/">vouch<em>well</em></a>
   <nav>${nav
     .map(([href, label]) => `<a href="${esc(href)}"${href === here ? ' class="on"' : ''}>${esc(label)}</a>`)
     .join('')}</nav>
@@ -231,7 +231,7 @@ function loginPage(hub, ctx) {
       path: '/login',
       principal: null,
       body: `<div class="login">
-        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">proof<span style="color:var(--verify)">wire</span></p>
+        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">vouch<span style="color:var(--verify)">well</span></p>
         <h1>Sign in</h1>
         <p class="sub">Operator console</p>
         ${failed ? '<div class="banner bad">Email or password is incorrect.</div>' : ''}
@@ -275,7 +275,7 @@ function forgotPage(hub, ctx) {
       path: '/login',
       principal: null,
       body: `<div class="login">
-        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">proof<span style="color:var(--verify)">wire</span></p>
+        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">vouch<span style="color:var(--verify)">well</span></p>
         <h1>Reset password</h1>
         ${sent
           ? `<div class="banner">If that address has an account, a reset link has been issued.
@@ -316,7 +316,7 @@ function credentialPage(hub, ctx, route) {
         path: '/login',
         principal: null,
         body: `<div class="login">
-          <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">proof<span style="color:var(--verify)">wire</span></p>
+          <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">vouch<span style="color:var(--verify)">well</span></p>
           <h1>${esc(title)}</h1>
           <div class="banner bad">This link is invalid, has already been used, or has expired.</div>
           <p style="font-size:13px">
@@ -343,7 +343,7 @@ function credentialPage(hub, ctx, route) {
       path: '/login',
       principal: null,
       body: `<div class="login">
-        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">proof<span style="color:var(--verify)">wire</span></p>
+        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">vouch<span style="color:var(--verify)">well</span></p>
         <h1>${esc(title)}</h1>
         <p class="sub">${esc(row.email)}${invite && row.role ? ` · joining as ${esc(row.role)}` : ''}</p>
         ${error ? `<div class="banner bad">${esc(messages[error] ?? 'That did not work.')}</div>` : ''}
