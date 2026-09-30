@@ -110,7 +110,9 @@ test('each destination gets receipts and audit events in its own format, without
     const flushed = await h.api('POST', '/v1/integrations/streams/flush', h.admin);
     for (const d of flushed.json.destinations) assert.equal(d.pending, 0, `${d.name}: ${d.lastError}`);
 
-    assert.ok(!seen.some((s) => s.body.includes('4242')), 'parameters must never leave the hub');
+    // The card number as written, spaces included: hashes and nanosecond
+    // timestamps are hex and digits, so plain '4242' turns up in them by chance.
+    assert.ok(!seen.some((s) => s.body.includes('4242 4242')), 'parameters must never leave the hub');
 
     // Events can arrive over several requests (the audit event of adding the
     // destinations may go out before the receipts exist), so gather them all.
