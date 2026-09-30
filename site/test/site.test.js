@@ -246,3 +246,9 @@ test('paid tiers never look purchasable, since nothing is', () => {
     assert.match(body, /not yet live/i, `a paid tier's card has no "not yet live" disclaimer`);
   }
 });
+
+test('the logo reads vouchwell in the header, the footer and the 404 page', () => {
+  const marks = (html) => [...html.matchAll(/class="mark"[^>]*>(.*?)<\/(?:a|span)>/g)].map((m) => m[1].replace(/<[^>]+>/g, ''));
+  assert.deepEqual(marks(INDEX), ['vouchwell', 'vouchwell']);
+  assert.deepEqual(marks(NOT_FOUND), ['vouchwell']);
+});

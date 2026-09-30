@@ -1,12 +1,16 @@
 # Changelog
 
-All five packages — `proofwire` and `@proof_wire/{core,proxy,dashboard,server}` —
-release together at the same version.
+All five packages — `vouchwell` and `@vouchwell/{core,proxy,dashboard,server}`,
+up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same version.
 
 ## Unreleased
 
 ### Changed
 
+- **The logo says Vouchwell everywhere.** It is written in two coloured
+  halves, so the rename missed it: the website header, footer and 404 page,
+  the local dashboard and the hub console still read "proofwire". A test now
+  fails if a split old logo comes back.
 - **Renamed from Proofwire to Vouchwell.** Another developer tools company was
   already using "Proofwire" for an API sold to AI-agent developers, and had been
   since before this project's first release. New names: npm `vouchwell` and
