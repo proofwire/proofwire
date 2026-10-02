@@ -83,11 +83,14 @@ export function handleEvent(args, deps, text) {
   const name = event?.hook_event_name;
   if (!EVENTS.includes(name)) return 0; // Not one this handles: say nothing.
 
-  const { dir, config } = deps.loadConfig(args);
-  const settings = { ...(config.hook ?? {}) };
-  const monitor = !args.enforce && (args.monitor === true || (settings.monitor ?? config.monitor) === true);
+  // Decided from the command line until the config is read, so that a config
+  // that cannot be read still fails closed when enforcing.
+  let monitor = !args.enforce && args.monitor === true;
 
   try {
+    const { dir, config } = deps.loadConfig(args);
+    const settings = { ...(config.hook ?? {}) };
+    monitor = !args.enforce && (args.monitor === true || (settings.monitor ?? config.monitor) === true);
     return withLock(dir, () => {
       const log = openOrCreate(dir);
       const ctx = {
