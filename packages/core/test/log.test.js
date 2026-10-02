@@ -11,7 +11,7 @@ import { cosign, verifyCheckpoint } from '../src/checkpoint.js';
 
 /** @returns {string} */
 function tmpdir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-test-'));
 }
 
 /**
@@ -24,7 +24,7 @@ function fill(log, n, over = {}) {
     log.append({
       actor: {
         agent: 'claude-opus-5',
-        runtime: 'deedwrit-test/0.1.0',
+        runtime: 'vouchwell-test/0.1.0',
         session: 'sess_a',
         principal: 'ops@acme.test',
       },

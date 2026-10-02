@@ -1,9 +1,0 @@
-{
-  "log": ".claude/deedwrit-log",
-  "policy": ".claude/deedwrit.policy.json",
-  "hook": {
-    "principal": "deedwrit-maintainers",
-    "previews": "none",
-    "evidence": "evidence"
-  }
-}

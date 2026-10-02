@@ -1,9 +1,9 @@
 """Adapters for agent frameworks. Each module imports its framework lazily, so
-``deedwrit`` itself still needs nothing but ``cryptography``.
+``vouchwell`` itself still needs nothing but ``cryptography``.
 
-- ``deedwrit.integrations.langchain``: ``record_tools`` for LangChain /
+- ``vouchwell.integrations.langchain``: ``record_tools`` for LangChain /
   LangGraph tools.
-- ``deedwrit.integrations.openai_agents``: ``record_tools`` for the OpenAI
+- ``vouchwell.integrations.openai_agents``: ``record_tools`` for the OpenAI
   Agents SDK's function tools.
 """
 
@@ -20,7 +20,7 @@ def refusal(err: PolicyDenied) -> str:
     d: Any = err.decision
     rules = ", ".join(d.get("rules") or []) or "none"
     return (
-        f"Blocked by Deedwrit policy. {d.get('reason') or ''}\n"
+        f"Blocked by Vouchwell policy. {d.get('reason') or ''}\n"
         f"Rules: {rules}\n"
         f"This refusal is recorded as receipt {err.receipt['seq']} in log {err.receipt['log']}."
     )

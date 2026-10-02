@@ -1,12 +1,12 @@
 import fs from 'node:fs';
-import { POLICY_TEMPLATES, composePolicy } from '@deedwrit/core';
+import { POLICY_TEMPLATES, composePolicy } from '@vouchwell/core';
 import { c, out, ok, bad, info, heading } from './ui.js';
 
 /**
- * `dw policy templates` and `dw policy template <id...>`.
+ * `vw policy templates` and `vw policy template <id...>`.
  *
  * Templates are ordinary policy, so the useful path is: pick some, write
- * them to a file, replay last week's traffic against it with `dw policy
+ * them to a file, replay last week's traffic against it with `vw policy
  * test`, then enforce. Nothing here enforces anything by itself.
  */
 
@@ -21,8 +21,8 @@ export function cmdPolicyTemplates(args) {
     out(`  ${c.cyan(t.id.padEnd(26))} ${t.summary}`);
   }
   out('');
-  info(`Details and caveats: ${c.cyan('dw policy template <id> --explain')}`);
-  info(`Combine several:     ${c.cyan('dw policy template secrets destructive-sql payments --out deedwrit.policy.json')}`);
+  info(`Details and caveats: ${c.cyan('vw policy template <id> --explain')}`);
+  info(`Combine several:     ${c.cyan('vw policy template secrets destructive-sql payments --out vouchwell.policy.json')}`);
   out('');
   return 0;
 }
@@ -31,7 +31,7 @@ export function cmdPolicyTemplates(args) {
 export function cmdPolicyTemplate(args) {
   const ids = args._.slice(2).flatMap((/** @type {string} */ a) => String(a).split(',')).filter(Boolean);
   if (ids.length === 0) {
-    bad('which templates? `dw policy template <id...>`; `dw policy templates` lists them');
+    bad('which templates? `vw policy template <id...>`; `vw policy templates` lists them');
     return 2;
   }
   const doc = composePolicy(ids, { name: args.name });
@@ -64,13 +64,13 @@ export function cmdPolicyTemplate(args) {
   ok(`Wrote ${args.out}: ${doc.templates.join(', ')}`);
   out('');
   info(`Before it can block anything, replay your recorded traffic against it:`);
-  out(`    ${c.cyan(`dw policy test ${args.out}`)}`);
+  out(`    ${c.cyan(`vw policy test ${args.out}`)}`);
   out('');
   return 0;
 }
 
 /**
- * The policy file `dw init --template a,b` writes in place of the starter.
+ * The policy file `vw init --template a,b` writes in place of the starter.
  *
  * @param {string|true} spec
  * @returns {string}

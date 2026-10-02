@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from deedwrit import ProofLog, Recorder, canonical_bytes, cosign, generate_identity, verify_bundle
+from vouchwell import ProofLog, Recorder, canonical_bytes, cosign, generate_identity, verify_bundle
 
 REPO = Path(__file__).resolve().parents[3]
 PW = REPO / "packages" / "cli" / "src" / "bin.js"
@@ -21,12 +21,12 @@ NODE = shutil.which("node")
 
 pytestmark = pytest.mark.skipif(
     not NODE or not PW.exists() or not (REPO / "node_modules").exists(),
-    reason="needs Node and the deedwrit repository with its workspace installed",
+    reason="needs Node and the vouchwell repository with its workspace installed",
 )
 
 
 def node(script: str) -> str:
-    """Run an ES module in the repository, so @deedwrit/core resolves."""
+    """Run an ES module in the repository, so @vouchwell/core resolves."""
     r = subprocess.run([NODE, "--input-type=module", "-e", script], cwd=REPO, capture_output=True, text=True, encoding="utf-8")
     assert r.returncode == 0, r.stderr
     return r.stdout
@@ -51,7 +51,7 @@ def test_canonical_bytes_match_javascript_on_a_corpus_of_awkward_values(tmp_path
     text = json.dumps(corpus)
     (tmp_path / "corpus.json").write_text(text, encoding="utf-8")
     out = node(
-        "import fs from 'node:fs'; import { canonicalBytes } from '@deedwrit/core';"
+        "import fs from 'node:fs'; import { canonicalBytes } from '@vouchwell/core';"
         f"const c = JSON.parse(fs.readFileSync({json.dumps(str(tmp_path / 'corpus.json'))}, 'utf8'));"
         "process.stdout.write(JSON.stringify(c.map((v) => canonicalBytes(v).toString('hex'))));"
     )
@@ -63,7 +63,7 @@ def test_canonical_bytes_match_javascript_on_a_corpus_of_awkward_values(tmp_path
 
 
 def test_a_log_written_in_python_passes_pw_verify_and_pw_check(tmp_path):
-    log = ProofLog.create(tmp_path / ".deedwrit")
+    log = ProofLog.create(tmp_path / ".vouchwell")
     rec = Recorder(log, agent="support-bot", principal="ops@acme.test", namespace="crm")
 
     @rec.tool("refund", metrics=lambda order, cents: {"amount_usd": cents / 100})
@@ -93,7 +93,7 @@ def test_a_log_written_in_python_passes_pw_verify_and_pw_check(tmp_path):
 def test_a_log_written_by_javascript_verifies_in_python_and_can_be_continued(tmp_path):
     d = tmp_path / "js-log"
     pin = node(
-        "import { ProofLog, generateIdentity, cosign } from '@deedwrit/core';"
+        "import { ProofLog, generateIdentity, cosign } from '@vouchwell/core';"
         f"const log = ProofLog.create({json.dumps(str(d))});"
         "const actor = { agent: 'claude', runtime: 'js', session: 's', principal: 'dana@acme.test' };"
         "const a = (target, params, extra = {}) => log.append({ actor, action: { kind: 'tool_call', target, params, metrics: { amount_usd: 12.75 } }, decision: { outcome: 'allow', policy: 'p', rules: [] }, ...extra });"
@@ -127,11 +127,11 @@ def test_a_log_written_by_javascript_verifies_in_python_and_can_be_continued(tmp
 
 
 def test_both_sides_agree_on_which_calls_never_finished(tmp_path):
-    from deedwrit import entry_hash, find_unfinished
+    from vouchwell import entry_hash, find_unfinished
 
     actor = {"agent": "claude", "runtime": "test", "session": "s", "principal": "p@acme.test"}
     allow = {"outcome": "allow", "policy": "p", "rules": []}
-    log = ProofLog.create(tmp_path / ".deedwrit")
+    log = ProofLog.create(tmp_path / ".vouchwell")
     old = "2026-01-01T00:00:00.000Z"
     done = log.append(ts=old, phase="intent", actor=actor, action={"kind": "tool_call", "target": "crm.query", "params": {}}, decision=allow)
     log.append(ts=old, phase="outcome", ref=entry_hash(done), actor=actor, action={"kind": "tool_call", "target": "crm.query", "params": {}}, decision=allow, result={"status": "ok", "payload": None})
@@ -140,8 +140,8 @@ def test_both_sides_agree_on_which_calls_never_finished(tmp_path):
     log.append(ts=old, phase="outcome", ref=entry_hash(cut), actor=actor, action={"kind": "tool_call", "target": "db.migrate", "params": {}}, decision=allow, result={"status": "error", "code": "unfinished", "payload": None})
 
     theirs = json.loads(node(
-        "import { ProofLog, findUnfinished } from '@deedwrit/core';"
-        f"const log = ProofLog.open({json.dumps(str(tmp_path / '.deedwrit'))}, {{ readOnly: true }});"
+        "import { ProofLog, findUnfinished } from '@vouchwell/core';"
+        f"const log = ProofLog.open({json.dumps(str(tmp_path / '.vouchwell'))}, {{ readOnly: true }});"
         "process.stdout.write(JSON.stringify(findUnfinished(log.entries)));"
     ))
     ours = find_unfinished(log.entries)

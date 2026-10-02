@@ -7,25 +7,22 @@ import path from 'node:path';
  *
  * Until 0.5.0 the project was called Proofwire, and its files were named for
  * it: the `.proofwire/` log, `proofwire.config.json`, `proofwire.policy.json`
- * and `~/.proofwire/credentials.json`. It was briefly Vouchwell after that,
- * with `.vouchwell/` and `vouchwell.*` files. A project set up under either
- * keeps working: the new name is used whenever it exists or nothing does, and
- * an old one only when it is all there is (the more recent name first).
+ * and `~/.proofwire/credentials.json`. A project set up then keeps working:
+ * the new name is used whenever it exists or nothing does, and the old one
+ * only when it is the only one there.
  *
- * @param {string} current     The name to use, e.g. `.deedwrit`.
- * @param {...string} legacy   What the same thing was called before, newest first.
+ * @param {string} current  The name to use, e.g. `.vouchwell`.
+ * @param {string} legacy   What the same thing was called before, e.g. `.proofwire`.
  */
-export function current(current, ...legacy) {
-  if (fs.existsSync(current)) return current;
-  return legacy.find((name) => fs.existsSync(name)) ?? current;
+export function current(current, legacy) {
+  return !fs.existsSync(current) && fs.existsSync(legacy) ? legacy : current;
 }
 
-export const LOG_DIR = () => current('.deedwrit', '.vouchwell', '.proofwire');
-export const CONFIG_FILE = () => current('deedwrit.config.json', 'vouchwell.config.json', 'proofwire.config.json');
-export const POLICY_FILE = () => current('deedwrit.policy.json', 'vouchwell.policy.json', 'proofwire.policy.json');
+export const LOG_DIR = () => current('.vouchwell', '.proofwire');
+export const CONFIG_FILE = () => current('vouchwell.config.json', 'proofwire.config.json');
+export const POLICY_FILE = () => current('vouchwell.policy.json', 'proofwire.policy.json');
 
-/** The credentials file to read: ~/.deedwrit, or the one an earlier name left. */
+/** The credentials file to read: ~/.vouchwell, or ~/.proofwire from before the rename. */
 export function credentialsToRead() {
-  const at = (/** @type {string} */ dir) => path.join(os.homedir(), dir, 'credentials.json');
-  return current(at('.deedwrit'), at('.vouchwell'), at('.proofwire'));
+  return current(path.join(os.homedir(), '.vouchwell', 'credentials.json'), path.join(os.homedir(), '.proofwire', 'credentials.json'));
 }

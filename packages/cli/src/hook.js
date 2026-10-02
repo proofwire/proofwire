@@ -2,13 +2,13 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ProofLog, LogAppender, History, parseWindow, entryHash, canonicalize } from '@deedwrit/core';
+import { ProofLog, LogAppender, History, parseWindow, entryHash, canonicalize } from '@vouchwell/core';
 import { c, out, err, ok, bad, info, heading, kv } from './ui.js';
 
 /**
- * `dw hook`: record, and gate, what a coding agent does with its own tools.
+ * `vw hook`: record, and gate, what a coding agent does with its own tools.
  *
- * `dw proxy` sees an agent's MCP servers. A coding agent does most of its work
+ * `vw proxy` sees an agent's MCP servers. A coding agent does most of its work
  * with built-in tools instead: it runs shell commands, reads and edits files,
  * fetches pages. Claude Code runs a command before and after every one of
  * those (its hooks), and this is that command. Claude Code writes one JSON
@@ -70,14 +70,14 @@ export async function cmdHook(args, deps) {
 export function handleEvent(args, deps, text) {
   // For the person at the keyboard, never the agent: the agent's shell
   // cannot change the environment Claude Code starts hooks with.
-  if (process.env.DEEDWRIT_HOOK === 'off') return 0;
+  if (process.env.VOUCHWELL_HOOK === 'off') return 0;
 
   /** @type {any} */
   let event;
   try {
     event = JSON.parse(text);
   } catch {
-    err('deedwrit hook: expected one JSON event on stdin, from a Claude Code hook');
+    err('vouchwell hook: expected one JSON event on stdin, from a Claude Code hook');
     return 2;
   }
   const name = event?.hook_event_name;
@@ -96,7 +96,7 @@ export function handleEvent(args, deps, text) {
         monitor,
         actor: {
           agent: args.agent ?? settings.agent ?? 'claude-code',
-          runtime: `deedwrit-hook/${deps.version}`,
+          runtime: `vouchwell-hook/${deps.version}`,
           session: `cc_${event.session_id ?? 'unknown'}`,
           principal: args.principal ?? settings.principal ?? config.actor?.principal ?? 'unknown',
         },
@@ -114,11 +114,11 @@ export function handleEvent(args, deps, text) {
     // Refuse what cannot be recorded, when enforcing: a gate that opens
     // whenever the log is unwritable is not one. Everything else carries on.
     if (name === 'PreToolUse' && !monitor) {
-      respond('deny', `Deedwrit could not record this call, so it is refused: ${message}. ` +
-        'Fix the log, or start Claude Code with DEEDWRIT_HOOK=off to turn recording off.');
+      respond('deny', `Vouchwell could not record this call, so it is refused: ${message}. ` +
+        'Fix the log, or start Claude Code with VOUCHWELL_HOOK=off to turn recording off.');
       return 0;
     }
-    err(`deedwrit hook: ${message}`);
+    err(`vouchwell hook: ${message}`);
     return 0;
   }
 }
@@ -142,7 +142,7 @@ function pre(ctx, event, policy) {
 
   if (decision.outcome === 'deny') {
     append(ctx, { target, params, decision, result: null, phase: 'atomic' });
-    respond('deny', `Refused by Deedwrit policy: ${decision.reason}`);
+    respond('deny', `Refused by Vouchwell policy: ${decision.reason}`);
     return 0;
   }
   if (decision.outcome === 'escalate') {
@@ -150,7 +150,7 @@ function pre(ctx, event, policy) {
     // are written once it is known whether the call ran.
     pending[key] = { session: ctx.actor.session, target, decision, asked: true, at: new Date().toISOString() };
     writePending(ctx.dir, pending);
-    respond('ask', `Deedwrit policy asks for a person: ${decision.reason}`);
+    respond('ask', `Vouchwell policy asks for a person: ${decision.reason}`);
     return 0;
   }
   const intent = append(ctx, { target, params, decision, result: null, phase: 'intent' });
@@ -261,7 +261,7 @@ function settingsPath(args) {
 
 /** @param {any} args */
 function hookCommand(args) {
-  return typeof args.command === 'string' ? args.command : `dw hook${args.monitor === true ? ' --monitor' : ''}`;
+  return typeof args.command === 'string' ? args.command : `vw hook${args.monitor === true ? ' --monitor' : ''}`;
 }
 
 /** @param {string} file */
@@ -313,9 +313,9 @@ function install(args) {
   info('It takes effect in the next Claude Code session.');
   out('');
   out(`  ${c.bold('Next')}`);
-  out(`    ${c.cyan('dw policy template coding-agent shell-safety secrets --out deedwrit.policy.json')}`);
+  out(`    ${c.cyan('vw policy template coding-agent shell-safety secrets --out vouchwell.policy.json')}`);
   out(`      ${c.grey('a starting policy for a coding agent')}`);
-  out(`    ${c.cyan('dw log')}   ${c.grey('what the agent did')}      ${c.cyan('dw hook evidence')}   ${c.grey('a bundle to share')}`);
+  out(`    ${c.cyan('vw log')}   ${c.grey('what the agent did')}      ${c.cyan('vw hook evidence')}   ${c.grey('a bundle to share')}`);
   out('');
   return 0;
 }
@@ -362,7 +362,7 @@ function evidence(args, deps) {
   ]);
   out('');
   info('No payloads and no salts: safe to publish. Anyone can check it with');
-  info(`  ${c.cyan(`dw check ${path.relative(process.cwd(), file)}`)}`);
+  info(`  ${c.cyan(`vw check ${path.relative(process.cwd(), file)}`)}`);
   out('');
   return 0;
 }
@@ -467,7 +467,7 @@ function openOrCreate(dir) {
   // lock is held, but a log is a directory anyone can write to.
   if (readIfPresent(path.join(dir, 'config.json')) !== null) return LogAppender.open(dir);
   const log = ProofLog.create(dir);
-  err(`deedwrit hook: started a new log at ${dir} (${log.logId})`);
+  err(`vouchwell hook: started a new log at ${dir} (${log.logId})`);
   return LogAppender.open(dir);
 }
 
@@ -527,7 +527,7 @@ function holderAlive(text) {
 export function withLock(dir, fn) {
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, LOCK);
-  const waitMs = Number(process.env.DEEDWRIT_HOOK_LOCK_WAIT_MS) || 15_000;
+  const waitMs = Number(process.env.VOUCHWELL_HOOK_LOCK_WAIT_MS) || 15_000;
   const deadline = Date.now() + waitMs;
   const nap = new Int32Array(new SharedArrayBuffer(4));
   for (;;) {

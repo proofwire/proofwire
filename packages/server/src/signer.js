@@ -5,7 +5,7 @@ import {
   identityFromPublicKey,
   sign as signLocally,
   verify,
-} from '@deedwrit/core';
+} from '@vouchwell/core';
 import { newId, now } from './db.js';
 
 /**
@@ -250,7 +250,7 @@ export async function selfTest(signer) {
 /**
  * Build the hub's signers from configuration.
  *
- * `DEEDWRIT_SIGNER` selects the backend for both roles; each role may also be
+ * `VOUCHWELL_SIGNER` selects the backend for both roles; each role may also be
  * configured separately, because a deployment might put the witness key in a
  * different custody than the log key — which is exactly what an independent
  * witness *should* do.
@@ -262,8 +262,8 @@ export async function selfTest(signer) {
  */
 export function signerFor(store, role, env = process.env) {
   const upper = role.toUpperCase();
-  const kind = env[`DEEDWRIT_${upper}_SIGNER`] ?? env.DEEDWRIT_SIGNER ?? 'local';
-  const publicKey = env[`DEEDWRIT_${upper}_PUBLIC_KEY`] ?? env.DEEDWRIT_PUBLIC_KEY;
+  const kind = env[`VOUCHWELL_${upper}_SIGNER`] ?? env.VOUCHWELL_SIGNER ?? 'local';
+  const publicKey = env[`VOUCHWELL_${upper}_PUBLIC_KEY`] ?? env.VOUCHWELL_PUBLIC_KEY;
 
   switch (kind) {
     case 'local': {
@@ -282,14 +282,14 @@ export function signerFor(store, role, env = process.env) {
     }
 
     case 'command': {
-      const command = env[`DEEDWRIT_${upper}_SIGNER_COMMAND`] ?? env.DEEDWRIT_SIGNER_COMMAND;
+      const command = env[`VOUCHWELL_${upper}_SIGNER_COMMAND`] ?? env.VOUCHWELL_SIGNER_COMMAND;
       if (!command || !publicKey) {
         return disabledSigner(
-          `signer "command" needs DEEDWRIT_${upper}_SIGNER_COMMAND (or DEEDWRIT_SIGNER_COMMAND) ` +
-            `and DEEDWRIT_${upper}_PUBLIC_KEY`,
+          `signer "command" needs VOUCHWELL_${upper}_SIGNER_COMMAND (or VOUCHWELL_SIGNER_COMMAND) ` +
+            `and VOUCHWELL_${upper}_PUBLIC_KEY`,
         );
       }
-      const args = (env[`DEEDWRIT_${upper}_SIGNER_ARGS`] ?? env.DEEDWRIT_SIGNER_ARGS ?? '')
+      const args = (env[`VOUCHWELL_${upper}_SIGNER_ARGS`] ?? env.VOUCHWELL_SIGNER_ARGS ?? '')
         .split(' ')
         .filter(Boolean);
       const signer = commandSigner({ command, args, publicKey });
@@ -300,14 +300,14 @@ export function signerFor(store, role, env = process.env) {
     }
 
     case 'http': {
-      const url = env[`DEEDWRIT_${upper}_SIGNER_URL`] ?? env.DEEDWRIT_SIGNER_URL;
+      const url = env[`VOUCHWELL_${upper}_SIGNER_URL`] ?? env.VOUCHWELL_SIGNER_URL;
       if (!url || !publicKey) {
         return disabledSigner(
-          `signer "http" needs DEEDWRIT_${upper}_SIGNER_URL (or DEEDWRIT_SIGNER_URL) ` +
-            `and DEEDWRIT_${upper}_PUBLIC_KEY`,
+          `signer "http" needs VOUCHWELL_${upper}_SIGNER_URL (or VOUCHWELL_SIGNER_URL) ` +
+            `and VOUCHWELL_${upper}_PUBLIC_KEY`,
         );
       }
-      const token = env[`DEEDWRIT_${upper}_SIGNER_TOKEN`] ?? env.DEEDWRIT_SIGNER_TOKEN;
+      const token = env[`VOUCHWELL_${upper}_SIGNER_TOKEN`] ?? env.VOUCHWELL_SIGNER_TOKEN;
       const signer = httpSigner({
         url,
         publicKey,

@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from deedwrit import ProofLog, cosign, generate_identity, verify_bundle
+from vouchwell import ProofLog, cosign, generate_identity, verify_bundle
 
 
 def fill(log, n, start=0):
@@ -186,7 +186,7 @@ def test_shredding_makes_payloads_unprovable_and_the_log_still_verifies(log):
 def test_a_receipt_resigned_by_another_key_is_caught_by_its_signature(log):
     # The tip, and no checkpoint: nothing after it to break the chain, no
     # signed root to contradict. Only the signature check can catch this.
-    from deedwrit import receipt_digest, sign
+    from vouchwell import receipt_digest, sign
 
     fill(log, 3)
     p = log.dir / "entries.jsonl"
@@ -203,7 +203,7 @@ def test_a_receipt_resigned_by_another_key_is_caught_by_its_signature(log):
 def test_a_validly_signed_receipt_that_was_never_logged_fails_its_inclusion_proof(log):
     # Signed by the log's own key, so the signature passes; slipped into a
     # filtered bundle with a real entry's proof. Only inclusion can catch it.
-    from deedwrit import build_receipt, sign_receipt
+    from vouchwell import build_receipt, sign_receipt
 
     fill(log, 4)
     b = json.loads(json.dumps(log.bundle(filter=lambda r: r["seq"] == 1)))
@@ -220,18 +220,17 @@ def test_a_validly_signed_receipt_that_was_never_logged_fails_its_inclusion_proo
 
 
 def test_a_malformed_bundle_fails_verification_rather_than_crashing():
-    for junk in (None, [], {"kind": "deedwrit.bundle", "v": 1, "root": "zz"}, {"kind": "deedwrit.bundle", "v": 1, "root": "00" * 32, "entries": [{"receipt": 5}], "treeSize": 1}):
+    for junk in (None, [], {"kind": "vouchwell.bundle", "v": 1, "root": "zz"}, {"kind": "vouchwell.bundle", "v": 1, "root": "00" * 32, "entries": [{"receipt": 5}], "treeSize": 1}):
         assert verify_bundle(junk)["ok"] is False
 
 
 def test_a_bundle_from_before_the_rename_still_verifies(log):
-    # Until 0.5.0 the project was Proofwire and wrote "proofwire.bundle", then
-    # briefly Vouchwell ("vouchwell.bundle"). The
+    # Until 0.5.0 the project was Proofwire and wrote "proofwire.bundle". The
     # kind is a label outside every signature, so such bundles stay evidence.
     fill(log, 3)
     log.checkpoint()
     bundle = json.loads(json.dumps(log.bundle()))
-    assert bundle["kind"] == "deedwrit.bundle"
-    for earlier in ("proofwire.bundle", "vouchwell.bundle"):
-        assert verify_bundle(dict(bundle, kind=earlier))["ok"], earlier
+    assert bundle["kind"] == "vouchwell.bundle"
+    old = dict(bundle, kind="proofwire.bundle")
+    assert verify_bundle(old)["ok"]
     assert not verify_bundle(dict(bundle, kind="something.bundle"))["ok"]

@@ -5,7 +5,7 @@
  * Runs a real agent session through a real proxy against a real MCP server,
  * then attacks the resulting log four different ways and shows each attack
  * being caught. Nothing here is mocked; the log it writes is a log you can
- * inspect with `dw` afterwards.
+ * inspect with `vw` afterwards.
  *
  *     node examples/demo.js
  */
@@ -15,9 +15,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, Policy, verifyBundle, canonicalize, identityFromPem, signReceipt, entryHash, GENESIS_PREV, generateIdentity, cosign, verifyCheckpoint } from '@deedwrit/core';
-import { McpProxy } from '@deedwrit/proxy';
-import { LineFramer } from '@deedwrit/proxy/jsonrpc';
+import { ProofLog, Policy, verifyBundle, canonicalize, identityFromPem, signReceipt, entryHash, GENESIS_PREV, generateIdentity, cosign, verifyCheckpoint } from '@vouchwell/core';
+import { McpProxy } from '@vouchwell/proxy';
+import { LineFramer } from '@vouchwell/proxy/jsonrpc';
 
 const SERVER = fileURLToPath(new URL('./fake-mcp-server.js', import.meta.url));
 const B = (s) => `[1m${s}[0m`;
@@ -75,11 +75,11 @@ const CALLS = [
 ];
 
 async function main() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-demo-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-demo-'));
   const log = ProofLog.create(dir);
 
   say();
-  say(B('  Deedwrit — every AI agent action, signed, chained, and provable'));
+  say(B('  Vouchwell — every AI agent action, signed, chained, and provable'));
   say(DIM(`  log ${log.logId}   key ${log.identity.kid}`));
   say(DIM(`  ${dir}`));
 
@@ -132,7 +132,7 @@ async function main() {
     say(
       `  ${blocked ? RED('BLOCKED') : GREEN('ran    ')}  ${`ops.${name}`.padEnd(16)} ${DIM(note)}`,
     );
-    if (blocked) say(`            ${YELLOW(text.replace('Blocked by Deedwrit policy. ', ''))}`);
+    if (blocked) say(`            ${YELLOW(text.replace('Blocked by Vouchwell policy. ', ''))}`);
   }
 
   stdin.end();
@@ -197,7 +197,7 @@ async function main() {
   ];
 
   for (const attack of attacks) {
-    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-attack-'));
+    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-attack-'));
     for (const f of ['config.json', 'key.pem', 'keyring.json', 'entries.jsonl', 'checkpoints.jsonl', 'salts.jsonl']) {
       fs.copyFileSync(path.join(dir, f), path.join(scratch, f));
     }

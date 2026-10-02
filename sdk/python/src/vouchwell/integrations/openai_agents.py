@@ -1,10 +1,10 @@
 """Record, and check, every call an OpenAI Agents SDK agent makes to its function tools.
 
     from agents import Agent, function_tool
-    from deedwrit import ProofLog, Recorder
-    from deedwrit.integrations.openai_agents import record_tools
+    from vouchwell import ProofLog, Recorder
+    from vouchwell.integrations.openai_agents import record_tools
 
-    rec = Recorder(ProofLog.open(".deedwrit"), agent="support-bot", principal="ops@acme.com", decide=my_rules)
+    rec = Recorder(ProofLog.open(".vouchwell"), agent="support-bot", principal="ops@acme.com", decide=my_rules)
     agent = Agent(name="Support", tools=record_tools(rec, [lookup_order, refund]))
 
 Each wrapped tool records an intent before it runs and an outcome after. A
@@ -27,7 +27,7 @@ try:
     from agents import FunctionTool
 except ImportError as err:  # pragma: no cover - exercised only without the package
     raise ImportError(
-        "deedwrit.integrations.openai_agents needs the OpenAI Agents SDK: pip install openai-agents"
+        "vouchwell.integrations.openai_agents needs the OpenAI Agents SDK: pip install openai-agents"
     ) from err
 
 

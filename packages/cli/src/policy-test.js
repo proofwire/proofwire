@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { ProofLog, Policy, History } from '@deedwrit/core';
+import { ProofLog, Policy, History } from '@vouchwell/core';
 import { c, out, bad, warn, heading, kv, table } from './ui.js';
 import { POLICY_FILE } from './legacy-paths.js';
 
@@ -118,7 +118,7 @@ function paint(v) {
 }
 
 /**
- * `dw policy test [policy-file]`
+ * `vw policy test [policy-file]`
  *
  * @param {any} args
  * @param {{ dir: string, config: any }} where

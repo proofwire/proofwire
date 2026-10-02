@@ -5,13 +5,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, verifyBundle } from '@deedwrit/core';
+import { ProofLog, verifyBundle } from '@vouchwell/core';
 import { Hub } from '../../server/src/app.js';
 import { Auth } from '../../server/src/auth.js';
 
 /**
  * Two independent witnesses, and a local log that has both sign its
- * checkpoints: by hand with `dw cosign`, and on its own when a `dw proxy`
+ * checkpoints: by hand with `vw cosign`, and on its own when a `vw proxy`
  * session ends.
  */
 
@@ -66,7 +66,7 @@ function pw(cwd, args, input) {
 
 /** A project with a log, and both witnesses added as remotes. */
 async function project() {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-witness-cli-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-witness-cli-'));
   assert.equal((await pw(cwd, ['init'])).code, 0);
   for (const [i, name] of ['w1', 'w2'].entries()) {
     const added = await pw(cwd, ['remote', 'add', '--name', name, '--url', witnesses[i].url, '--token', witnesses[i].token]);
@@ -77,9 +77,9 @@ async function project() {
 
 const pinned = () => Object.fromEntries(witnesses.map((w) => [w.kid, w.publicKey]));
 
-test('dw cosign --remote a,b has every named witness sign, and keeps each signature', async () => {
+test('vw cosign --remote a,b has every named witness sign, and keeps each signature', async () => {
   const cwd = await project();
-  const log = ProofLog.open(path.join(cwd, '.deedwrit'));
+  const log = ProofLog.open(path.join(cwd, '.vouchwell'));
   log.append({
     actor: { agent: 'a', runtime: 'r', session: 's', principal: 'p@acme.test' },
     action: { kind: 'tool_call', target: 'crm.lookup', params: {} },
@@ -91,14 +91,14 @@ test('dw cosign --remote a,b has every named witness sign, and keeps each signat
   assert.match(res.out, /Checkpoint witnessed · w1/);
   assert.match(res.out, /Checkpoint witnessed · w2/);
 
-  const bundle = ProofLog.open(path.join(cwd, '.deedwrit'), { readOnly: true }).bundle();
+  const bundle = ProofLog.open(path.join(cwd, '.vouchwell'), { readOnly: true }).bundle();
   const v = verifyBundle(bundle, { minWitnesses: 2, trustedWitnesses: pinned() });
   assert.ok(v.ok, v.issues.join('\n'));
 });
 
-test('a dw proxy session ends witnessed by every witness in the config, reported on stderr only', async () => {
+test('a vw proxy session ends witnessed by every witness in the config, reported on stderr only', async () => {
   const cwd = await project();
-  const configFile = path.join(cwd, 'deedwrit.config.json');
+  const configFile = path.join(cwd, 'vouchwell.config.json');
   const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
   fs.writeFileSync(configFile, JSON.stringify({ ...config, witnesses: ['w1', 'w2'] }, null, 2));
 
@@ -109,7 +109,7 @@ test('a dw proxy session ends witnessed by every witness in the config, reported
   assert.match(res.stderr, /witnessed by w2/);
   assert.doesNotMatch(res.stdout, /witness/, 'stdout is the MCP channel and must carry nothing else');
 
-  const bundle = ProofLog.open(path.join(cwd, '.deedwrit'), { readOnly: true }).bundle();
+  const bundle = ProofLog.open(path.join(cwd, '.vouchwell'), { readOnly: true }).bundle();
   const v = verifyBundle(bundle, { minWitnesses: 2, trustedWitnesses: pinned() });
   assert.ok(v.ok, v.issues.join('\n'));
   assert.equal(v.witnessedSize, bundle.treeSize, 'the whole session is witnessed');
@@ -123,7 +123,7 @@ test('a dw proxy session ends witnessed by every witness in the config, reported
 
 test('a witness that is down costs a warning, never the session', async () => {
   const cwd = await project();
-  const configFile = path.join(cwd, 'deedwrit.config.json');
+  const configFile = path.join(cwd, 'vouchwell.config.json');
   const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
   fs.writeFileSync(configFile, JSON.stringify({ ...config, witnesses: ['w1', 'nowhere'] }, null, 2));
   const call = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'lookup', arguments: {} } });

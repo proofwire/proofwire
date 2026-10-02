@@ -320,7 +320,7 @@ test('a reset link is never built from a Host header the requester chose', async
 
     await resetWithHost('localhost:1234');
     assert.equal(sent.length, 1, 'this machine is still served, so a local hub keeps working');
-    // The scheme follows DEEDWRIT_INSECURE_COOKIES, which CI sets; the host is the point.
+    // The scheme follows VOUCHWELL_INSECURE_COOKIES, which CI sets; the host is the point.
     assert.equal(new URL(sent[0].link).host, 'localhost:1234', sent[0].link);
 
     hub.config.publicUrl = 'https://hub.acme.test/';

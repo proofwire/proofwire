@@ -212,7 +212,7 @@ function auditEvent(row, org) {
 export function summarize(e) {
   if (e.type === 'receipt') return `${e.outcome} ${e.kind} ${e.target} by ${e.agent} (${e.log}#${e.seq})`;
   if (e.type === 'audit') return `${e.action}${e.subject ? ` ${e.subject}` : ''} by ${e.actor}`;
-  return String(e.message ?? 'Deedwrit test event');
+  return String(e.message ?? 'Vouchwell test event');
 }
 
 /** @param {StreamEvent} e */
@@ -245,7 +245,7 @@ export function formatBatch(d, events) {
     const sig = createHmac('sha256', /** @type {string} */ (d.secret)).update(`${t}.${body}`).digest('hex');
     return {
       url: d.url,
-      headers: { 'content-type': 'application/json', 'deedwrit-signature': `t=${t},v1=${sig}` },
+      headers: { 'content-type': 'application/json', 'vouchwell-signature': `t=${t},v1=${sig}` },
       body,
     };
   }
@@ -254,8 +254,8 @@ export function formatBatch(d, events) {
     const body = events
       .map((e) => JSON.stringify({
         time: Date.parse(e.time) / 1000,
-        source: 'deedwrit',
-        sourcetype: `deedwrit:${e.type}`,
+        source: 'vouchwell',
+        sourcetype: `vouchwell:${e.type}`,
         event: e,
       }))
       .join('\n');
@@ -268,8 +268,8 @@ export function formatBatch(d, events) {
   if (d.type === 'datadog') {
     const body = JSON.stringify(events.map((e) => ({
       ...e,
-      ddsource: 'deedwrit',
-      service: 'deedwrit',
+      ddsource: 'vouchwell',
+      service: 'vouchwell',
       ddtags: [`event:${e.type}`, e.outcome ? `outcome:${e.outcome}` : '', e.log ? `log:${e.log}` : ''].filter(Boolean).join(','),
       status: severity(e).text.toLowerCase(),
       message: summarize(e),
@@ -284,9 +284,9 @@ export function formatBatch(d, events) {
   // OpenTelemetry: OTLP/HTTP with the JSON encoding.
   const body = JSON.stringify({
     resourceLogs: [{
-      resource: { attributes: [kv('service.name', 'deedwrit')] },
+      resource: { attributes: [kv('service.name', 'vouchwell')] },
       scopeLogs: [{
-        scope: { name: 'deedwrit' },
+        scope: { name: 'vouchwell' },
         logRecords: events.map((e) => {
           const s = severity(e);
           return {
@@ -294,7 +294,7 @@ export function formatBatch(d, events) {
             severityNumber: s.number,
             severityText: s.text,
             body: { stringValue: summarize(e) },
-            attributes: Object.entries(e).map(([k, v]) => kv(`deedwrit.${k}`, v)),
+            attributes: Object.entries(e).map(([k, v]) => kv(`vouchwell.${k}`, v)),
           };
         }),
       }],
@@ -448,7 +448,7 @@ export class Streams {
     /** @type {StreamEvent} */
     const e = {
       type: 'test', id: `test:${Date.now()}`, time: new Date().toISOString(), org: org?.slug ?? orgId,
-      message: 'Deedwrit is connected. Receipts and audit events for this organization will arrive here.',
+      message: 'Vouchwell is connected. Receipts and audit events for this organization will arrive here.',
     };
     const results = [];
     for (const d of this.destinations(orgId)) {

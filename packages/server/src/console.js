@@ -146,9 +146,9 @@ function layout(args) {
 
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>${esc(args.title)} · Deedwrit</title><style>${STYLE}</style></head><body>
+<title>${esc(args.title)} · Vouchwell</title><style>${STYLE}</style></head><body>
 ${args.principal ? `<header><div class="wrap bar">
-  <a class="brand" href="/">deed<em>writ</em></a>
+  <a class="brand" href="/">vouch<em>well</em></a>
   <nav>${nav
     .map(([href, label]) => `<a href="${esc(href)}"${href === here ? ' class="on"' : ''}>${esc(label)}</a>`)
     .join('')}</nav>
@@ -231,7 +231,7 @@ function loginPage(hub, ctx) {
       path: '/login',
       principal: null,
       body: `<div class="login">
-        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">deed<span style="color:var(--verify)">writ</span></p>
+        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">vouch<span style="color:var(--verify)">well</span></p>
         <h1>Sign in</h1>
         <p class="sub">Operator console</p>
         ${failed ? '<div class="banner bad">Email or password is incorrect.</div>' : ''}
@@ -275,7 +275,7 @@ function forgotPage(hub, ctx) {
       path: '/login',
       principal: null,
       body: `<div class="login">
-        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">deed<span style="color:var(--verify)">writ</span></p>
+        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">vouch<span style="color:var(--verify)">well</span></p>
         <h1>Reset password</h1>
         ${sent
           ? `<div class="banner">If that address has an account, a reset link has been issued.
@@ -316,7 +316,7 @@ function credentialPage(hub, ctx, route) {
         path: '/login',
         principal: null,
         body: `<div class="login">
-          <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">deed<span style="color:var(--verify)">writ</span></p>
+          <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">vouch<span style="color:var(--verify)">well</span></p>
           <h1>${esc(title)}</h1>
           <div class="banner bad">This link is invalid, has already been used, or has expired.</div>
           <p style="font-size:13px">
@@ -343,7 +343,7 @@ function credentialPage(hub, ctx, route) {
       path: '/login',
       principal: null,
       body: `<div class="login">
-        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">deed<span style="color:var(--verify)">writ</span></p>
+        <p style="font-family:var(--mono);font-weight:700;margin:0 0 20px">vouch<span style="color:var(--verify)">well</span></p>
         <h1>${esc(title)}</h1>
         <p class="sub">${esc(row.email)}${invite && row.role ? ` · joining as ${esc(row.role)}` : ''}</p>
         ${error ? `<div class="banner bad">${esc(messages[error] ?? 'That did not work.')}</div>` : ''}
@@ -412,7 +412,7 @@ function overview(hub, ctx) {
   <div class="panel scroll"><table>
     <thead><tr><th>Log</th><th>Key</th><th>Entries</th><th>Root</th><th>Last receipt</th></tr></thead>
     <tbody>${logs.length === 0
-      ? '<tr><td colspan="5" class="empty">No logs yet. Register one with <span class="mono">dw remote add</span>.</td></tr>'
+      ? '<tr><td colspan="5" class="empty">No logs yet. Register one with <span class="mono">vw remote add</span>.</td></tr>'
       : logs.map((l) => `<tr>
           <td><a href="/logs/${esc(l.slug)}"><b>${esc(l.slug)}</b></a>
               ${l.name && l.name !== l.slug ? `<div class="dim">${esc(l.name)}</div>` : ''}</td>
@@ -628,7 +628,7 @@ function policies(hub, ctx) {
   <div class="panel scroll"><table>
     <thead><tr><th>Policy</th><th>Version</th><th>Hash</th><th>Published</th><th>By</th><th></th></tr></thead>
     <tbody>${rows.length === 0
-      ? '<tr><td colspan="6" class="empty">No policies yet. Publish one with <span class="mono">dw policy push</span>.</td></tr>'
+      ? '<tr><td colspan="6" class="empty">No policies yet. Publish one with <span class="mono">vw policy push</span>.</td></tr>'
       : rows.map((p) => `<tr>
           <td class="mono"><b>${esc(p.slug)}</b></td>
           <td style="font-variant-numeric:tabular-nums">v${p.version}</td>
@@ -691,7 +691,7 @@ function settings(hub, ctx) {
         <dt>hub public</dt><dd class="mono">${esc(hub.hubIdentity.publicKey)}</dd>
         <dt>witness key</dt><dd class="mono">${esc(hub.witnessIdentity.kid)}</dd>
         <dt>witness public</dt><dd class="mono">${esc(hub.witnessIdentity.publicKey)}</dd>
-        <dt>discovery</dt><dd class="mono">/.well-known/deedwrit</dd>
+        <dt>discovery</dt><dd class="mono">/.well-known/vouchwell</dd>
       </dl>
     </div>`;
 
@@ -799,7 +799,7 @@ function integrations(hub, ctx, extra) {
   ${settingsTabs('/settings/integrations')}
   ${flash ? `<div class="banner${flash.kind === 'bad' ? ' bad' : ''}" role="status">${esc(flash.text)}</div>` : ''}
   ${extra.secret ? `<div class="banner warn" role="status"><b>Webhook signing secret for ${esc(extra.secret.name)}, shown once.</b>
-    Copy it now: verify each delivery's <span class="mono">deedwrit-signature</span> header with it (see docs/STREAMING.md).
+    Copy it now: verify each delivery's <span class="mono">vouchwell-signature</span> header with it (see docs/STREAMING.md).
     <span class="secret">${esc(extra.secret.secret)}</span></div>` : ''}
   ${extra.results ? `<div class="banner${extra.results.every((r) => r.ok) ? '' : ' bad'}" role="status">${extra.results.length
     ? extra.results.map((r) => `<div><b>${esc(r.name)}</b>: ${r.ok ? 'delivered a test event' : esc(r.error ?? 'failed')}</div>`).join('')
@@ -866,7 +866,7 @@ function witnessesPanel(hub, ctx) {
     <button>Send the latest checkpoints now</button></form></div>` : ''}
   ${held.length ? `<div class="banner bad" style="margin-top:12px"><b>This hub's own witness is holding ${held.length} log(s)</b>
     after a restore from backup, and co-signs nothing for them until its operator releases them on the host:
-    <span class="secret">deedwrit-hub witness-release &lt;customer&gt; &lt;log&gt; --checkpoint latest.json</span>
+    <span class="secret">vouchwell-hub witness-release &lt;customer&gt; &lt;log&gt; --checkpoint latest.json</span>
     ${held.map((h) => `<span class="mono">${esc(String(h.log_id).slice(orgId.length + 1))}</span>`).join(', ')}.
     It is deliberately not a button here: a hold protects against the log's operator, which is this organisation.</div>` : ''}
   ${configured.length < 5 ? `<div class="panel" style="margin-top:12px">
@@ -1005,7 +1005,7 @@ function slackPanel(hub, ctx) {
       <span class="pill pending">not connected</span>
       <p style="margin:10px 0 0;color:var(--ink-2)">Escalations wait here in <a href="/approvals">Approvals</a>.
       To get them in a Slack channel with Approve and Deny buttons, run
-      <span class="mono">dw slack connect</span> with an admin key. See <span class="mono">docs/SLACK.md</span>.</p>
+      <span class="mono">vw slack connect</span> with an admin key. See <span class="mono">docs/SLACK.md</span>.</p>
     </div>`;
   }
   const approvers = slack.config.approvers ?? [];

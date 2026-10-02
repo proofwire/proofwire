@@ -40,7 +40,7 @@ before(async () => {
   const token = new Auth(hub.store).createKey({ orgId: org.id, name: 'admin', scopes: ['admin', 'logs:read'] }).token;
 
   // A private home, so the stored credential goes nowhere real.
-  home = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-slack-cli-'));
+  home = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-slack-cli-'));
   const add = await pw(['remote', 'add', '--url', base, '--token', token]);
   assert.equal(add.code, 0, add.out);
 });
@@ -70,16 +70,16 @@ function pw(args, env = {}) {
   });
 }
 
-test('dw slack connects from the environment, reports without secrets, tests and disconnects', async () => {
+test('vw slack connects from the environment, reports without secrets, tests and disconnects', async () => {
   assert.match((await pw(['slack', 'status'])).out, /not connected/);
 
   const missing = await pw(['slack', 'connect']);
   assert.equal(missing.code, 2);
-  assert.match(missing.out, /DEEDWRIT_SLACK_WEBHOOK_URL/);
+  assert.match(missing.out, /VOUCHWELL_SLACK_WEBHOOK_URL/);
 
   const connect = await pw(['slack', 'connect', '--approver', 'U024BE7LH'], {
-    DEEDWRIT_SLACK_WEBHOOK_URL: slackUrl,
-    DEEDWRIT_SLACK_SIGNING_SECRET: SECRET,
+    VOUCHWELL_SLACK_WEBHOOK_URL: slackUrl,
+    VOUCHWELL_SLACK_SIGNING_SECRET: SECRET,
   });
   assert.equal(connect.code, 0, connect.out);
   assert.match(connect.out, /\/v1\/integrations\/slack\/interactions/);
@@ -90,7 +90,7 @@ test('dw slack connects from the environment, reports without secrets, tests and
   assert.ok(!status.out.includes(SECRET) && !status.out.includes('/services/'), 'status printed a credential');
 
   assert.equal((await pw(['slack', 'test'])).code, 0);
-  assert.match(posted.at(-1).text, /Deedwrit is connected/);
+  assert.match(posted.at(-1).text, /Vouchwell is connected/);
 
   const bad = await pw(['slack', 'connect', '--webhook-url', 'https://example.com/x', '--signing-secret', SECRET]);
   assert.equal(bad.code, 1);

@@ -16,8 +16,8 @@ import {
 } from './receipt.js';
 import { buildCheckpoint, signCheckpoint, verifyCheckpoint } from './checkpoint.js';
 
-/** Bundle kinds this verifier accepts: the current one, and those written under earlier names. */
-const BUNDLE_KINDS = new Set(['deedwrit.bundle', 'vouchwell.bundle', 'proofwire.bundle']);
+/** Bundle kinds this verifier accepts: the current one, and the one written before the rename. */
+const BUNDLE_KINDS = new Set(['vouchwell.bundle', 'proofwire.bundle']);
 
 /**
  * A local, file-backed transparency log.
@@ -87,7 +87,7 @@ export class ProofLog {
    */
   static create(dir, opts = {}) {
     if (fs.existsSync(path.join(dir, FILES.config))) {
-      throw new Error(`a Deedwrit log already exists at ${dir}`);
+      throw new Error(`a Vouchwell log already exists at ${dir}`);
     }
     fs.mkdirSync(dir, { recursive: true });
 
@@ -124,7 +124,7 @@ export class ProofLog {
   static open(dir, opts = {}) {
     const configPath = path.join(dir, FILES.config);
     if (!fs.existsSync(configPath)) {
-      throw new Error(`no Deedwrit log at ${dir} (run \`dw init\` first)`);
+      throw new Error(`no Vouchwell log at ${dir} (run \`vw init\` first)`);
     }
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
@@ -443,7 +443,7 @@ export class ProofLog {
     const checkpoints = this.checkpoints();
     return {
       v: 1,
-      kind: 'deedwrit.bundle',
+      kind: 'vouchwell.bundle',
       log: this.config.log,
       exported: new Date().toISOString(),
       treeSize: this.size,
@@ -504,11 +504,11 @@ function verifyBundleUnchecked(bundle, opts = {}) {
   /** @type {string[]} */
   const issues = [];
 
-  // `proofwire.bundle` and `vouchwell.bundle` are what the project wrote under
-  // its earlier names (Proofwire to 0.5.0, then briefly Vouchwell). The kind is
-  // a label, not signed; what is inside verifies exactly as it always did.
+  // `proofwire.bundle` is what the project wrote before it was renamed
+  // Vouchwell (0.5.0 and earlier). The kind is a label, not signed; the
+  // receipts and checkpoints inside verify exactly as they always did.
   if (!BUNDLE_KINDS.has(bundle?.kind) || bundle.v !== 1) {
-    return { ok: false, issues: ['not a Deedwrit v1 bundle'], checked: 0 };
+    return { ok: false, issues: ['not a Vouchwell v1 bundle'], checked: 0 };
   }
   const keyring = bundle.keyring ?? {};
   let root;

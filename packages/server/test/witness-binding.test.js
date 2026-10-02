@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, generateIdentity, signCheckpoint } from '@deedwrit/core';
+import { ProofLog, generateIdentity, signCheckpoint } from '@vouchwell/core';
 import { Hub } from '../src/app.js';
 
 /**
@@ -35,8 +35,8 @@ function cli(args) {
     encoding: 'utf8',
     env: {
       ...process.env,
-      DEEDWRIT_DB: database,
-      DEEDWRIT_WITNESS_ONLY: '1',
+      VOUCHWELL_DB: database,
+      VOUCHWELL_WITNESS_ONLY: '1',
       NODE_OPTIONS: '--no-warnings=ExperimentalWarning',
     },
   });

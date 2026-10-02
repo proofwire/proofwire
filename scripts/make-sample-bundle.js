@@ -18,9 +18,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, Policy, generateIdentity, cosign, verifyBundle } from '@deedwrit/core';
-import { McpProxy } from '@deedwrit/proxy';
-import { LineFramer } from '@deedwrit/proxy/jsonrpc';
+import { ProofLog, Policy, generateIdentity, cosign, verifyBundle } from '@vouchwell/core';
+import { McpProxy } from '@vouchwell/proxy';
+import { LineFramer } from '@vouchwell/proxy/jsonrpc';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SERVER = path.join(ROOT, 'examples', 'fake-mcp-server.js');
@@ -66,7 +66,7 @@ const CALLS = [
   ['query', { sql: "SELECT * FROM logs WHERE token = 'sk-ant-api03-Xk92mQvT1pLs8fR4nB6yH0jW'" }],
 ];
 
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-sample-'));
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-sample-'));
 
 try {
   const log = ProofLog.create(dir);

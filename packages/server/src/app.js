@@ -11,7 +11,7 @@ import {
   unhex,
   verifyConsistency,
   witnessCheckpoint,
-} from '@deedwrit/core';
+} from '@vouchwell/core';
 import { guardedRequest, destinationProblem } from './egress.js';
 import { Streams, parseDestinations, describeDestination } from './streams.js';
 import { WitnessJournal, witnessJournalPath } from './witness-journal.js';
@@ -43,7 +43,7 @@ import {
 import { discover, fetchJson, verifyIdToken, pkce } from './oidc.js';
 
 /**
- * The Deedwrit hub.
+ * The Vouchwell hub.
  *
  * Read the route table below as the product: agents push signed receipts,
  * humans resolve escalations, auditors pull proofs, witnesses counter-sign.
@@ -59,7 +59,7 @@ const DONE_ADDED = 'Destination added. New events go to it within a second.';
 export const DEFAULT_CONFIG = {
   port: 8787,
   host: '0.0.0.0',
-  database: './data/deedwrit.db',
+  database: './data/vouchwell.db',
   /** 8 MB is ~8,000 receipts in one batch; well past any sane client. */
   maxBodyBytes: 8 * 1024 * 1024,
   maxBatchReceipts: 1000,
@@ -104,17 +104,13 @@ export const DEFAULT_CONFIG = {
  * to co-sign a checkpoint, all of it is attack surface, and a witness is the
  * one component whose compromise defeats the split-view defence outright.
  *
- * `/v1/me` stays because `dw remote add` uses it to prove a credential works
- * before storing it. Keys are minted with `deedwrit-hub witness-key` on the
+ * `/v1/me` stays because `vw remote add` uses it to prove a credential works
+ * before storing it. Keys are minted with `vouchwell-hub witness-key` on the
  * host, not over HTTP.
  */
-/** Slack's Approve button, as posted under this name and the earlier ones. */
-const APPROVE_ACTIONS = new Set(['deedwrit_approve', 'vouchwell_approve', 'proofwire_approve']);
-
 export const WITNESS_ONLY_ROUTES = Object.freeze([
   'GET /health',
   'GET /ready',
-  'GET /.well-known/deedwrit',
   'GET /.well-known/vouchwell',
   'GET /.well-known/proofwire',
   'GET /v1/me',
@@ -336,7 +332,7 @@ export class Hub {
       // a second, unrelated key on the same page invites pinning the wrong one.
       if (this.config.witnessOnly) {
         return {
-          service: 'deedwrit-witness',
+          service: 'vouchwell-witness',
           version: VERSION,
           witness: { kid: this.witnessSigner.kid, publicKey: this.witnessSigner.publicKey },
           keys: keys.filter((k) => k.role === 'witness'),
@@ -344,7 +340,7 @@ export class Hub {
         };
       }
       return {
-        service: 'deedwrit-hub',
+        service: 'vouchwell-hub',
         version: VERSION,
         hub: { kid: this.hubSigner.kid, publicKey: this.hubSigner.publicKey },
         witness: { kid: this.witnessSigner.kid, publicKey: this.witnessSigner.publicKey },
@@ -352,9 +348,8 @@ export class Hub {
         receiptVersion: 1,
       };
     };
-    r.get('/.well-known/deedwrit', wellKnown);
-    // Where it was under earlier names; verifiers and deploy scripts may still ask there.
     r.get('/.well-known/vouchwell', wellKnown);
+    // Where it was before the rename; verifiers and deploy scripts may still ask here.
     r.get('/.well-known/proofwire', wellKnown);
 
     // ── auth ────────────────────────────────────────────────────────────
@@ -393,7 +388,7 @@ export class Hub {
     });
 
     // Any valid credential may ask who it is: it learns only its own label,
-    // scopes and organisation. `dw remote add` checks a key with this, and an
+    // scopes and organisation. `vw remote add` checks a key with this, and an
     // admin-only or witness-only key must pass that check too.
     r.get('/v1/me', (ctx) => {
       if (!ctx.principal) throw new StoreError(401, 'unauthenticated', 'this endpoint requires credentials');
@@ -652,7 +647,7 @@ export class Hub {
      * from the bound key, or it is refused before its position is even looked
      * at. Without this, a witness's memory of a log belongs to whoever reaches
      * it first with a well-formed body. A key rotation is rebound on the host
-     * (`deedwrit-hub witness-rebind`), never over this endpoint.
+     * (`vouchwell-hub witness-rebind`), never over this endpoint.
      */
     r.post('/v1/witness/cosign', async (ctx) => {
       requireScope(ctx.principal, 'witness:sign');
@@ -705,7 +700,7 @@ export class Hub {
             'log_key_mismatch',
             `this witness has ${body.log} bound to ${bound.kid}, not ${offered.kid}. If the log's ` +
               `key was rotated on purpose, the witness operator rebinds it: ` +
-              `deedwrit-hub witness-rebind <customer> ${body.log} <new public key>`,
+              `vouchwell-hub witness-rebind <customer> ${body.log} <new public key>`,
             { bound: bound.kid, offered: offered.kid },
           );
         }
@@ -1154,7 +1149,7 @@ export class Hub {
       const found = this.store.integration(ctx.principal.orgId, 'slack');
       if (!found) throw new StoreError(404, 'not_configured', 'Slack is not connected for this organization');
       const res = await this._postToSlack(found.config.webhookUrl, {
-        text: `Deedwrit is connected. Escalated agent actions for this organization will appear here, with Approve and Deny buttons.`,
+        text: `Vouchwell is connected. Escalated agent actions for this organization will appear here, with Approve and Deny buttons.`,
       });
       if (!res.ok) throw new StoreError(502, 'slack_error', `Slack answered: ${res.error}`);
       return { sent: true };
@@ -1209,14 +1204,14 @@ export class Hub {
         respond({
           response_type: 'ephemeral',
           replace_original: false,
-          text: 'You are not on the list of people who can decide Deedwrit approvals for this workspace.',
+          text: 'You are not on the list of people who can decide Vouchwell approvals for this workspace.',
         });
         return {};
       }
 
-      // Messages posted under earlier names carry their buttons. Anything that
-      // isn't an approve button is a denial, so the old ones must count too.
-      const approved = APPROVE_ACTIONS.has(action.action_id);
+      // Messages posted before the rename carry proofwire_* buttons. Anything
+      // that isn't an approve button is a denial, so the old one must count too.
+      const approved = action.action_id === 'vouchwell_approve' || action.action_id === 'proofwire_approve';
       const res = this._decideApproval(row.org_id, row.id, {
         approved,
         by,
@@ -1669,7 +1664,7 @@ export class Hub {
       return {
         __html: `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="0;url=${href}"><title>Signing in · Deedwrit</title></head>
+<meta http-equiv="refresh" content="0;url=${href}"><title>Signing in · Vouchwell</title></head>
 <body style="font:15px system-ui,sans-serif;margin:40px">
 <p>Taking you to your organization's sign-in page…</p>
 <p><a href="${href}">Continue</a></p></body></html>`,
@@ -1886,7 +1881,7 @@ export class Hub {
       const found = this.store.integration(ctx.principal.orgId, 'slack');
       if (!found) throw new StoreError(404, 'not_configured', 'Slack is not connected for this organization');
       const res = await this._postToSlack(found.config.webhookUrl, {
-        text: 'Deedwrit is connected. Escalated agent actions for this organization will appear here, with Approve and Deny buttons.',
+        text: 'Vouchwell is connected. Escalated agent actions for this organization will appear here, with Approve and Deny buttons.',
       });
       if (!res.ok) throw new StoreError(502, 'slack_error', `Slack answered: ${res.error}`);
       return 'slack-tested';
@@ -2355,7 +2350,7 @@ export class Hub {
    *
    * @param {string} orgId
    * @param {string} logId
-   * @param {import('@deedwrit/core').Checkpoint} cp
+   * @param {import('@vouchwell/core').Checkpoint} cp
    * @returns {Promise<void>[]}  One per witness, for a caller that wants to wait.
    */
   _witnessOutside(orgId, logId, cp) {
@@ -2432,7 +2427,7 @@ export class Hub {
   _publicUrl(ctx) {
     if (this.config.publicUrl) return trimSlashes(this.config.publicUrl);
     const host = ctx.req.headers.host ?? `localhost:${this.config.port}`;
-    return `http${process.env.DEEDWRIT_INSECURE_COOKIES === '1' ? '' : 's'}://${host}`;
+    return `http${process.env.VOUCHWELL_INSECURE_COOKIES === '1' ? '' : 's'}://${host}`;
   }
 
   /**
@@ -2443,7 +2438,7 @@ export class Hub {
    * request naming the victim's address and the attacker's host would mail
    * the victim a genuine reset token pointing at the attacker's server. So
    * outside of this machine, a reset link is only ever built from
-   * `DEEDWRIT_PUBLIC_URL`.
+   * `VOUCHWELL_PUBLIC_URL`.
    *
    * @param {{ req: import('node:http').IncomingMessage }} ctx
    * @returns {string | null}
@@ -2455,7 +2450,7 @@ export class Hub {
       JSON.stringify({
         level: 'warn',
         event: 'reset.no_public_url',
-        message: 'password reset refused: set DEEDWRIT_PUBLIC_URL so reset links cannot be pointed at another host',
+        message: 'password reset refused: set VOUCHWELL_PUBLIC_URL so reset links cannot be pointed at another host',
       }),
     );
     return null;
@@ -2489,15 +2484,15 @@ export class Hub {
    * @param {{ kind: string, email: string, link: string, expiresAt: string }} payload
    */
   _deliver(payload) {
-    const url = process.env.DEEDWRIT_NOTIFY_URL;
+    const url = process.env.VOUCHWELL_NOTIFY_URL;
     if (!url) return;
 
     fetch(url, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        ...(process.env.DEEDWRIT_NOTIFY_TOKEN
-          ? { authorization: `Bearer ${process.env.DEEDWRIT_NOTIFY_TOKEN}` }
+        ...(process.env.VOUCHWELL_NOTIFY_TOKEN
+          ? { authorization: `Bearer ${process.env.VOUCHWELL_NOTIFY_TOKEN}` }
           : {}),
       },
       body: JSON.stringify(payload),
@@ -2603,7 +2598,7 @@ export class Hub {
     res.setHeader('referrer-policy', 'same-origin');
     // Suppressed alongside Secure cookies, because a local HTTP development
     // hub that pins the browser to HTTPS for a year is a foot-gun.
-    if (process.env.DEEDWRIT_INSECURE_COOKIES !== '1') {
+    if (process.env.VOUCHWELL_INSECURE_COOKIES !== '1') {
       res.setHeader('strict-transport-security', 'max-age=31536000; includeSubDomains');
     }
 
@@ -2707,7 +2702,7 @@ export class Hub {
       }
       if (!res.writableEnded) sendJson(res, status, body);
     } finally {
-      if (process.env.DEEDWRIT_ACCESS_LOG !== 'off') {
+      if (process.env.VOUCHWELL_ACCESS_LOG !== 'off') {
         console.log(
           JSON.stringify({
             level: status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info',
@@ -2829,7 +2824,7 @@ function isLoopbackHost(host) {
 function cookie(name, value, opts) {
   return (
     `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${opts.maxAge}` +
-    (process.env.DEEDWRIT_INSECURE_COOKIES === '1' ? '' : '; Secure')
+    (process.env.VOUCHWELL_INSECURE_COOKIES === '1' ? '' : '; Secure')
   );
 }
 

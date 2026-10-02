@@ -1,6 +1,6 @@
-# Running the Deedwrit hub
+# Running the Vouchwell hub
 
-The hub is the multi-tenant half of Deedwrit: a transparency log your whole
+The hub is the multi-tenant half of Vouchwell: a transparency log your whole
 organisation writes to, a policy registry your agents read from, an approvals
 inbox your people work out of, and a witness service that makes any of it worth
 believing.
@@ -47,9 +47,9 @@ server** with a domain, automatic HTTPS and a hardened setup, use `deploy/`:
 > actually runs read-only and non-root (`scripts/docker-smoke.mjs`). It also caught
 > a real bug: a receipt missing an actor field crashed the hub with a raw SQLite
 > error instead of a clean 4xx — fixed in `buildReceipt`/`verifyReceipt`. The two-
-> container witnessing flow below (`docker compose up -d witness`, `dw remote add
-> --name witness`, `dw cosign --remote witness`) was run by hand against both
-> containers, through to `dw check --witnesses 1` on the resulting bundle.
+> container witnessing flow below (`docker compose up -d witness`, `vw remote add
+> --name witness`, `vw cosign --remote witness`) was run by hand against both
+> containers, through to `vw check --witnesses 1` on the resulting bundle.
 
 `bootstrap` prints an admin password and two API keys, once:
 
@@ -68,8 +68,8 @@ server** with a domain, automatic HTTPS and a hardened setup, use `deploy/`:
 Point an agent at it:
 
 ```bash
-dw remote add --url https://hub.acme.com --token <agent token>
-dw proxy --namespace crm -- npx -y @acme/mcp-crm
+vw remote add --url https://hub.acme.com --token <agent token>
+vw proxy --namespace crm -- npx -y @acme/mcp-crm
 ```
 
 From that moment the proxy fetches the org's active policy at startup, enforces
@@ -84,28 +84,28 @@ edit is one more thing to get wrong in a container.
 
 | Variable | Default | Notes |
 | --- | --- | --- |
-| `DEEDWRIT_PORT` | `8787` | |
-| `DEEDWRIT_HOST` | `0.0.0.0` | |
-| `DEEDWRIT_DB` | `./data/deedwrit.db` | Put this on a durable volume. |
-| `DEEDWRIT_TRUST_PROXY` | `0` | Set to `1` **only** behind a proxy you control. |
-| `DEEDWRIT_CHECKPOINT_EVERY` | `500` | Receipts between automatic checkpoints. |
-| `DEEDWRIT_WITNESS_ONLY` | `0` | Set to `1` to run a witness and nothing else — see [Witnessing](#witnessing). |
-| `DEEDWRIT_WITNESS_JOURNAL` | `<db>.witness-journal` | What the witness signed, outside the database, so a restore can't make it forget: see [Backups](#a-witness-must-not-forget-what-it-signed). Put it on another volume. `off` disables it. |
-| `DEEDWRIT_EGRESS_ALLOW_PRIVATE` | `0` | Set to `1` to let outside witnesses, [event streams](STREAMING.md) and SSO discovery reach private addresses and plain http. Self-hosted hubs on their own network only; never a hosted one. |
-| `DEEDWRIT_SELFCHECK_MINUTES` | `60` | Re-verify every stored log on this interval. |
-| `DEEDWRIT_APPROVAL_TTL` | `900` | Seconds before an undecided escalation expires. |
-| `DEEDWRIT_ACCESS_LOG` | on | Set `off` to silence per-request JSON logs. |
-| `DEEDWRIT_INSECURE_COOKIES` | unset | Drops `Secure` on session cookies and suppresses HSTS. Local development only. |
-| `DEEDWRIT_SIGNER` | `local` | `local`, `command`, or `http`. See **Keys** below. |
-| `DEEDWRIT_BACKUP_DIR` | unset | Enables scheduled backups. |
-| `DEEDWRIT_BACKUP_HOURS` | `6` | |
-| `DEEDWRIT_BACKUP_KEEP` | `14` | Snapshots retained before pruning. |
-| `DEEDWRIT_NOTIFY_URL` | unset | Webhook for invitation and reset links. |
-| `DEEDWRIT_PUBLIC_URL` | unset | Base URL for those links, and for SSO's redirect URI. Set it behind a proxy. Without it, password resets are only issued to requests addressed to this machine (`localhost`, `127.x`, `[::1]`): anyone can request a reset, so its link is never built from a `Host` header the requester chose. |
-| `DEEDWRIT_OIDC_ALLOW_PRIVATE` | `0` | `1` lets an SSO provider live on a private address. Only for a self-hosted hub whose provider is on its own network. |
-| `DEEDWRIT_RETENTION_SWEEP_MINUTES` | `60` | How often retention runs. `0` disables it. |
+| `VOUCHWELL_PORT` | `8787` | |
+| `VOUCHWELL_HOST` | `0.0.0.0` | |
+| `VOUCHWELL_DB` | `./data/vouchwell.db` | Put this on a durable volume. |
+| `VOUCHWELL_TRUST_PROXY` | `0` | Set to `1` **only** behind a proxy you control. |
+| `VOUCHWELL_CHECKPOINT_EVERY` | `500` | Receipts between automatic checkpoints. |
+| `VOUCHWELL_WITNESS_ONLY` | `0` | Set to `1` to run a witness and nothing else — see [Witnessing](#witnessing). |
+| `VOUCHWELL_WITNESS_JOURNAL` | `<db>.witness-journal` | What the witness signed, outside the database, so a restore can't make it forget: see [Backups](#a-witness-must-not-forget-what-it-signed). Put it on another volume. `off` disables it. |
+| `VOUCHWELL_EGRESS_ALLOW_PRIVATE` | `0` | Set to `1` to let outside witnesses, [event streams](STREAMING.md) and SSO discovery reach private addresses and plain http. Self-hosted hubs on their own network only; never a hosted one. |
+| `VOUCHWELL_SELFCHECK_MINUTES` | `60` | Re-verify every stored log on this interval. |
+| `VOUCHWELL_APPROVAL_TTL` | `900` | Seconds before an undecided escalation expires. |
+| `VOUCHWELL_ACCESS_LOG` | on | Set `off` to silence per-request JSON logs. |
+| `VOUCHWELL_INSECURE_COOKIES` | unset | Drops `Secure` on session cookies and suppresses HSTS. Local development only. |
+| `VOUCHWELL_SIGNER` | `local` | `local`, `command`, or `http`. See **Keys** below. |
+| `VOUCHWELL_BACKUP_DIR` | unset | Enables scheduled backups. |
+| `VOUCHWELL_BACKUP_HOURS` | `6` | |
+| `VOUCHWELL_BACKUP_KEEP` | `14` | Snapshots retained before pruning. |
+| `VOUCHWELL_NOTIFY_URL` | unset | Webhook for invitation and reset links. |
+| `VOUCHWELL_PUBLIC_URL` | unset | Base URL for those links, and for SSO's redirect URI. Set it behind a proxy. Without it, password resets are only issued to requests addressed to this machine (`localhost`, `127.x`, `[::1]`): anyone can request a reset, so its link is never built from a `Host` header the requester chose. |
+| `VOUCHWELL_OIDC_ALLOW_PRIVATE` | `0` | `1` lets an SSO provider live on a private address. Only for a self-hosted hub whose provider is on its own network. |
+| `VOUCHWELL_RETENTION_SWEEP_MINUTES` | `60` | How often retention runs. `0` disables it. |
 
-### On `DEEDWRIT_TRUST_PROXY`
+### On `VOUCHWELL_TRUST_PROXY`
 
 `X-Forwarded-For` is a header any client can set. With no proxy in front,
 honouring it lets anyone evade the per-address rate limit by inventing an
@@ -134,12 +134,12 @@ curl -X PUT https://hub.example/v1/settings/retention \
   -d '{"days": 365}'
 
 # The operator, on the host. The cap exists only here, not in the API:
-deedwrit-hub retention acme --cap 365
-deedwrit-hub retention acme                  # show
+vouchwell-hub retention acme --cap 365
+vouchwell-hub retention acme                  # show
 ```
 
 The hub applies the shorter of the two, sweeping hourly
-(`DEEDWRIT_RETENTION_SWEEP_MINUTES`).
+(`VOUCHWELL_RETENTION_SWEEP_MINUTES`).
 
 **What pruning does.** A receipt older than the period loses its signed body
 and every column that could name a person or a customer: tool, principal,
@@ -165,7 +165,7 @@ still proves inclusion in the full tree.
 authoritative copy and keep everything. Setting a period under six months
 returns a warning, because the EU AI Act asks for logs of high-risk systems to
 be kept at least that long (Arts. 19 and 26(6)). If the hub keeps less, keep the
-local logs, or `dw report` evidence packs, for the full period.
+local logs, or `vw report` evidence packs, for the full period.
 
 ## Keys
 
@@ -181,22 +181,22 @@ Signing goes through a three-member interface — `{ kid, publicKey, sign(digest
 
 ```bash
 # Anything that reads a digest on stdin and prints a signature.
-DEEDWRIT_SIGNER=command
-DEEDWRIT_SIGNER_COMMAND=/usr/local/bin/kms-sign
-DEEDWRIT_SIGNER_ARGS="--key-id alias/deedwrit-hub"
-DEEDWRIT_PUBLIC_KEY=<raw Ed25519 public key, base64url>
+VOUCHWELL_SIGNER=command
+VOUCHWELL_SIGNER_COMMAND=/usr/local/bin/kms-sign
+VOUCHWELL_SIGNER_ARGS="--key-id alias/vouchwell-hub"
+VOUCHWELL_PUBLIC_KEY=<raw Ed25519 public key, base64url>
 ```
 
 ```bash
 # Or a signing sidecar over HTTP.
-DEEDWRIT_SIGNER=http
-DEEDWRIT_SIGNER_URL=https://signer.internal/sign
-DEEDWRIT_SIGNER_TOKEN=<bearer>
-DEEDWRIT_PUBLIC_KEY=<raw Ed25519 public key, base64url>
+VOUCHWELL_SIGNER=http
+VOUCHWELL_SIGNER_URL=https://signer.internal/sign
+VOUCHWELL_SIGNER_TOKEN=<bearer>
+VOUCHWELL_PUBLIC_KEY=<raw Ed25519 public key, base64url>
 ```
 
-Each role can be configured separately with `DEEDWRIT_HUB_SIGNER` and
-`DEEDWRIT_WITNESS_SIGNER`. **Put the witness key in different custody** — a
+Each role can be configured separately with `VOUCHWELL_HUB_SIGNER` and
+`VOUCHWELL_WITNESS_SIGNER`. **Put the witness key in different custody** — a
 witness whose key sits beside the log's key is not independent of it.
 
 Signatures are accepted as hex, base64 or base64url; an Ed25519 signature is
@@ -217,20 +217,20 @@ always 64 bytes, which makes the encodings unambiguous.
 Recording a new key for a role retires the old one and keeps it forever, so a
 checkpoint signed by a retired key still verifies — otherwise rotating would
 silently invalidate the history it was meant to protect.
-`/.well-known/deedwrit` publishes every key, retired ones included.
+`/.well-known/vouchwell` publishes every key, retired ones included.
 
 ---
 
 ## Backups
 
 ```bash
-deedwrit-hub backup ./backups/today.db
-deedwrit-hub verify-backup ./backups/today.db
-deedwrit-hub restore ./backups/today.db
-deedwrit-hub reconcile
+vouchwell-hub backup ./backups/today.db
+vouchwell-hub verify-backup ./backups/today.db
+vouchwell-hub restore ./backups/today.db
+vouchwell-hub reconcile
 ```
 
-Set `DEEDWRIT_BACKUP_DIR` and the hub takes them on a schedule with retention.
+Set `VOUCHWELL_BACKUP_DIR` and the hub takes them on a schedule with retention.
 
 Backups use `VACUUM INTO`, which reads through SQLite's own MVCC: consistent
 without stopping writes, and a single file with none of the WAL sidecars that
@@ -255,10 +255,10 @@ restore, not a deletion" and be believed has no integrity guarantee at all.
 Only a party holding later evidence can see it:
 
 - **the agent**, whose local log is longer. This is the normal path and it
-  self-heals — `dw push` notices the shortfall and re-sends the difference,
+  self-heals — `vw push` notices the shortfall and re-sends the difference,
   idempotently.
 - **a witness or auditor** with a later checkpoint:
-  `deedwrit-hub reconcile --against checkpoints.json`
+  `vouchwell-hub reconcile --against checkpoints.json`
 
 So: **after any restore, re-push from every agent.** A restore runbook that
 does not end there is incomplete. And this is why the agents' local logs are
@@ -289,18 +289,18 @@ still holds what was signed after the backup:
   log on hold, and the witness answers `409 witness_restored` for each until
   its operator releases it. Release with evidence: a checkpoint carrying this
   witness's own signature, as late as the customer has. A bundle from
-  `dw export` works. The witness verifies its own signature and resumes from
+  `vw export` works. The witness verifies its own signature and resumes from
   there:
 
   ```bash
-  deedwrit-hub witness-release acme payments --checkpoint latest.json
-  deedwrit-hub witness-release acme --all --no-evidence   # accepting the risk
+  vouchwell-hub witness-release acme payments --checkpoint latest.json
+  vouchwell-hub witness-release acme --all --no-evidence   # accepting the risk
   ```
 
 The journal defaults to `<database>.witness-journal`. **Put it on a different
-volume** (`DEEDWRIT_WITNESS_JOURNAL=/journal/witness.jsonl`) so one lost disk
+volume** (`VOUCHWELL_WITNESS_JOURNAL=/journal/witness.jsonl`) so one lost disk
 doesn't take both. The hub prints where it is at startup, and warns when it is
-switched off (`DEEDWRIT_WITNESS_JOURNAL=off`).
+switched off (`VOUCHWELL_WITNESS_JOURNAL=off`).
 
 ---
 
@@ -335,7 +335,7 @@ curl -X POST $HUB/v1/invites -H "authorization: Bearer $ADMIN" \
 ```
 
 The link is returned **once** and never stored — only its hash is. Set
-`DEEDWRIT_NOTIFY_URL` and it is also POSTed to your own mail service;
+`VOUCHWELL_NOTIFY_URL` and it is also POSTed to your own mail service;
 delivery is a webhook rather than built-in SMTP so the hub never depends on an
 SMTP configuration nobody notices is broken. The link is returned either way,
 so an admin is never stuck.
@@ -385,13 +385,13 @@ docker compose up -d witness
 docker compose exec witness node packages/server/src/bin.js witness-key acme
 
 # From the customer's agent machine:
-dw remote add --name witness --url https://witness.example.org --token <key>
-dw cosign --remote witness
+vw remote add --name witness --url https://witness.example.org --token <key>
+vw cosign --remote witness
 ```
 
-**Run a witness witness-only** (`DEEDWRIT_WITNESS_ONLY=1`, which
+**Run a witness witness-only** (`VOUCHWELL_WITNESS_ONLY=1`, which
 `docker-compose.yml` already sets). It then answers exactly six routes —
-health, readiness, `/.well-known/deedwrit`, `/v1/me`, the witness key and
+health, readiness, `/.well-known/vouchwell`, `/v1/me`, the witness key and
 co-signing — and 404s everything else: no console, no log ingest, no key
 management over HTTP, and no hub key created at all. A witness is the one
 component whose compromise defeats the split-view defence, so it should not
@@ -408,7 +408,7 @@ customer adds a credential, which is how rotating *that* starts.
 The witness enforces three rules and returns a signature only if all hold:
 
 1. **Only the log signs for the log.** The first request for a log names the
-   key its checkpoints are signed with (`logPublicKey` — `dw cosign` sends it);
+   key its checkpoints are signed with (`logPublicKey` — `vw cosign` sends it);
    the witness checks the checkpoint is signed by that key and binds the log to
    it. Every later checkpoint must carry a valid `log` signature from the bound
    key. Naming a different key is `409 log_key_mismatch`; a missing or invalid
@@ -453,7 +453,7 @@ auditor, the insurer, the counterparty — not by the log's owner.
 Auditors then demand the signatures:
 
 ```bash
-dw check evidence.json --witnesses 2 --witness-keys witnesses.json
+vw check evidence.json --witnesses 2 --witness-keys witnesses.json
 ```
 
 `witnesses.json` holds the witnesses' public keys **as their operators
@@ -465,7 +465,7 @@ checkpoints. Only signatures from keys you pinned are counted, and asking for
 whatever the bundle contains.
 
 `witnesses.json` can be a `{ "kid": "publicKey" }` map or a list of
-`{ kid, publicKey }` entries. Deedwrit's own witness keys, once there are any,
+`{ kid, publicKey }` entries. Vouchwell's own witness keys, once there are any,
 are published in that list form at
 [`witnesses/keys.json`](../witnesses/keys.json) — append-only, with every
 change a commit — and a list entry carrying `revokedAt` is never pinned.
@@ -478,9 +478,9 @@ their signatures appear on the checkpoints and in every bundle:
 
 ```bash
 # An admin of the organisation. The token is the key that witness issued you.
-DEEDWRIT_WITNESS_TOKEN=<key> dw witnesses add notary --url https://witness.example.org
-dw witnesses list
-dw witnesses remove notary
+VOUCHWELL_WITNESS_TOKEN=<key> vw witnesses add notary --url https://witness.example.org
+vw witnesses list
+vw witnesses remove notary
 ```
 
 An admin can also do this in the console, under **Settings → Integrations**,
@@ -505,14 +505,14 @@ the hub.
 
 ### A local log, automatically
 
-List witness remotes in `deedwrit.config.json` and every `dw proxy` session
+List witness remotes in `vouchwell.config.json` and every `vw proxy` session
 ends with each of them signing the new checkpoint, reported on stderr only:
 
 ```json
 { "witnesses": ["witness", "auditor"] }
 ```
 
-`dw cosign` uses the same list, or `--remote a,b`.
+`vw cosign` uses the same list, or `--remote a,b`.
 
 ### Asking the witness, not guessing
 
@@ -520,8 +520,8 @@ To prove growth, a client needs the size the witness last signed. It asks
 (`GET /v1/witness/position/:log`) instead of guessing from its own
 checkpoints. A guess is wrong whenever the witness missed a checkpoint, and
 the witness then reports a rewritten history that never happened. The answer
-also carries the root the witness signed at that size. Clients (`dw cosign`,
-`dw proxy`, the hub) check it against their own tree before sending
+also carries the root the witness signed at that size. Clients (`vw cosign`,
+`vw proxy`, the hub) check it against their own tree before sending
 anything, and a mismatch stops with `diverged`: one of the two histories was
 rewritten. A witness older than this endpoint is still supported, falling
 back to the latest local checkpoint it signed.
@@ -536,7 +536,7 @@ back to the latest local checkpoint it signed.
 - `GET /ready` — the database answers. This is the one to put in a load
   balancer, so a hub with a wedged disk leaves rotation instead of serving
   errors.
-- `GET /.well-known/deedwrit` — the hub's and witness's public keys, served
+- `GET /.well-known/vouchwell` — the hub's and witness's public keys, served
   **without credentials**. A verifier that must authenticate to obtain the key
   it verifies with is not independent.
 
@@ -548,7 +548,7 @@ docker compose exec hub node packages/server/src/bin.js check
 
 Re-derives every log from stored receipts — signatures, chain links, inclusion
 proofs, and every checkpoint replayed — and exits non-zero on any failure. The
-server also does this on `DEEDWRIT_SELFCHECK_MINUTES` and logs
+server also does this on `VOUCHWELL_SELFCHECK_MINUTES` and logs
 `selfcheck.failed`. **Alert on that line.**
 
 A hosted log that only ever checks its customers' data and never its own is
@@ -556,14 +556,14 @@ asking to be taken at its word.
 
 ### Backups
 
-Back up `DEEDWRIT_DB`. SQLite in WAL mode needs the `-wal` and `-shm`
-sidecars too, or use `sqlite3 deedwrit.db ".backup out.db"` for a consistent
+Back up `VOUCHWELL_DB`. SQLite in WAL mode needs the `-wal` and `-shm`
+sidecars too, or use `sqlite3 vouchwell.db ".backup out.db"` for a consistent
 copy.
 
 A restore from a backup that predates some receipts looks *exactly* like
 malicious truncation to any auditor holding a later checkpoint — because from
 the evidence alone it is indistinguishable. Agents still hold their local logs,
-so re-run `dw push` from each to refill the gap.
+so re-run `vw push` from each to refill the gap.
 
 ### Scaling
 
@@ -659,8 +659,8 @@ On `409 sequence_gap` the error carries the sequence to resume from. The
 
 ## Hardening checklist
 
-- [ ] TLS terminated in front; `DEEDWRIT_TRUST_PROXY=1` only then
-- [ ] `DEEDWRIT_DB` on a durable, backed-up volume
+- [ ] TLS terminated in front; `VOUCHWELL_TRUST_PROXY=1` only then
+- [ ] `VOUCHWELL_DB` on a durable, backed-up volume
 - [ ] Container runs read-only except `/data`, as non-root (the shipped
       compose file does both)
 - [ ] Agent keys pinned to one log each, with no `receipts:read`
@@ -684,7 +684,7 @@ confidence rather than evidence.
    depends on knowing exactly when the swap happened, which the log cannot
    itself establish.
 3. **The default `local` signer still keeps keys in the database.** Set
-   `DEEDWRIT_SIGNER` to move them out. Vendor wrapper scripts for AWS/GCP/Azure
+   `VOUCHWELL_SIGNER` to move them out. Vendor wrapper scripts for AWS/GCP/Azure
    KMS are not written yet — the `command` backend takes any of them.
 4. **Timestamps come from the signing host.** A backdated entry is flagged when
    it contradicts its neighbours; a uniformly wrong clock is not detectable

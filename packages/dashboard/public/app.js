@@ -128,7 +128,7 @@ async function select(seq) {
     <pre>${proof.proof.map((h) => esc(h)).join('\n') || '(single-entry tree)'}</pre>
     <p style="color:var(--muted);font-size:12px">
       Anyone can recompute the root from this entry and these hashes.
-      Verify it offline with <code>dw prove ${receipt.seq}</code>.
+      Verify it offline with <code>vw prove ${receipt.seq}</code>.
     </p>`;
 }
 

@@ -38,9 +38,9 @@ test('this repository is clean', () => {
 });
 
 test("a log's signing key and salts are refused by path", () => {
-  // Including logs made under the earlier names, in .proofwire/ and .vouchwell/.
-  const found = problemsIn({ '.deedwrit/key.pem': 'x', 'examples/.deedwrit/salts.jsonl': '', '.proofwire/key.pem': 'x', '.vouchwell/salts.jsonl': '' });
-  assert.equal(found.filter((p) => /signing key or commitment salts/.test(p)).length, 4);
+  // Including a log made before the rename, in .proofwire/.
+  const found = problemsIn({ '.vouchwell/key.pem': 'x', 'examples/.vouchwell/salts.jsonl': '', '.proofwire/key.pem': 'x' });
+  assert.equal(found.filter((p) => /signing key or commitment salts/.test(p)).length, 3);
 });
 
 test('any private key or certificate bundle is refused by path, wherever it sits', () => {
@@ -52,12 +52,12 @@ test('environment, database, credential and npm config files are refused by path
   const found = problemsIn({
     '.env': 'A=1',
     '.env.production': 'A=1',
-    'data/deedwrit.db': 'x',
+    'data/vouchwell.db': 'x',
     'hub.sqlite': 'x',
     'credentials.json': '{}',
     '.npmrc': '//registry.npmjs.org/:_authToken=x',
   });
-  for (const f of ['.env', '.env.production', 'data/deedwrit.db', 'hub.sqlite', 'credentials.json', '.npmrc']) {
+  for (const f of ['.env', '.env.production', 'data/vouchwell.db', 'hub.sqlite', 'credentials.json', '.npmrc']) {
     assert.ok(found.some((p) => p.startsWith(`${f}:`)), `${f} should be refused`);
   }
 });

@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { Policy, ProofLog, POLICY_TEMPLATES } from '@deedwrit/core';
+import { Policy, ProofLog, POLICY_TEMPLATES } from '@vouchwell/core';
 
 const BIN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src/bin.js');
 
@@ -19,9 +19,9 @@ function pw(cwd, args) {
   return { code: res.status, out: res.stdout + res.stderr, stdout: res.stdout };
 }
 
-const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-templates-cli-'));
+const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-templates-cli-'));
 
-test('dw policy templates lists every template, and --json is machine-readable', () => {
+test('vw policy templates lists every template, and --json is machine-readable', () => {
   const cwd = tmp();
   const res = pw(cwd, ['policy', 'templates']);
   assert.equal(res.code, 0, res.out);
@@ -30,7 +30,7 @@ test('dw policy templates lists every template, and --json is machine-readable',
   assert.deepEqual(json.map((/** @type {any} */ t) => t.id), POLICY_TEMPLATES.map((t) => t.id));
 });
 
-test('dw policy template prints a loadable policy, writes one with --out, and will not overwrite', () => {
+test('vw policy template prints a loadable policy, writes one with --out, and will not overwrite', () => {
   const cwd = tmp();
   const printed = pw(cwd, ['policy', 'template', 'secrets', 'destructive-sql,payments']);
   assert.equal(printed.code, 0, printed.out);
@@ -56,22 +56,22 @@ test('an unknown template, or none at all, is an error that says what exists', (
   assert.equal(pw(cwd, ['policy', 'template']).code, 2);
 });
 
-test('dw init --template writes the composed policy; an unknown one creates nothing', () => {
+test('vw init --template writes the composed policy; an unknown one creates nothing', () => {
   const cwd = tmp();
   const bad = pw(cwd, ['init', '--template', 'secrets,nope']);
   assert.equal(bad.code, 1);
-  assert.ok(!fs.existsSync(path.join(cwd, '.deedwrit')), 'no log should be created for a bad template');
+  assert.ok(!fs.existsSync(path.join(cwd, '.vouchwell')), 'no log should be created for a bad template');
 
   const res = pw(cwd, ['init', '--template', 'secrets,read-only']);
   assert.equal(res.code, 0, res.out);
-  const doc = JSON.parse(fs.readFileSync(path.join(cwd, 'deedwrit.policy.json'), 'utf8'));
+  const doc = JSON.parse(fs.readFileSync(path.join(cwd, 'vouchwell.policy.json'), 'utf8'));
   assert.deepEqual(doc.templates, ['secrets', 'read-only']);
   assert.equal(doc.defaults.outcome, 'deny');
 });
 
 test('a template policy replays against recorded traffic before it can block anything', () => {
   const cwd = tmp();
-  const log = ProofLog.create(path.join(cwd, '.deedwrit'));
+  const log = ProofLog.create(path.join(cwd, '.vouchwell'));
   const actor = { agent: 'a', runtime: 'r', session: 's', principal: 'p@acme.test' };
   const allow = { outcome: 'allow', policy: 'none', rules: [] };
   log.append({ phase: 'intent', actor, action: { kind: 'tool_call', target: 'db.execute', params: { sql: 'DROP TABLE users' } }, decision: allow });
