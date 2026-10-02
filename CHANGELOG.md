@@ -62,6 +62,11 @@ up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same ver
 
 ### Changed
 
+- **`--config` naming a missing file is an error.** It used to fall back to
+  the defaults silently, so a hook pointed at a config that had been moved
+  started a new log in whatever folder it ran in. `vw hook` now refuses the
+  call when enforcing (it cannot be recorded) and says why on stderr when
+  monitoring.
 - **The logo says Vouchwell everywhere.** It is written in two coloured
   halves, so the rename missed it: the website header, footer and 404 page,
   the local dashboard and the hub console still read "proofwire". A test now

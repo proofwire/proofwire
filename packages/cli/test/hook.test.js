@@ -318,3 +318,14 @@ test('evidence checkpoints the log and writes a bundle anyone can verify', () =>
   const empty = project();
   assert.equal(vw(empty, ['hook', 'evidence']).code, 1);
 });
+
+test('a --config that names a missing file is an error, never a fresh log in the default place', () => {
+  const cwd = project();
+  const res = fire(cwd, 'PreToolUse', BASH('npm test'), ['--config', 'gone/vouchwell.config.json']);
+  assert.equal(decision(res.stdout).permissionDecision, 'deny', 'when enforcing, unrecordable means refused');
+  assert.match(decision(res.stdout).permissionDecisionReason, /no config file at/);
+  const monitored = fire(cwd, 'PostToolUse', { ...BASH('npm test'), tool_response: {} }, ['--monitor', '--config', 'gone/vouchwell.config.json']);
+  assert.equal(monitored.code, 0);
+  assert.match(monitored.stderr, /no config file at/);
+  assert.ok(!fs.existsSync(path.join(cwd, '.vouchwell')), 'no log was started');
+});

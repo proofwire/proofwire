@@ -34,9 +34,17 @@ const POLICY = 'vouchwell.policy.json';
  */
 function loadConfig(args) {
   const configPath = path.resolve(args.config ?? CONFIG_FILE());
-  const config = fs.existsSync(configPath)
-    ? JSON.parse(fs.readFileSync(configPath, 'utf8'))
-    : {};
+  let config = {};
+  try {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } catch (e) {
+    // No config file is fine when none was asked for. One named with
+    // --config that isn't there is a mistake: carrying on with defaults
+    // would write to a log nobody meant, in whatever folder this runs in.
+    if (/** @type {NodeJS.ErrnoException} */ (e).code !== 'ENOENT' || args.config !== undefined) {
+      throw e.code === 'ENOENT' ? new Error(`no config file at ${configPath}`) : e;
+    }
+  }
   const dir = path.resolve(args.log ?? config.log ?? LOG_DIR());
   return { dir, config };
 }
