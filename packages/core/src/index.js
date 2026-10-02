@@ -1,7 +1,7 @@
 /**
- * Vouchwell core — tamper-evident receipts for AI agent actions.
+ * Deedwrit core — tamper-evident receipts for AI agent actions.
  *
- * @see https://github.com/vouchwell/vouchwell#readme
+ * @see https://github.com/deedwrit/deedwrit#readme
  */
 
 export { canonicalize, canonicalBytes } from './canonical.js';

@@ -7,25 +7,25 @@ security team already watches: **Splunk** (HTTP Event Collector),
 destinations, at most five.
 
 ```bash
-# An admin key, from a machine connected with `vw remote add`.
-VOUCHWELL_STREAM_TOKEN=<HEC token> \
-  vw streams add splunk --type splunk --url https://splunk.example.com:8088
+# An admin key, from a machine connected with `dw remote add`.
+DEEDWRIT_STREAM_TOKEN=<HEC token> \
+  dw streams add splunk --type splunk --url https://splunk.example.com:8088
 
-VOUCHWELL_STREAM_TOKEN=<API key> \
-  vw streams add datadog --type datadog --url https://http-intake.logs.datadoghq.eu
+DEEDWRIT_STREAM_TOKEN=<API key> \
+  dw streams add datadog --type datadog --url https://http-intake.logs.datadoghq.eu
 
-vw streams add otel --type otlp --url https://otel-collector.example.com:4318 \
+dw streams add otel --type otlp --url https://otel-collector.example.com:4318 \
   --header "authorization=Bearer <token>"
 
-vw streams add soc --type webhook --url https://soc.example.com/vouchwell --receipts blocked
+dw streams add soc --type webhook --url https://soc.example.com/deedwrit --receipts blocked
 
-vw streams test     # one test event to each, and whether it arrived
-vw streams list     # what each sends, what's pending, the last error
+dw streams test     # one test event to each, and whether it arrived
+dw streams list     # what each sends, what's pending, the last error
 ```
 
 Tokens and secrets can come from the environment
-(`VOUCHWELL_STREAM_TOKEN`, `VOUCHWELL_STREAM_SECRET`,
-`VOUCHWELL_STREAM_HEADERS` as a JSON object) to keep them out of shell
+(`DEEDWRIT_STREAM_TOKEN`, `DEEDWRIT_STREAM_SECRET`,
+`DEEDWRIT_STREAM_HEADERS` as a JSON object) to keep them out of shell
 history. The hub never hands them back: `list` says only that one is set.
 
 **Or from the console:** an admin can do all of this under
@@ -75,17 +75,17 @@ delivery can produce (below).
 
 | Type | Sent to | Auth | Body |
 | --- | --- | --- | --- |
-| `splunk` | `<url>/services/collector/event` | `Authorization: Splunk <token>` | HEC events back to back, `sourcetype` `vouchwell:receipt` or `vouchwell:audit` |
-| `datadog` | `<url>/api/v2/logs` (default `https://http-intake.logs.datadoghq.com`) | `DD-API-KEY` | A JSON array, `ddsource: vouchwell`, tags `event:`, `outcome:`, `log:` |
-| `otlp` | `<url>/v1/logs` | your `--header`s | OTLP/HTTP JSON; attributes are `vouchwell.<field>`; denials are `WARN` |
-| `webhook` | `<url>` exactly | `vouchwell-signature` | `{ "events": [...] }` |
+| `splunk` | `<url>/services/collector/event` | `Authorization: Splunk <token>` | HEC events back to back, `sourcetype` `deedwrit:receipt` or `deedwrit:audit` |
+| `datadog` | `<url>/api/v2/logs` (default `https://http-intake.logs.datadoghq.com`) | `DD-API-KEY` | A JSON array, `ddsource: deedwrit`, tags `event:`, `outcome:`, `log:` |
+| `otlp` | `<url>/v1/logs` | your `--header`s | OTLP/HTTP JSON; attributes are `deedwrit.<field>`; denials are `WARN` |
+| `webhook` | `<url>` exactly | `deedwrit-signature` | `{ "events": [...] }` |
 
 For the first three, a URL with a path is used as given, so you can point at a
 proxy or a non-standard path.
 
 ### Verifying a webhook
 
-Each delivery carries `vouchwell-signature: t=<unix seconds>,v1=<hex>`, where
+Each delivery carries `deedwrit-signature: t=<unix seconds>,v1=<hex>`, where
 `v1` is HMAC-SHA256 over `<t>.<raw body>` with the destination's secret. When
 you don't pass `--secret`, the hub makes one (`whsec_…`) and shows it once.
 
@@ -110,7 +110,7 @@ accepted, and the last audit `seq`. A batch of up to 200 events is sent, and the
 moves only after the destination accepts it with a 2xx. While a destination
 is down, the backlog waits in the database rather than in memory. It is retried
 with backoff (1 s doubling to 5 minutes) and resumes after a hub restart.
-`vw streams flush` retries now, without waiting out the backoff.
+`dw streams flush` retries now, without waiting out the backoff.
 
 **Sending never touches the ingest path.** A slow or failing SIEM can't slow
 or fail an agent.
@@ -128,7 +128,7 @@ is guarded against server-side request forgery. Only https is allowed, with no
 credentials in the URL. Private, loopback, link-local and metadata addresses
 are refused, including names that resolve to them, checked at connect time.
 Redirects are not followed, and timeouts and response sizes are capped.
-`VOUCHWELL_EGRESS_ALLOW_PRIVATE=1` lifts the address rules for a self-hosted
+`DEEDWRIT_EGRESS_ALLOW_PRIVATE=1` lifts the address rules for a self-hosted
 hub whose collector is on its own network. It also applies to outside
 witnesses and SSO discovery.
 

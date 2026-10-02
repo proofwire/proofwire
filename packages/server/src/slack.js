@@ -130,11 +130,11 @@ export function approvalMessage(a, consoleUrl) {
       },
       {
         type: 'actions',
-        block_id: 'vouchwell_decision',
+        block_id: 'deedwrit_decision',
         elements: [
           {
             type: 'button',
-            action_id: 'vouchwell_approve',
+            action_id: 'deedwrit_approve',
             style: 'primary',
             text: { type: 'plain_text', text: 'Approve' },
             value: a.id,
@@ -147,7 +147,7 @@ export function approvalMessage(a, consoleUrl) {
           },
           {
             type: 'button',
-            action_id: 'vouchwell_deny',
+            action_id: 'deedwrit_deny',
             style: 'danger',
             text: { type: 'plain_text', text: 'Deny' },
             value: a.id,

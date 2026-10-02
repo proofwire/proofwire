@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, signCheckpoint, MerkleTree, leafHash } from '@vouchwell/core';
+import { ProofLog, signCheckpoint, MerkleTree, leafHash } from '@deedwrit/core';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 import { backup, restore } from '../src/backup.js';
@@ -90,7 +90,7 @@ async function history(/** @type {any} */ t) {
   return { snapshot, signedAt10: { body: at10.body, sigs: [...at10.sigs, r.json.signature] } };
 }
 
-/** Restore the snapshot over the live database, as `vouchwell-hub restore` does. */
+/** Restore the snapshot over the live database, as `deedwrit-hub restore` does. */
 async function restoreTo(/** @type {any} */ t, /** @type {string} */ snapshot, /** @type {string|null} */ journal) {
   await t.hub.close();
   const res = restore({ from: snapshot, database: t.database, journal });
@@ -186,7 +186,7 @@ test('restored without the journal, every log is held until the operator release
     await t.hub.close();
     const evidence = path.join(t.dir, 'checkpoint.json');
     fs.writeFileSync(evidence, JSON.stringify(signedAt10));
-    const env = { ...process.env, VOUCHWELL_DB: t.database, VOUCHWELL_WITNESS_ONLY: '1', NODE_OPTIONS: '--no-warnings=ExperimentalWarning' };
+    const env = { ...process.env, DEEDWRIT_DB: t.database, DEEDWRIT_WITNESS_ONLY: '1', NODE_OPTIONS: '--no-warnings=ExperimentalWarning' };
     const forged = path.join(t.dir, 'forged.json');
     fs.writeFileSync(forged, JSON.stringify({ ...signedAt10, body: { ...signedAt10.body, size: 11 } }));
     const bad = spawnSync(process.execPath, [BIN, 'witness-release', 'acme', logName, '--checkpoint', forged], { env, encoding: 'utf8' });
@@ -212,7 +212,7 @@ test('release without evidence is explicit, and --all needs it', async () => {
     const { snapshot } = await history(t);
     fs.rmSync(`${t.database}.witness-journal`);
     await restoreTo(t, snapshot, `${t.database}.witness-journal`);
-    const env = { ...process.env, VOUCHWELL_DB: t.database, VOUCHWELL_WITNESS_ONLY: '1', NODE_OPTIONS: '--no-warnings=ExperimentalWarning' };
+    const env = { ...process.env, DEEDWRIT_DB: t.database, DEEDWRIT_WITNESS_ONLY: '1', NODE_OPTIONS: '--no-warnings=ExperimentalWarning' };
     const run = (/** @type {string[]} */ args) => spawnSync(process.execPath, [BIN, 'witness-release', ...args], { env, encoding: 'utf8' });
     assert.equal(run(['acme', t.log.checkpoint().body.log]).status, 2, 'neither evidence nor --no-evidence');
     assert.equal(run(['acme', '--all']).status, 2);

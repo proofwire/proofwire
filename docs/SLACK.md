@@ -23,11 +23,11 @@ hub's address, e.g. `hub.yourdomain.com`:
 ```json
 {
   "display_information": {
-    "name": "Vouchwell approvals",
-    "description": "Approve or deny AI agent actions that your Vouchwell policy escalates."
+    "name": "Deedwrit approvals",
+    "description": "Approve or deny AI agent actions that your Deedwrit policy escalates."
   },
   "features": {
-    "bot_user": { "display_name": "Vouchwell", "always_online": false }
+    "bot_user": { "display_name": "Deedwrit", "always_online": false }
   },
   "oauth_config": {
     "scopes": { "bot": ["incoming-webhook"] }
@@ -57,28 +57,28 @@ Then open **Basic Information** and copy the **Signing Secret**.
 
 ### 3. Connect the hub
 
-With an admin API key configured (`vw remote add ...`), pass the two values
+With an admin API key configured (`dw remote add ...`), pass the two values
 through the environment, not the command line, where they'd land in your shell
 history:
 
 ```bash
-export VOUCHWELL_SLACK_WEBHOOK_URL='https://hooks.slack.com/services/...'
-export VOUCHWELL_SLACK_SIGNING_SECRET='...'
-vw slack connect --approver U024BE7LH,U0G9QF9C6
-vw slack test
+export DEEDWRIT_SLACK_WEBHOOK_URL='https://hooks.slack.com/services/...'
+export DEEDWRIT_SLACK_SIGNING_SECRET='...'
+dw slack connect --approver U024BE7LH,U0G9QF9C6
+dw slack test
 ```
 
 `--approver` lists the Slack **user IDs** allowed to decide. Find one under a
 person's profile → ⋯ → **Copy member ID**. Leave it out and anyone who can
 see the channel can decide, which is only reasonable for a private channel.
 
-`vw slack test` posts a plain message to confirm the webhook works. The
+`dw slack test` posts a plain message to confirm the webhook works. The
 console's **Settings → Integrations** page shows the connection too, with a
 button to send a test message.
 
 ```bash
-vw slack status        # connected? who can approve?
-vw slack disconnect    # approvals go back to the console only
+dw slack status        # connected? who can approve?
+dw slack disconnect    # approvals go back to the console only
 ```
 
 ---
@@ -96,7 +96,7 @@ their name on the receipt. After a decision, the message is replaced with the
 outcome and who made it. If two people click at once, exactly one decision
 lands, and the other is told who got there first.
 
-A request nobody answers expires after `VOUCHWELL_APPROVAL_TTL` seconds
+A request nobody answers expires after `DEEDWRIT_APPROVAL_TTL` seconds
 (default 900). An expired request is a **denial**, and the agent is told so.
 
 ---

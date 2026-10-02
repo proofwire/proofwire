@@ -3,10 +3,10 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { identityFromPublicKey } from '@vouchwell/core';
+import { identityFromPublicKey } from '@deedwrit/core';
 
 /**
- * The published record of Vouchwell-operated witness keys: witnesses/keys.json.
+ * The published record of Deedwrit-operated witness keys: witnesses/keys.json.
  *
  * A witness vouching for its own key over its own API is worth nothing — that
  * is the self-vouching the verifier's witness pinning exists to refuse. So
@@ -20,9 +20,9 @@ import { identityFromPublicKey } from '@vouchwell/core';
  *   retiredAt  the key stopped signing. What it signed before stays good, so
  *              auditors keep pinning it.
  *   revokedAt  the key must not be trusted at all — compromised, or lost to
- *              someone else. `vw check --witness-keys` skips it.
+ *              someone else. `dw check --witness-keys` skips it.
  *
- * The file is a plain JSON list so `vw check --witness-keys witnesses/keys.json`
+ * The file is a plain JSON list so `dw check --witness-keys witnesses/keys.json`
  * reads it as it stands.
  *
  *   node scripts/witness-record.mjs check
@@ -33,7 +33,7 @@ import { identityFromPublicKey } from '@vouchwell/core';
 
 // Overridable only so the tests can drive the command line against a scratch
 // repository instead of this one's real record.
-export const ROOT = process.env.VOUCHWELL_RECORD_ROOT ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+export const ROOT = process.env.DEEDWRIT_RECORD_ROOT ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const RECORD = 'witnesses/keys.json';
 
 const FIELDS = ['kid', 'publicKey', 'operator', 'node', 'addedAt', 'retiredAt', 'revokedAt', 'note'];

@@ -1,76 +1,76 @@
 {
   "v": 1,
-  "kind": "vouchwell.bundle",
-  "log": "lg_15d37fc9325ebcf5",
-  "exported": "2026-09-28T10:06:55.216Z",
+  "kind": "deedwrit.bundle",
+  "log": "lg_0dc4b348658bd56c",
+  "exported": "2026-10-02T22:28:30.254Z",
   "treeSize": 11,
-  "root": "9f67320170eda060ccf18d1fbd97c1671c703537721b5524a5ab84be765828e7",
-  "head": "f50a577891b148d3469ded00cffc0b8dece3541cd7a42c78bc3454b0d789991a",
+  "root": "6a739f4d5e684c9ba2ccde8a1f858937e50328b034a76e7ef73fecfceca899b0",
+  "head": "3ea139d17b524ccf6789287053807397b0eb00b6a17cd1b92a30896486010ae9",
   "keyring": {
-    "pw1335c68561ff3c9a1f623c566250ff68c": "zAo0VpefOcCzGbPx8Ong-DRo5bIizNpS6ofcDGYxTYc",
-    "pw19c844a36ad125837074aa2cfc803a411": "-XO312zxgwEEEBVMjSzaOmNmnDM7tPkq90ez5fUBLFo",
-    "pw188a05263e14ad6c939db1ad3ecd1dfed": "hXNwCHpSaqb2ZhZFqcVw247euE9Bamftye_zzq5NEPY"
+    "pw1d388f4be433379f591000db7d6da92e3": "GtBPokYjGqvh_6L0eo8EVJ72GTv6dQzCRpbu57pxnMg",
+    "pw11084f0f7218022be936420822c9c6c9b": "evRYQ9p639TcDaM-XlcXvLOMsuXbffja7bRoRaReH5M",
+    "pw19cf9794bbac8337f1e2fe00089ea6245": "rJzz6ZkOXpwSyexpF9OxYTX_kp0H0PS92FUunNGOAUE"
   },
   "checkpoints": [
     {
       "body": {
-        "head": "8d739598176009daff911da1d451ec38ab5c08e8cf2383a40d5a4fa25f148f1c",
-        "log": "lg_15d37fc9325ebcf5",
-        "root": "fb5db4af64c6f5ac4ef27bc40e5354f478359570677bd6901a51c874863b28f2",
+        "head": "c397cfd2200b44986d3e01ac3da67219458277e6594a73b77a71d8e361e1c309",
+        "log": "lg_0dc4b348658bd56c",
+        "root": "34a0ac21bcc45dec1aa8ab52e1d14e90a6a1ff07952c36adabb2f2066aedf523",
         "size": 6,
-        "ts": "2026-09-28T10:06:55.193Z",
+        "ts": "2026-10-02T22:28:30.236Z",
         "v": 1
       },
       "sigs": [
         {
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
           "role": "log",
-          "sig": "HxeWhBED1Ky0Uhm7AwTJq0ZTLmt3Q-foiBrlm73suKjudxi4-ZcHwtMzPEug2uZ-ZqJR-nSmWm5i0zBOznKkBw"
+          "sig": "YIhSyn_jMJE4aCBq9q1Y50k2ht2X2AUTBFgdIrEa41m_q5K7q0XRNWCqKBpDW97L8ol4sYgZXN9BLhmubj9sCQ"
         },
         {
-          "kid": "pw19c844a36ad125837074aa2cfc803a411",
+          "kid": "pw11084f0f7218022be936420822c9c6c9b",
           "role": "witness",
-          "sig": "Y5_AsKIctYASV7HbJMNW1sxIYNCZi0iSh8ezGWbfUD1vXY1EHRuC85cyaak0svJqgQwhYY-ULw9GhyuyXZW9AA",
-          "ts": "2026-09-28T10:06:55.215Z"
+          "sig": "i8Sp6is2phjm2GUratDw-itOCFhLK9ExStIA-uqFj0gOQiAE2x-Qyzd-x_jhYMpugWROJyj8HHYVmPkN8tj-Aw",
+          "ts": "2026-10-02T22:28:30.253Z"
         }
       ]
     },
     {
       "body": {
-        "head": "f50a577891b148d3469ded00cffc0b8dece3541cd7a42c78bc3454b0d789991a",
-        "log": "lg_15d37fc9325ebcf5",
-        "root": "9f67320170eda060ccf18d1fbd97c1671c703537721b5524a5ab84be765828e7",
+        "head": "3ea139d17b524ccf6789287053807397b0eb00b6a17cd1b92a30896486010ae9",
+        "log": "lg_0dc4b348658bd56c",
+        "root": "6a739f4d5e684c9ba2ccde8a1f858937e50328b034a76e7ef73fecfceca899b0",
         "size": 11,
-        "ts": "2026-09-28T10:06:55.213Z",
+        "ts": "2026-10-02T22:28:30.251Z",
         "v": 1
       },
       "sigs": [
         {
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
           "role": "log",
-          "sig": "jklZp4Qba7ZBEqXk60r5tmFRpqHyqK67GsIjsAeiYdZiuMdpf5TDQC3IhNPLC08MAq8bDDUL_m4zoZkcCQKUCA"
+          "sig": "vqZ4Te2SIF47gvfzmk-HXPi-JGHkcJWLbyhxebmjY_OZRdDOG9baIFUCqJ0CcHD9VzXu_FjvGjyxe8wCWjEeAQ"
         },
         {
-          "kid": "pw19c844a36ad125837074aa2cfc803a411",
+          "kid": "pw11084f0f7218022be936420822c9c6c9b",
           "role": "witness",
-          "sig": "6cymcj7BmAOrS4bqmcPHyikoKMoBUJc91VjvetZBElq183rAfNEx5EyB_5qi8iMIH1WIM3m9IDbg5VeoF6mwCg",
-          "ts": "2026-09-28T10:06:55.215Z"
+          "sig": "8bfm39xaTEI_JmiuwHPJkRONmIdkmNHbPBpfv2wIYqotGKkPsg1j9PXU3dZwGxHfXyOLMg21Iq8YPHbZiEDfDQ",
+          "ts": "2026-10-02T22:28:30.253Z"
         },
         {
-          "kid": "pw188a05263e14ad6c939db1ad3ecd1dfed",
+          "kid": "pw19cf9794bbac8337f1e2fe00089ea6245",
           "role": "witness",
-          "sig": "0nATCUWUhH1T8JI2DVLos_j0gxvcngREqsCLU-8q-2FMO4-Y2EuPV7ZGpGWpAW_AxFdbVyNvKM9HNaa37WJmAw",
-          "ts": "2026-09-28T10:06:55.215Z"
+          "sig": "JKEMKkcvKwRmNQjf38sOznTYH-7GujsVUNmC-o58a77WoJN4b7fhDFwrOy3X4FN0UdQE4o5PPlJvw7LvYrngBw",
+          "ts": "2026-10-02T22:28:30.254Z"
         }
       ]
     }
   ],
   "consistency": {
     "6": [
-      "7e60bcbd3c5e1cd619cae7282a00eaf015612125c6a2a9b9df4fc22b3fc98fd9",
-      "63786eecdc402854f27e6896234d53157cf8adddf697d49831d478bd357db143",
-      "dc7c6dba98722b31e19f2b7b850bcfcbb1675a1527070639ff0b5f093ef8e8ce",
-      "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+      "8c8ab331229ccaee93bab34571a7d242d9b5734adb7e67b632d55a43104629a6",
+      "1d499d04e45e008224e8fc4449323444d9474c1cdb63db1a1e36be9701af9cb2",
+      "9a1d65cb95c35cfcbbfc3f0c54042b20930eede5b59f75de5219ac127f42c9c6",
+      "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
     ]
   },
   "partial": false,
@@ -78,23 +78,23 @@
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 0,
         "prev": "0000000000000000000000000000000000000000000000000000000000000000",
-        "ts": "2026-09-28T10:06:55.117Z",
+        "ts": "2026-10-02T22:28:30.180Z",
         "phase": "intent",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
           "target": "ops.query",
           "metrics": {},
           "params": {
-            "hash": "eac1e2f8e095d18f7fd85c7002e236672a6a953cd661fcbcf1caf83a003c1ea1",
+            "hash": "b91bee821ba4bde5c221ce099ea1df2075368b3530ed713d404e9c5c59dfaaae",
             "size": 55,
             "preview": {
               "sql": "SELECT count(*) FROM orders WHERE status = $1"
@@ -110,36 +110,36 @@
         "result": null,
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "wVyjECGbLmv62kAZiE9C6qxYV6MbOjt6xl_JQt2MT4oWMsBdyk0eBhcYxvIt1Fgl-n27vsKsQ6EQBTfqaLK7Cw"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "uyuRMD_Yfb51pdnsTq48KkTdqFqBAa9TtawszlrUSQR2_wtC7rjbzbKyvRQaSBDK-QGHLwXviEoB1ewFdK6kBQ"
         }
       },
       "proof": [
-        "1d0c8f342448e2cdd7716b3992a305329f166b17758139cf54e1ba1134189f1d",
-        "00b502615891098fbc6deb1473221a1cc4ebed71f5f63743afe8b3323d7f07b4",
-        "fe3abed08f932f85e430814d53938d8dd537020af1c31e2c42a0f278b7fbef83",
-        "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+        "cdd1f6203ceffd3322536e728f4a95ff1fb035b1343e3c23cdb1804fd829d104",
+        "5f2f9849db8ee7f40c9a43df79a6095a885066e327f66b08faa7a5398c708e89",
+        "a09e85a1192c652842d9f127e1e05b11f1e43c51cae793b84eeffe547b8678f3",
+        "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 1,
-        "prev": "7f5c78b7ee17e936112d980192cb7b931b9da6b716690490bb2bc2efbf7916b4",
-        "ts": "2026-09-28T10:06:55.176Z",
+        "prev": "7b4806bd3fabbfb0e3f8fbe9960fcb4db455e50cefbb9501ed9f32735c541e48",
+        "ts": "2026-10-02T22:28:30.221Z",
         "phase": "outcome",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
           "target": "ops.query",
           "params": {
-            "hash": "ccdeab11f31fc0f215293041030d1b506ba2c296c44085adbade49be745750fc",
+            "hash": "099181a4028ea43522e3bcaa3e17a2255316488386502297125c8a473d897595",
             "size": 55,
             "preview": {
               "sql": "SELECT count(*) FROM orders WHERE status = $1"
@@ -154,9 +154,9 @@
         },
         "result": {
           "status": "ok",
-          "latencyMs": 57,
+          "latencyMs": 39,
           "payload": {
-            "hash": "f98be9abe24f5eca0e2221ad4629332c9b93a8ef8dec55f5e9e608403a47d52e",
+            "hash": "69d048911fa8919a9f1dfcf7e915bedb22fde1e5cfced87d0f18ea9fa9297d44",
             "size": 67,
             "preview": {
               "content": [
@@ -168,33 +168,33 @@
             }
           }
         },
-        "ref": "7f5c78b7ee17e936112d980192cb7b931b9da6b716690490bb2bc2efbf7916b4",
+        "ref": "7b4806bd3fabbfb0e3f8fbe9960fcb4db455e50cefbb9501ed9f32735c541e48",
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "dtrO5g9TRjl6apf0a9Lp2Fd4j8hgKH0B9A-dsVdZKSLpDTf1k1hFjkOHPZwMXNkazL51wVXPj-iAZcpxTmNSAQ"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "-D3LgQXvWKBd1f0ipQHz32SMBMfYS0ijyZ6YSTCSrxk0iDKZ3hz3Auo9PcfQmJiG2_WkWsBxXh2BiXPa3LblDg"
         }
       },
       "proof": [
-        "7f5c78b7ee17e936112d980192cb7b931b9da6b716690490bb2bc2efbf7916b4",
-        "00b502615891098fbc6deb1473221a1cc4ebed71f5f63743afe8b3323d7f07b4",
-        "fe3abed08f932f85e430814d53938d8dd537020af1c31e2c42a0f278b7fbef83",
-        "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+        "7b4806bd3fabbfb0e3f8fbe9960fcb4db455e50cefbb9501ed9f32735c541e48",
+        "5f2f9849db8ee7f40c9a43df79a6095a885066e327f66b08faa7a5398c708e89",
+        "a09e85a1192c652842d9f127e1e05b11f1e43c51cae793b84eeffe547b8678f3",
+        "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 2,
-        "prev": "1d0c8f342448e2cdd7716b3992a305329f166b17758139cf54e1ba1134189f1d",
-        "ts": "2026-09-28T10:06:55.180Z",
+        "prev": "cdd1f6203ceffd3322536e728f4a95ff1fb035b1343e3c23cdb1804fd829d104",
+        "ts": "2026-10-02T22:28:30.223Z",
         "phase": "intent",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
@@ -203,7 +203,7 @@
             "amount_usd": 45
           },
           "params": {
-            "hash": "a5935d8730a7a0ccc7e1814a794ff9974e0637bb1753b1a12d1cc5648b7d2caf",
+            "hash": "985353040e9cbb5be626ce61cd4098c5d83ed547191e71c81f2f2d409cafc551",
             "size": 34,
             "preview": {
               "order": "ord_8821",
@@ -220,36 +220,36 @@
         "result": null,
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "J3V5rMAmMEpHIgFLFlnOnqRBlaBd3J8JDEMxNUMtmhrjiozQHrdSM7FUQhJrcKfweiL4Mppj1Rl3yMdTtCjFAA"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "IvcgWr589sHef52fbgBHhXtv7UcZM5h4BxIEa2p1Yjf9mhbrJ7hgp27D4nX9wHogUXKo8t3qa58VR--4iomIAg"
         }
       },
       "proof": [
-        "bdd7200ac7ea63c03a12ee7f14a49dc07c90e6f648c8d1ec304e8502837aff96",
-        "e0c4e463e82cafa55d552863d73c7cd8dfd2cc310397cec5b4483ff57635d046",
-        "fe3abed08f932f85e430814d53938d8dd537020af1c31e2c42a0f278b7fbef83",
-        "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+        "9ae472fdb943554354a33b7751191631189bbae09da88e1da5f736d2e03da4bc",
+        "c8f93877527140432008ba621a34bde78b644e2c57276feaadb658d965758f54",
+        "a09e85a1192c652842d9f127e1e05b11f1e43c51cae793b84eeffe547b8678f3",
+        "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 3,
-        "prev": "d5c08ba389032ca6713136e1d3ac31235f2a8606df08d12f68b3a06b3d5311b4",
-        "ts": "2026-09-28T10:06:55.181Z",
+        "prev": "8a2a241f64fe200aea069f254926bbac3a412c3257e003f67d9562cd4c559180",
+        "ts": "2026-10-02T22:28:30.224Z",
         "phase": "outcome",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
           "target": "ops.refund",
           "params": {
-            "hash": "df51a10512cbb2433bdfff080fe56e94c9f44109f28557a42fab9ff9b54ba6ed",
+            "hash": "78b0295432ae4a6af2d3b119a442c52b8a635640f91cfdc8584a72664ec0573f",
             "size": 34,
             "preview": {
               "order": "ord_8821",
@@ -267,45 +267,45 @@
           "status": "ok",
           "latencyMs": 1,
           "payload": {
-            "hash": "276679ef9204539feaca1509059e54bce352187b5cdd482a225dd893dfb7fb71",
+            "hash": "e012435f4cfe05ac7e64f0515311b107a0568adf029d6c888bcd7b1d00311ccc",
             "size": 86,
             "preview": {
               "content": [
                 {
                   "type": "text",
-                  "text": "Refunded 4500 cents on ord_8821. id=re_rkryig2a"
+                  "text": "Refunded 4500 cents on ord_8821. id=re_2qzsluab"
                 }
               ]
             }
           }
         },
-        "ref": "d5c08ba389032ca6713136e1d3ac31235f2a8606df08d12f68b3a06b3d5311b4",
+        "ref": "8a2a241f64fe200aea069f254926bbac3a412c3257e003f67d9562cd4c559180",
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "s2r295QOZWto7gJSC8Y0_d7_TE0TvmDqjHQFP6_epz4Jy8caAIBrFPSyFpgOO1t2QpwK30ElTebkNTuyokqyCw"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "E3fyufhFfPKi9ONBWKPD9EoQffipNTnXEG8zS96gwCGK2zyZzFCoFmMpCizXQ-KWasPGpKmW6KO58MTNOtvtAA"
         }
       },
       "proof": [
-        "d5c08ba389032ca6713136e1d3ac31235f2a8606df08d12f68b3a06b3d5311b4",
-        "e0c4e463e82cafa55d552863d73c7cd8dfd2cc310397cec5b4483ff57635d046",
-        "fe3abed08f932f85e430814d53938d8dd537020af1c31e2c42a0f278b7fbef83",
-        "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+        "8a2a241f64fe200aea069f254926bbac3a412c3257e003f67d9562cd4c559180",
+        "c8f93877527140432008ba621a34bde78b644e2c57276feaadb658d965758f54",
+        "a09e85a1192c652842d9f127e1e05b11f1e43c51cae793b84eeffe547b8678f3",
+        "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 4,
-        "prev": "bdd7200ac7ea63c03a12ee7f14a49dc07c90e6f648c8d1ec304e8502837aff96",
-        "ts": "2026-09-28T10:06:55.187Z",
+        "prev": "9ae472fdb943554354a33b7751191631189bbae09da88e1da5f736d2e03da4bc",
+        "ts": "2026-10-02T22:28:30.230Z",
         "phase": "intent",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
@@ -314,7 +314,7 @@
             "amount_usd": 30
           },
           "params": {
-            "hash": "1e00e5d6396f57bad45a59cdf523e34f11d85eea2489b48ca18239e151fb94e5",
+            "hash": "0abb3486d13614f2a048fd8dd980df9736b346060f5c6e12624d81d5ec31545a",
             "size": 34,
             "preview": {
               "order": "ord_8822",
@@ -331,36 +331,36 @@
         "result": null,
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "AXifUv66SpKgceFkjqIhUMBAarhXwlrj2qGGyeOHCybG5zCQzhg4OzLANpPIyTQ6EKBvi8aGPb_0yJXbpnKYAA"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "e3zgDsuf-f7GoVHxDVmdzLl5covETzab5hgww3EVZYMPgWr7V-Reb6bFAG6qVQYuMtSenjIKPn9nCLoIdruVAg"
         }
       },
       "proof": [
-        "8d739598176009daff911da1d451ec38ab5c08e8cf2383a40d5a4fa25f148f1c",
-        "63786eecdc402854f27e6896234d53157cf8adddf697d49831d478bd357db143",
-        "dc7c6dba98722b31e19f2b7b850bcfcbb1675a1527070639ff0b5f093ef8e8ce",
-        "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+        "c397cfd2200b44986d3e01ac3da67219458277e6594a73b77a71d8e361e1c309",
+        "1d499d04e45e008224e8fc4449323444d9474c1cdb63db1a1e36be9701af9cb2",
+        "9a1d65cb95c35cfcbbfc3f0c54042b20930eede5b59f75de5219ac127f42c9c6",
+        "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 5,
-        "prev": "e2247e6d24fb08c9eb38bd21ed4e4e78c7490d11e73460e3e0f4f2e751172d88",
-        "ts": "2026-09-28T10:06:55.189Z",
+        "prev": "09e77988c306fa4dcb2d552afbb97e2dae50e5814bd5780bdb48143d818c87f9",
+        "ts": "2026-10-02T22:28:30.231Z",
         "phase": "outcome",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
           "target": "ops.refund",
           "params": {
-            "hash": "e8f669466801e345b599eb9bf318631f8568c51d906927a11257682a8247fadc",
+            "hash": "45c7d24c8c805ef76063179b680690b842ae78fb535a73e14f445d351065537d",
             "size": 34,
             "preview": {
               "order": "ord_8822",
@@ -376,47 +376,47 @@
         },
         "result": {
           "status": "ok",
-          "latencyMs": 1,
+          "latencyMs": 0,
           "payload": {
-            "hash": "014883f32f374eba60e9d64cd3679e174c2e486acac611cb8c016a7d72f506f7",
+            "hash": "051bd0edc2194aaf4230bc1476d59f7c024788493b9dfcab66f908d543a2e24f",
             "size": 86,
             "preview": {
               "content": [
                 {
                   "type": "text",
-                  "text": "Refunded 3000 cents on ord_8822. id=re_e6n9ea77"
+                  "text": "Refunded 3000 cents on ord_8822. id=re_vnk9boq1"
                 }
               ]
             }
           }
         },
-        "ref": "e2247e6d24fb08c9eb38bd21ed4e4e78c7490d11e73460e3e0f4f2e751172d88",
+        "ref": "09e77988c306fa4dcb2d552afbb97e2dae50e5814bd5780bdb48143d818c87f9",
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "CeDl1YZytTOTtigCa59yJDd3b9mbAgEpBUHq0MNAZhuJ4yRABH87qqGEZNb2ZseRw00KFd6W_iKk3-2zhTTADA"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "jKqC3L4AnZzc_qnr0Jw59RJSnux3TZPWFAhPGfx18QMezTBow4xvIVY9vztj5yJgb2L7MCb2DkA2L7CiRTJRDQ"
         }
       },
       "proof": [
-        "e2247e6d24fb08c9eb38bd21ed4e4e78c7490d11e73460e3e0f4f2e751172d88",
-        "63786eecdc402854f27e6896234d53157cf8adddf697d49831d478bd357db143",
-        "dc7c6dba98722b31e19f2b7b850bcfcbb1675a1527070639ff0b5f093ef8e8ce",
-        "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+        "09e77988c306fa4dcb2d552afbb97e2dae50e5814bd5780bdb48143d818c87f9",
+        "1d499d04e45e008224e8fc4449323444d9474c1cdb63db1a1e36be9701af9cb2",
+        "9a1d65cb95c35cfcbbfc3f0c54042b20930eede5b59f75de5219ac127f42c9c6",
+        "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 6,
-        "prev": "8d739598176009daff911da1d451ec38ab5c08e8cf2383a40d5a4fa25f148f1c",
-        "ts": "2026-09-28T10:06:55.194Z",
+        "prev": "c397cfd2200b44986d3e01ac3da67219458277e6594a73b77a71d8e361e1c309",
+        "ts": "2026-10-02T22:28:30.236Z",
         "phase": "atomic",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
@@ -425,7 +425,7 @@
             "amount_usd": 90
           },
           "params": {
-            "hash": "530795f514d85ab784204af40fea4e8f4332eacef81bfbd92e5ca6ee79efb1cf",
+            "hash": "6085820b586ce26bc922dc68f39ada3aaa88cf0d4e5160c32362f7dc24af04b1",
             "size": 34,
             "preview": {
               "order": "ord_8823",
@@ -450,37 +450,37 @@
         "result": null,
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "Yzyu4ouNLtQJB-6ZlGYlYBZ50_MDqnw5TGZRwMHc3kNeIPrzECLMLrqblkDIOlKCfgcBVL54IFEskUtl8uiTAw"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "NAXyMrWfAVIuddBFYqiuL7HRzzb6AhRSeb2QzcUYB59HS5ccCEApK86OxecCEvltpkM0yF7nCuxZ1_d90vraAQ"
         }
       },
       "proof": [
-        "45c1c4c79eaa166fb98a47a6419ac748533bfaa0407a5ba96e7c32ab4cacf453",
-        "7e60bcbd3c5e1cd619cae7282a00eaf015612125c6a2a9b9df4fc22b3fc98fd9",
-        "dc7c6dba98722b31e19f2b7b850bcfcbb1675a1527070639ff0b5f093ef8e8ce",
-        "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+        "c9241290d3319a0dbfaaf7b58b010383f523090538eabb3365c932f22c76eee4",
+        "8c8ab331229ccaee93bab34571a7d242d9b5734adb7e67b632d55a43104629a6",
+        "9a1d65cb95c35cfcbbfc3f0c54042b20930eede5b59f75de5219ac127f42c9c6",
+        "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 7,
-        "prev": "0a1f5fac07a28802ad4b2f1c4ef4637748724848a61ed118500a592828c50f6a",
-        "ts": "2026-09-28T10:06:55.195Z",
+        "prev": "55a91df2337ee74205f56253717758606f32405f8572cb1d29462001b7fc4454",
+        "ts": "2026-10-02T22:28:30.237Z",
         "phase": "atomic",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
           "target": "ops.query",
           "metrics": {},
           "params": {
-            "hash": "8f6c6a7a6b4a38049caff7aaf4c27d059900944804b2361ae3e458ce5bcadc4e",
+            "hash": "ecc5353888170fe54b9ccc57cfc394153530083889d59a59dfaa994ee3568083",
             "size": 54,
             "preview": {
               "sql": "DELETE FROM customers WHERE churn_risk > 0.8"
@@ -498,37 +498,37 @@
         "result": null,
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "IR5eA4i65YkqbQnMJ3oUcTx-G7EQBy_QLHm21_NHBTnMZVIAB7xz1SRFtYgAWu7fTL19sdEm2gmFu7cFlBoRDA"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "TW5uat6ofCSeRFwupwasxt_K5D0IwcNsvq0n7caxhgK3PdCy0l2bYFXgUO4GKUc5hfRuVdumni_Arl4AR0AOCw"
         }
       },
       "proof": [
-        "0a1f5fac07a28802ad4b2f1c4ef4637748724848a61ed118500a592828c50f6a",
-        "7e60bcbd3c5e1cd619cae7282a00eaf015612125c6a2a9b9df4fc22b3fc98fd9",
-        "dc7c6dba98722b31e19f2b7b850bcfcbb1675a1527070639ff0b5f093ef8e8ce",
-        "07c430d693486216e5c28165778238ca5f227bf796ea0ec2a9b62dc5b9da1aa6"
+        "55a91df2337ee74205f56253717758606f32405f8572cb1d29462001b7fc4454",
+        "8c8ab331229ccaee93bab34571a7d242d9b5734adb7e67b632d55a43104629a6",
+        "9a1d65cb95c35cfcbbfc3f0c54042b20930eede5b59f75de5219ac127f42c9c6",
+        "5e0724c3d7cb52eb8e44daf203b44b273b4f8ffcbf5f37c7821feb1202613d35"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 8,
-        "prev": "45c1c4c79eaa166fb98a47a6419ac748533bfaa0407a5ba96e7c32ab4cacf453",
-        "ts": "2026-09-28T10:06:55.196Z",
+        "prev": "c9241290d3319a0dbfaaf7b58b010383f523090538eabb3365c932f22c76eee4",
+        "ts": "2026-10-02T22:28:30.238Z",
         "phase": "intent",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
           "target": "ops.send_email",
           "metrics": {},
           "params": {
-            "hash": "36d5caab8643669a82469062f8e8a5949676b8adae942991f130af6b92568fab",
+            "hash": "dc1a8bdb86c3439526ece386dc8876d251fc80f7965b32f89eeb863e06e2ba75",
             "size": 70,
             "preview": {
               "to": "[redacted:email:…test]",
@@ -549,42 +549,42 @@
           "policy": "775cd8af65effe38ef378d261100b416136eca9d9401fed1289b74ee34443e57",
           "approval": {
             "by": "dana@acme.test",
-            "at": "2026-09-28T10:06:55.196Z",
+            "at": "2026-10-02T22:28:30.238Z",
             "note": "reviewed in the approvals channel"
           }
         },
         "result": null,
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "fFCIlxpeAzt53-hFvf-Rfp4FSQUBeHIbnmx25PJmPgszgXezYKPheBwUHDUUpsJbImdRLdLz9AOfANdBKD_XCA"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "dUGuw6tgieEVyGxq8qpmMtCon0twAp0YYue8vFF4eKvhGiWTGmHugwyzlwCWNzDTbmWPpdP4uqOgtZ2wSxTyDw"
         }
       },
       "proof": [
-        "32ee4f65bb8c9a5755e0ea9415a593a2c438bda1d127a247e784fe60219e8ab6",
-        "f50a577891b148d3469ded00cffc0b8dece3541cd7a42c78bc3454b0d789991a",
-        "6e4325b2af0202b1172909f3d6f80fb4fb295e0a77a02aa7ab98397d7daa116f"
+        "882086af35be4bc6c0ebfac168c5a2e690ac6b5dfa2eeb95afe337369d431789",
+        "3ea139d17b524ccf6789287053807397b0eb00b6a17cd1b92a30896486010ae9",
+        "1c9fa01c3a12cd87dc2361a4b8444ce99e757c56463f38355d614aefd0868ab2"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 9,
-        "prev": "77ead715a6e93453af9384f0175ba7af35ca7e45470728aa1fce5cdcaa4096b9",
-        "ts": "2026-09-28T10:06:55.199Z",
+        "prev": "ac5569d7fe5b186518701c1cc713e8227795680538c8842143c58399bb227205",
+        "ts": "2026-10-02T22:28:30.240Z",
         "phase": "outcome",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
           "target": "ops.send_email",
           "params": {
-            "hash": "cb148b2365e21eee40e2ea3669a0c91583742e52bc016214841e0566b6ec2769",
+            "hash": "e3bfbd51655a43fa014a5197a04caa9c97bee8090b02eeef8ac595d46b267440",
             "size": 70,
             "preview": {
               "to": "[redacted:email:…test]",
@@ -605,15 +605,15 @@
           "policy": "775cd8af65effe38ef378d261100b416136eca9d9401fed1289b74ee34443e57",
           "approval": {
             "by": "dana@acme.test",
-            "at": "2026-09-28T10:06:55.196Z",
+            "at": "2026-10-02T22:28:30.238Z",
             "note": "reviewed in the approvals channel"
           }
         },
         "result": {
           "status": "ok",
-          "latencyMs": 1,
+          "latencyMs": 0,
           "payload": {
-            "hash": "d743c08096770776e7c497a9f0c23b6d9bb63b29fc2cf4d6caf9271d0edcf889",
+            "hash": "a8eab6116c7806979480a4d665c81a4ae7a8d6ffbfbe8ae0009b0df02f95b880",
             "size": 80,
             "preview": {
               "content": [
@@ -628,39 +628,39 @@
             ]
           }
         },
-        "ref": "77ead715a6e93453af9384f0175ba7af35ca7e45470728aa1fce5cdcaa4096b9",
+        "ref": "ac5569d7fe5b186518701c1cc713e8227795680538c8842143c58399bb227205",
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "EhdnAY6xmQXL3JCH_1hCkwVLtFh7wiXheo0FF049Nz2vpleHZcyXbsaCtbh2W7XCQaXXblcQ8drFoQk6kzxADQ"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "zXJ_-9D6T-3Fxe83gOj9WxC-8G4tToiBdKL-qiI2Sgvr1YaUQH3zDt_2yA1mDeQgGiScNmXBOVSK197vCNdPCA"
         }
       },
       "proof": [
-        "77ead715a6e93453af9384f0175ba7af35ca7e45470728aa1fce5cdcaa4096b9",
-        "f50a577891b148d3469ded00cffc0b8dece3541cd7a42c78bc3454b0d789991a",
-        "6e4325b2af0202b1172909f3d6f80fb4fb295e0a77a02aa7ab98397d7daa116f"
+        "ac5569d7fe5b186518701c1cc713e8227795680538c8842143c58399bb227205",
+        "3ea139d17b524ccf6789287053807397b0eb00b6a17cd1b92a30896486010ae9",
+        "1c9fa01c3a12cd87dc2361a4b8444ce99e757c56463f38355d614aefd0868ab2"
       ]
     },
     {
       "receipt": {
         "v": 1,
-        "log": "lg_15d37fc9325ebcf5",
+        "log": "lg_0dc4b348658bd56c",
         "seq": 10,
-        "prev": "32ee4f65bb8c9a5755e0ea9415a593a2c438bda1d127a247e784fe60219e8ab6",
-        "ts": "2026-09-28T10:06:55.202Z",
+        "prev": "882086af35be4bc6c0ebfac168c5a2e690ac6b5dfa2eeb95afe337369d431789",
+        "ts": "2026-10-02T22:28:30.244Z",
         "phase": "atomic",
         "actor": {
           "agent": "claude-opus-5",
           "session": "sess_sample",
           "principal": "ops@acme.test",
-          "runtime": "vouchwell-proxy/0.5.0"
+          "runtime": "deedwrit-proxy/0.5.0"
         },
         "action": {
           "kind": "tool_call",
           "target": "ops.query",
           "metrics": {},
           "params": {
-            "hash": "8517f399cb1ac4eb47585546602982eb2445d2989e1eed6d1aa403c440145df3",
+            "hash": "901827eb16d2e570b43780087d74b9049b0d218d2b0180501012584f8518c5bc",
             "size": 82,
             "preview": {
               "sql": "SELECT * FROM logs WHERE token = '[redacted:anthropic_key:…H0jW]'"
@@ -690,13 +690,13 @@
         "result": null,
         "attest": {
           "alg": "ed25519",
-          "kid": "pw1335c68561ff3c9a1f623c566250ff68c",
-          "sig": "COp_yi5WrcKaEsAbArJfrJ-04nmyeYAaQRuRUhSalnVhpFoG5ZitXcck9d-_8jr8ISq5bWyMG-WzKGaXzwEFAw"
+          "kid": "pw1d388f4be433379f591000db7d6da92e3",
+          "sig": "PRiroG_pLV1_f5_KxiYCAHgrefhK5UNEBBkqx3LT7Lj9y0m6UW_b4IE8tCrCo1atfXKryteNSDd0y9qRERZLCQ"
         }
       },
       "proof": [
-        "b949472f97514fe1aa46aaca71f59f6f91bdfc48dd88959326193e825d763ddd",
-        "6e4325b2af0202b1172909f3d6f80fb4fb295e0a77a02aa7ab98397d7daa116f"
+        "ca58906be6579e26cea2113a5a8ff5bad32587b1c24dcb43c6821e81e8f3fc52",
+        "1c9fa01c3a12cd87dc2361a4b8444ce99e757c56463f38355d614aefd0868ab2"
       ]
     }
   ]

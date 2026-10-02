@@ -4,7 +4,7 @@ import { canonicalBytes } from './canonical.js';
 /**
  * Domain-separated SHA-256 helpers.
  *
- * Every hash in Vouchwell is prefixed with a one-byte domain tag. Without it,
+ * Every hash in Deedwrit is prefixed with a one-byte domain tag. Without it,
  * an attacker who controls a leaf's contents could craft a leaf whose bytes
  * are also a valid interior node, and splice a forged subtree into the tree —
  * the classic second-preimage attack on Merkle trees that RFC 6962 fixed.

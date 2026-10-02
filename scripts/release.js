@@ -23,7 +23,7 @@ import { launchSpec } from '../packages/proxy/src/proxy.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /**
- * Dependency order. `@vouchwell/core` has no dependents above it; the CLI
+ * Dependency order. `@deedwrit/core` has no dependents above it; the CLI
  * depends on the proxy, so it goes last. Publishing out of order leaves a
  * package on the registry whose dependency does not exist yet — briefly
  * uninstallable, and not fixable by unpublishing.
@@ -123,16 +123,16 @@ function preflight() {
   // 2. Does the scope exist and can this account write to it?
   if (who) {
     try {
-      const orgs = JSON.parse(run('npm', ['org', 'ls', 'vouchwell', '--json']));
+      const orgs = JSON.parse(run('npm', ['org', 'ls', 'deedwrit', '--json']));
       console.log(
-        `  ${GREEN('✓')} scope  @vouchwell reachable ${DIM(`(${Object.keys(orgs).length} member(s))`)}`,
+        `  ${GREEN('✓')} scope  @deedwrit reachable ${DIM(`(${Object.keys(orgs).length} member(s))`)}`,
       );
     } catch {
-      console.log(`  ${YELLOW('!')} scope  cannot read the @vouchwell org`);
+      console.log(`  ${YELLOW('!')} scope  cannot read the @deedwrit org`);
       blocking.push(
-        'Create the free org at https://www.npmjs.com/org/create (name: vouchwell).\n' +
-          '     Without it, the four @vouchwell/* packages cannot be published.\n' +
-          '     The unscoped `vouchwell` CLI depends on two of them, so it would be uninstallable.',
+        'Create the free org at https://www.npmjs.com/org/create (name: deedwrit).\n' +
+          '     Without it, the four @deedwrit/* packages cannot be published.\n' +
+          '     The unscoped `deedwrit` CLI depends on two of them, so it would be uninstallable.',
       );
     }
   }
@@ -206,7 +206,7 @@ function preflight() {
   } else {
     try {
       run('npm', ['test'], {
-        env: { ...process.env, VOUCHWELL_ACCESS_LOG: 'off', VOUCHWELL_INSECURE_COOKIES: '1' },
+        env: { ...process.env, DEEDWRIT_ACCESS_LOG: 'off', DEEDWRIT_INSECURE_COOKIES: '1' },
       });
       console.log(`  ${GREEN('✓')} tests  passing`);
     } catch (err) {
@@ -220,7 +220,7 @@ function preflight() {
 
 async function main() {
   console.log('');
-  console.log(B('  Vouchwell release') + DIM(dryRun ? '  (dry run)' : ''));
+  console.log(B('  Deedwrit release') + DIM(dryRun ? '  (dry run)' : ''));
 
   const blocking = preflight();
 
@@ -278,11 +278,11 @@ async function main() {
   console.log(GREEN(`  Published ${version}.`));
   console.log('');
   console.log(DIM('  Verify what the world now sees:'));
-  console.log(`    ${CYAN('npx vouchwell@latest --version')}`);
-  console.log(`    ${CYAN(`npm view vouchwell@${version}`)}`);
+  console.log(`    ${CYAN('npx deedwrit@latest --version')}`);
+  console.log(`    ${CYAN(`npm view deedwrit@${version}`)}`);
   console.log('');
   console.log(DIM('  Then tag the release:'));
-  console.log(`    ${CYAN(`git tag -a v${version} -m "Vouchwell ${version}" && git push --tags`)}`);
+  console.log(`    ${CYAN(`git tag -a v${version} -m "Deedwrit ${version}" && git push --tags`)}`);
   console.log('');
 }
 

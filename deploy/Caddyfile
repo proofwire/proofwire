@@ -1,4 +1,4 @@
-# TLS and the edge for a Vouchwell node. See compose.yml and docs/DEPLOY.md.
+# TLS and the edge for a Deedwrit node. See compose.yml and docs/DEPLOY.md.
 {
 	# Nothing on this server reconfigures Caddy while it runs, so the admin
 	# API would only be one more way to.
@@ -8,10 +8,10 @@
 	skip_install_trust
 }
 
-{$VOUCHWELL_DOMAIN} {
+{$DEEDWRIT_DOMAIN} {
 	# Your email for Let's Encrypt, or "internal" for a self-signed test
 	# certificate (used by CI, and by a dry run before DNS is set up).
-	tls {$VOUCHWELL_TLS}
+	tls {$DEEDWRIT_TLS}
 
 	# The node refuses bodies over 8 MB; refuse them here, before they arrive.
 	request_body {
@@ -27,7 +27,7 @@
 
 	# Caddy replaces any X-Forwarded-For a client sends with the address it
 	# actually saw (it trusts no upstream proxies unless told to), which is
-	# what makes VOUCHWELL_TRUST_PROXY=1 safe behind it.
+	# what makes DEEDWRIT_TRUST_PROXY=1 safe behind it.
 	reverse_proxy node:8787
 
 	log {

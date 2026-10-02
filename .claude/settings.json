@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/vouchwell.config.json",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/deedwrit.config.json",
             "timeout": 30
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/vouchwell.config.json",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/deedwrit.config.json",
             "timeout": 30
           }
         ]
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/vouchwell.config.json",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/deedwrit.config.json",
             "timeout": 30
           }
         ]
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/vouchwell.config.json",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/deedwrit.config.json",
             "timeout": 30
           }
         ]
@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/vouchwell.config.json",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node packages/cli/src/bin.js hook --config .claude/deedwrit.config.json",
             "timeout": 30
           }
         ]

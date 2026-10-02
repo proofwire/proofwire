@@ -154,7 +154,7 @@ The same transaction now also binds a log to its signing key on first use
 `log` signature against that key *before* the position is read. Two things
 worth attacking: **the first-use trust** — the first key to reach the witness
 for a log name wins, contained only by each customer having their own
-organization — and **the rebind path** (`vouchwell-hub witness-rebind`), which
+organization — and **the rebind path** (`deedwrit-hub witness-rebind`), which
 is host-only by design and keeps the position. Is there a sequence of rebinds
 and co-signings that lets a new key attest to a history the old one never
 extended to? `packages/server/test/witness-binding.test.js` is where the
@@ -273,7 +273,7 @@ Python SDK:
   is linked to it by a consistency proof in the bundle's new `consistency`
   field (`{ "<size>": [hex, …] }`, one proof from the latest witnessed
   checkpoint). The result reports `witnessedSize`: entries at or past it are
-  signed by the log alone, and `vw check` says so.
+  signed by the log alone, and `dw check` says so.
 
 Also worth knowing: `site/test/verify.test.js` runs the two independent
 verifiers over honest, tampered and 650 randomly mutated bundles and requires
@@ -289,7 +289,7 @@ confirming them:
 
 - An attacker with the signing key can write **new** false receipts going
   forward. The chain proves consistency, not truthfulness.
-- Vouchwell records only what passes through it. An unwrapped path to the same
+- Deedwrit records only what passes through it. An unwrapped path to the same
   API leaves no receipt.
 - Timestamps come from the signing host. A uniformly wrong clock is not
   detectable from the log alone.

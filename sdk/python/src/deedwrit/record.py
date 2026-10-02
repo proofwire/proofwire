@@ -3,7 +3,7 @@
 For agents that don't go through MCP, such as LangChain tools, custom
 function calling or plain Python, wrap each tool:
 
-    log = ProofLog.open_or_create(".vouchwell")
+    log = ProofLog.open_or_create(".deedwrit")
     rec = Recorder(log, agent="support-bot", principal="ops@acme.com")
 
     @rec.tool("stripe.refund")
@@ -16,8 +16,8 @@ Each call gets an **intent** receipt before it runs, so a crash mid-call still
 leaves evidence it was attempted, and an **outcome** receipt, linked to the
 intent, when it returns or raises. Pass ``decide=`` to check each call first
 against your own rules: a refused call gets one receipt, never runs, and
-raises ``PolicyDenied``. (The full Vouchwell policy language, with budgets,
-rate limits, escalation and approvals, runs in the ``vw proxy`` MCP proxy.)
+raises ``PolicyDenied``. (The full Deedwrit policy language, with budgets,
+rate limits, escalation and approvals, runs in the ``dw proxy`` MCP proxy.)
 """
 
 from __future__ import annotations
@@ -133,7 +133,7 @@ class Recorder:
         self._decide_hook = decide
         self.actor = {
             "agent": agent,
-            "runtime": f"vouchwell-python/{__version__}",
+            "runtime": f"deedwrit-python/{__version__}",
             "session": session or "sess_" + uuid.uuid4().hex[:12],
             "principal": principal,
         }

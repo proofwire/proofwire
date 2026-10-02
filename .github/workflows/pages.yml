@@ -36,7 +36,7 @@ jobs:
         with:
           node-version: '22'
 
-      # The verifier test imports @vouchwell/core through the workspace link.
+      # The verifier test imports @deedwrit/core through the workspace link.
       - run: npm install --no-audit --no-fund
 
       - name: Test the site
@@ -48,14 +48,14 @@ jobs:
         # happily return their version — and this page would send visitors to
         # their code. A version only counts if the package points back here.
         run: |
-          repo="$(npm view vouchwell repository.url 2>/dev/null || true)"
-          ver="$(npm view vouchwell version 2>/dev/null || true)"
+          repo="$(npm view deedwrit repository.url 2>/dev/null || true)"
+          ver="$(npm view deedwrit version 2>/dev/null || true)"
           if [[ "$repo" == *"github.com/${GITHUB_REPOSITORY}"* && "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
             printf '{ "npm": "%s" }\n' "$ver" > site/release.json
           else
             printf '{ "npm": null }\n' > site/release.json
             if [ -n "$ver" ]; then
-              echo "::warning::'vouchwell' is on npm (version '$ver', repository '$repo') but that is not a release of this repository. Not advertising it."
+              echo "::warning::'deedwrit' is on npm (version '$ver', repository '$repo') but that is not a release of this repository. Not advertising it."
             fi
           fi
           cat site/release.json

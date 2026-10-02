@@ -428,7 +428,7 @@ fetch('release.json')
   })
   .catch(() => {});
 
-// Vouchwell's own witness keys. `witness-keys.json` is witnesses/keys.json,
+// Deedwrit's own witness keys. `witness-keys.json` is witnesses/keys.json,
 // copied in at deploy time and served from this origin — but read like any
 // other input here: shown as text, never parsed as markup.
 fetch('witness-keys.json')
@@ -449,7 +449,7 @@ function showWitnessKeys(record) {
     // The honest empty state. A key for a witness that isn't running would be
     // worse than none: an auditor would pin something nobody operates.
     $('witness-keys-status').textContent =
-      'None yet. Vouchwell does not run a witness yet, so there is no key of ours to pin — and this page will not show one until there is.';
+      'None yet. Deedwrit does not run a witness yet, so there is no key of ours to pin — and this page will not show one until there is.';
     return;
   }
 
@@ -478,7 +478,7 @@ function showWitnessKeys(record) {
   $('witness-key-list').hidden = false;
 
   if (!pinnable.length) return;
-  const button = $('pin-vouchwell');
+  const button = $('pin-deedwrit');
   button.hidden = false;
   button.addEventListener('click', () => {
     // Added to whatever is already there, never replacing it: someone pinning
@@ -488,7 +488,7 @@ function showWitnessKeys(record) {
     if (add.length) {
       $('trusted').value = [
         $('trusted').value.trim(),
-        '# Vouchwell, from witnesses/keys.json',
+        '# Deedwrit, from witnesses/keys.json',
         ...add.map((e) => `${e.kid} ${e.publicKey}`),
       ].filter(Boolean).join('\n');
     }

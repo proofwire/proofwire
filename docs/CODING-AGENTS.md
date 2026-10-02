@@ -1,26 +1,26 @@
 # Coding agents: record and gate Claude Code's own tools
 
-`vw proxy` sees the MCP servers an agent calls. A coding agent does most of its
+`dw proxy` sees the MCP servers an agent calls. A coding agent does most of its
 work without them: it runs shell commands, reads and edits files, and fetches
-pages with tools built into the agent. `vw hook` covers those. Claude Code runs
+pages with tools built into the agent. `dw hook` covers those. Claude Code runs
 a command before and after every tool call (its
-[hooks](https://docs.claude.com/en/docs/claude-code/hooks)), and `vw hook` is
+[hooks](https://docs.claude.com/en/docs/claude-code/hooks)), and `dw hook` is
 that command.
 
 ```bash
-npm install -g vouchwell
-vw policy template coding-agent shell-safety secrets --out vouchwell.policy.json
-vw hook install            # this project: .claude/settings.json
+npm install -g deedwrit
+dw policy template coding-agent shell-safety secrets --out deedwrit.policy.json
+dw hook install            # this project: .claude/settings.json
 ```
 
 The hooks load when a Claude Code session starts. From then on every tool call
-is checked against `vouchwell.policy.json` and recorded in `.vouchwell/`. Use
-`vw log` to see what the agent did and `vw verify` to prove nothing has been
+is checked against `deedwrit.policy.json` and recorded in `.deedwrit/`. Use
+`dw log` to see what the agent did and `dw verify` to prove nothing has been
 removed.
 
 ## What happens to each call
 
-| Claude Code event | What `vw hook` does |
+| Claude Code event | What `dw hook` does |
 |---|---|
 | `PreToolUse` | The policy decides. **Allowed:** an `intent` receipt, written to disk before the tool runs. Claude Code's own permission prompts still apply as usual. **Refused:** one receipt, and Claude Code is told to deny the call, with the policy's reason. **Escalated:** Claude Code asks its user, who is the approver. |
 | `PostToolUse` | An `outcome` receipt, linked to its intent by hash. For an escalated call, the intent is written now, recording that the person approved it. |
@@ -48,15 +48,15 @@ Check a policy against what the agent has already done before it can block
 anything:
 
 ```bash
-vw hook install --monitor          # record what would be blocked, block nothing
+dw hook install --monitor          # record what would be blocked, block nothing
 # … a few days of normal work …
-vw policy test                     # which past calls the policy would change
-vw hook install                    # then enforce
+dw policy test                     # which past calls the policy would change
+dw hook install                    # then enforce
 ```
 
 ## Settings
 
-In `vouchwell.config.json`:
+In `deedwrit.config.json`:
 
 ```json
 {
@@ -83,20 +83,20 @@ In `vouchwell.config.json`:
 - **`evidence`**: a folder. At the end of every session the log is written
   there as `<log id>.json`, a checkpointed bundle, so publishing it is just
   committing that file. Leave it out to write bundles only when you run
-  `vw hook evidence`.
+  `dw hook evidence`.
 
-`vw hook install` flags:
+`dw hook install` flags:
 - `--user` writes to `~/.claude/settings.json`, so the hooks apply in every project.
 - `--local` writes to `.claude/settings.local.json`, which is not shared.
 - `--command` sets the exact command Claude Code runs.
 
-`vw hook uninstall` removes only the entries `vw hook install` added.
+`dw hook uninstall` removes only the entries `dw hook install` added.
 
 ## To publish the log
 
 ```bash
-vw hook evidence            # checkpoint, then write evidence/<log id>.json
-vw check evidence/*.json    # what anyone can run against it
+dw hook evidence            # checkpoint, then write evidence/<log id>.json
+dw check evidence/*.json    # what anyone can run against it
 ```
 
 The bundle holds no payloads and no salts.
@@ -106,7 +106,7 @@ The bundle holds no payloads and no salts.
 - **When enforcing, a call that cannot be recorded is refused.** If the log
   cannot be written, the call is denied and Claude Code shows why. This is
   deliberate: a gate that opens whenever the log breaks is not a gate. To turn
-  recording off, start Claude Code with `VOUCHWELL_HOOK=off`. The agent's own
+  recording off, start Claude Code with `DEEDWRIT_HOOK=off`. The agent's own
   shell cannot set this: hooks get the environment Claude Code started with.
 - **Parallel tool calls keep one chain.** Claude Code runs the hooks of
   parallel calls at the same time. Each takes a lock on the log first, so the
@@ -118,7 +118,7 @@ The bundle holds no payloads and no salts.
 
   On a 5,000-receipt log a call takes about 100 ms, the same as on an empty
   one. Reading the whole log took 0.5 s. The state file is rebuilt from the
-  entries whenever it disagrees with them, and `vw verify` never uses it.
+  entries whenever it disagrees with them, and `dw verify` never uses it.
 - **A hook sees what Claude Code reports, and nothing else.** A tool that runs
   outside Claude Code's tool calls is not recorded. A subprocess started by a
   recorded shell command is recorded only as that command.

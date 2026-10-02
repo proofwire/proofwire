@@ -1,15 +1,15 @@
-# @vouchwell/server
+# @deedwrit/server
 
-The Vouchwell hub: a multi-tenant transparency log, policy registry, approvals
+The Deedwrit hub: a multi-tenant transparency log, policy registry, approvals
 inbox, and witness service.
 
-[![CI](https://github.com/vouchwell/vouchwell/actions/workflows/ci.yml/badge.svg)](https://github.com/vouchwell/vouchwell/actions/workflows/ci.yml)
+[![CI](https://github.com/deedwrit/deedwrit/actions/workflows/ci.yml/badge.svg)](https://github.com/deedwrit/deedwrit/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](#)
 
 ```bash
-npx @vouchwell/server bootstrap
-npx @vouchwell/server serve
+npx @deedwrit/server bootstrap
+npx @deedwrit/server serve
 ```
 
 ## The hub cannot forge a receipt
@@ -29,24 +29,24 @@ running, keeps recording locally, and ships the backlog when it returns.
 
 ## Also
 
-- Keys can live in a KMS or HSM rather than the database (`VOUCHWELL_SIGNER`)
+- Keys can live in a KMS or HSM rather than the database (`DEEDWRIT_SIGNER`)
 - Backups, verification, restore and reconcile
 - Invitations and password resets
 - Its own hash-chained audit trail for every administrative action
 
-Deployment guide: https://github.com/vouchwell/vouchwell/blob/main/docs/HUB.md
+Deployment guide: https://github.com/deedwrit/deedwrit/blob/main/docs/HUB.md
 
-## Part of Vouchwell
+## Part of Deedwrit
 
 | Package | What it is |
 | --- | --- |
-| [`vouchwell`](https://npmjs.com/package/vouchwell) | The `vw` CLI — start here |
-| [`@vouchwell/core`](https://npmjs.com/package/@vouchwell/core) | Receipts, Merkle log, policy engine. Zero dependencies. |
-| [`@vouchwell/proxy`](https://npmjs.com/package/@vouchwell/proxy) | The MCP proxy and the hub client |
-| [`@vouchwell/server`](https://npmjs.com/package/@vouchwell/server) | The multi-tenant hub |
-| [`@vouchwell/dashboard`](https://npmjs.com/package/@vouchwell/dashboard) | Local read-only dashboard |
+| [`deedwrit`](https://npmjs.com/package/deedwrit) | The `dw` CLI — start here |
+| [`@deedwrit/core`](https://npmjs.com/package/@deedwrit/core) | Receipts, Merkle log, policy engine. Zero dependencies. |
+| [`@deedwrit/proxy`](https://npmjs.com/package/@deedwrit/proxy) | The MCP proxy and the hub client |
+| [`@deedwrit/server`](https://npmjs.com/package/@deedwrit/server) | The multi-tenant hub |
+| [`@deedwrit/dashboard`](https://npmjs.com/package/@deedwrit/dashboard) | Local read-only dashboard |
 
-Full documentation: **https://github.com/vouchwell/vouchwell**
+Full documentation: **https://github.com/deedwrit/deedwrit**
 
 Apache-2.0. The format, the verifier and the CLI are open and stay open:
 evidence you cannot verify without a vendor's permission is not evidence.

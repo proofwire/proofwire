@@ -1,8 +1,8 @@
 /**
- * Vouchwell evidence-bundle verifier, for browsers.
+ * Deedwrit evidence-bundle verifier, for browsers.
  *
- * This is a second, independent implementation of what `vw check` does. It
- * shares no code with @vouchwell/core: canonical JSON, the RFC 6962 tree, the
+ * This is a second, independent implementation of what `dw check` does. It
+ * shares no code with @deedwrit/core: canonical JSON, the RFC 6962 tree, the
  * receipt and checkpoint digests and the Ed25519 checks are all written again
  * here against WebCrypto, so it runs in a browser tab with nothing installed
  * and nothing uploaded.
@@ -217,7 +217,7 @@ async function verifyInclusion({ leaf, index, treeSize, proof, root }) {
 
 /**
  * Check that `secondRoot` extends `firstRoot` (RFC 6962 §2.1.2). The same
- * walk as @vouchwell/core's verifyConsistency, asynchronously.
+ * walk as @deedwrit/core's verifyConsistency, asynchronously.
  *
  * @param {{ firstSize: number, secondSize: number, firstRoot: Uint8Array,
  *   secondRoot: Uint8Array, proof: Uint8Array[] }} a
@@ -409,7 +409,7 @@ async function verifyChain(receipts, keyring) {
 /**
  * Check a checkpoint's signatures. Witnesses count only when pinned: the bundle's
  * keyring is supplied by the party under suspicion, so it cannot vouch for them.
- * See the same function in @vouchwell/core for the reasoning.
+ * See the same function in @deedwrit/core for the reasoning.
  *
  * @param {any} checkpoint
  * @param {Record<string, string>} keyring
@@ -470,7 +470,7 @@ async function verifyCheckpoint(checkpoint, keyring, { minWitnesses = 0, trusted
 // ── the bundle ──────────────────────────────────────────────────────────
 
 /**
- * Verify an evidence bundle standing alone, exactly as `vw check` does.
+ * Verify an evidence bundle standing alone, exactly as `dw check` does.
  *
  * A bundle proves it was not altered after signing, using the keys it carries.
  * It does not prove those are the keys you ought to trust — pin that by passing
@@ -487,10 +487,10 @@ async function verifyBundleUnchecked(bundle, opts = {}) {
   const badSeqs = new Set();
   const empty = { checked: 0, summary: null, badSeqs };
 
-  // `proofwire.bundle`: written before the project was renamed Vouchwell
-  // (0.5.0 and earlier). The label is not signed; what is inside verifies as ever.
-  if (!(bundle?.kind === 'vouchwell.bundle' || bundle?.kind === 'proofwire.bundle') || bundle.v !== 1) {
-    return { ok: false, issues: ['not a Vouchwell v1 bundle'], ...empty };
+  // `proofwire.bundle` and `vouchwell.bundle`: written under the project's
+  // earlier names. The label is not signed; what is inside verifies as ever.
+  if (!['deedwrit.bundle', 'vouchwell.bundle', 'proofwire.bundle'].includes(bundle?.kind) || bundle.v !== 1) {
+    return { ok: false, issues: ['not a Deedwrit v1 bundle'], ...empty };
   }
   const keyring = bundle.keyring ?? {};
   let root;
@@ -627,7 +627,7 @@ async function verifyBundleUnchecked(bundle, opts = {}) {
 
   // Which checkpoints vouch for *these* entries: a checkpoint's witnesses say
   // nothing about this bundle unless its root is tied to the bundle's tree.
-  // See anchorCheckpoints in @vouchwell/core.
+  // See anchorCheckpoints in @deedwrit/core.
   const witnessedSize = await anchorCheckpoints({
     bundle, root, treeSize, prefixRoots, checkpointResults, issues,
   });

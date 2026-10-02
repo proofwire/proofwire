@@ -1,5 +1,5 @@
 {
-  "name": "vouchwell",
+  "name": "deedwrit",
   "version": "0.5.0",
   "type": "module",
   "description": "Tamper-evident receipts for AI agent actions. Policy, proof, and audit for MCP.",
@@ -7,12 +7,12 @@
   "author": "IdeaboticsAI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vouchwell/vouchwell.git",
+    "url": "git+https://github.com/deedwrit/deedwrit.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/vouchwell/vouchwell#readme",
+  "homepage": "https://github.com/deedwrit/deedwrit#readme",
   "bugs": {
-    "url": "https://github.com/vouchwell/vouchwell/issues"
+    "url": "https://github.com/deedwrit/deedwrit/issues"
   },
   "keywords": [
     "mcp",
@@ -23,15 +23,15 @@
     "eu-ai-act"
   ],
   "bin": {
-    "vw": "./src/bin.js",
-    "vouchwell": "./src/bin.js"
+    "dw": "./src/bin.js",
+    "deedwrit": "./src/bin.js"
   },
   "files": [
     "src"
   ],
   "dependencies": {
-    "@vouchwell/core": "0.5.0",
-    "@vouchwell/proxy": "0.5.0"
+    "@deedwrit/core": "0.5.0",
+    "@deedwrit/proxy": "0.5.0"
   },
   "engines": {
     "node": ">=20.11"

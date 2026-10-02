@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ProofLog } from '@vouchwell/core';
-import { RemoteSink } from '@vouchwell/proxy/remote';
+import { ProofLog } from '@deedwrit/core';
+import { RemoteSink } from '@deedwrit/proxy/remote';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 import { backup, verifyBackup, restore, reconcile, prune } from '../src/backup.js';
@@ -213,7 +213,7 @@ test('a restored hub cannot detect its own staleness — only an outside party c
   assert.equal(payments.size, 10);
   assert.equal(payments.checkpointed, 18);
   assert.equal(payments.missing, 8);
-  assert.match(payments.remedy, /vw push --name payments/);
+  assert.match(payments.remedy, /dw push --name payments/);
 });
 
 test('the agent detects the rollback by itself and heals it', async () => {
