@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
-import { generateIdentity, verify, verifyCheckpoint } from '@deedwrit/core';
+import { generateIdentity, verify, verifyCheckpoint } from '@vouchwell/core';
 import {
   localSigner,
   commandSigner,
@@ -153,13 +153,13 @@ test('a misconfigured backend disables signing rather than falling back to a loc
   const db = openDatabase(':memory:');
   const store = new Store(db);
 
-  const signer = signerFor(store, 'hub', { DEEDWRIT_SIGNER: 'command' });
+  const signer = signerFor(store, 'hub', { VOUCHWELL_SIGNER: 'command' });
   assert.equal(signer.kind, 'disabled');
   await assert.rejects(() => signer.sign(randomBytes(32)), /signing is disabled/);
 
   // Crucially, it did NOT quietly mint a local key to carry on with.
   assert.equal(store.holdsPrivateKeys(), false);
-  assert.equal(signerFor(store, 'hub', { DEEDWRIT_SIGNER: 'nonsense' }).kind, 'disabled');
+  assert.equal(signerFor(store, 'hub', { VOUCHWELL_SIGNER: 'nonsense' }).kind, 'disabled');
 });
 
 test('an external signer records the public key and stores no private half', async () => {
@@ -170,10 +170,10 @@ test('an external signer records the public key and stores no private half', asy
   const db = openDatabase(':memory:');
   const store = new Store(db);
   const signer = signerFor(store, 'hub', {
-    DEEDWRIT_SIGNER: 'command',
-    DEEDWRIT_SIGNER_COMMAND: process.execPath,
-    DEEDWRIT_SIGNER_ARGS: script,
-    DEEDWRIT_PUBLIC_KEY: identity.publicKey,
+    VOUCHWELL_SIGNER: 'command',
+    VOUCHWELL_SIGNER_COMMAND: process.execPath,
+    VOUCHWELL_SIGNER_ARGS: script,
+    VOUCHWELL_PUBLIC_KEY: identity.publicKey,
   });
 
   assert.equal(signer.kind, 'command');
@@ -200,14 +200,14 @@ test('a hub signs checkpoints through an external signer, end to end', async () 
     apiRate: { capacity: 1e6, refillPerSec: 1e6 },
     ingestRate: { capacity: 1e6, refillPerSec: 1e6 },
     env: {
-      DEEDWRIT_HUB_SIGNER: 'command',
-      DEEDWRIT_HUB_SIGNER_COMMAND: process.execPath,
-      DEEDWRIT_HUB_SIGNER_ARGS: hubScript,
-      DEEDWRIT_HUB_PUBLIC_KEY: hubKey.identity.publicKey,
-      DEEDWRIT_WITNESS_SIGNER: 'command',
-      DEEDWRIT_WITNESS_SIGNER_COMMAND: process.execPath,
-      DEEDWRIT_WITNESS_SIGNER_ARGS: witScript,
-      DEEDWRIT_WITNESS_PUBLIC_KEY: witnessKey.identity.publicKey,
+      VOUCHWELL_HUB_SIGNER: 'command',
+      VOUCHWELL_HUB_SIGNER_COMMAND: process.execPath,
+      VOUCHWELL_HUB_SIGNER_ARGS: hubScript,
+      VOUCHWELL_HUB_PUBLIC_KEY: hubKey.identity.publicKey,
+      VOUCHWELL_WITNESS_SIGNER: 'command',
+      VOUCHWELL_WITNESS_SIGNER_COMMAND: process.execPath,
+      VOUCHWELL_WITNESS_SIGNER_ARGS: witScript,
+      VOUCHWELL_WITNESS_PUBLIC_KEY: witnessKey.identity.publicKey,
     },
   });
 
@@ -232,8 +232,8 @@ test('a hub signs checkpoints through an external signer, end to end', async () 
   const headers = { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
 
   // Push a few receipts from a local agent.
-  const { ProofLog } = await import('@deedwrit/core');
-  const { RemoteSink } = await import('@deedwrit/proxy/remote');
+  const { ProofLog } = await import('@vouchwell/core');
+  const { RemoteSink } = await import('@vouchwell/proxy/remote');
   const logDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pw-kms-log-'));
   const localLog = ProofLog.create(logDir);
   for (let i = 0; i < 4; i++) {
@@ -260,7 +260,7 @@ test('a hub signs checkpoints through an external signer, end to end', async () 
   })).json();
   assert.equal(signed.witness.kid, witnessKey.identity.kid);
   assert.equal(signed.logKey.kid, hubKey.identity.kid, 'the log is bound to the external hub key');
-  const { checkpointDigest } = await import('@deedwrit/core');
+  const { checkpointDigest } = await import('@vouchwell/core');
   assert.ok(
     verify(witnessKey.identity.publicKey, checkpointDigest(cp.body), signed.signature.sig),
     'the witness countersignature must verify over the checkpoint body',
@@ -270,7 +270,7 @@ test('a hub signs checkpoints through an external signer, end to end', async () 
   const bundle = await (await fetch(`${base}/v1/logs/kms-log/bundle`, { headers })).json();
   assert.ok(bundle.keyring[hubKey.identity.kid], 'the external hub key must travel with the bundle');
 
-  const { verifyBundle } = await import('@deedwrit/core');
+  const { verifyBundle } = await import('@vouchwell/core');
   const res = verifyBundle(bundle);
   assert.ok(res.ok, JSON.stringify(res.issues));
 
@@ -284,7 +284,7 @@ test('a disabled signer stops checkpoints but never stops ingest', async () => {
     apiRate: { capacity: 1e6, refillPerSec: 1e6 },
     ingestRate: { capacity: 1e6, refillPerSec: 1e6 },
     // No command configured, so both signers disable themselves.
-    env: { DEEDWRIT_SIGNER: 'command' },
+    env: { VOUCHWELL_SIGNER: 'command' },
   });
   assert.equal(hub.hubSigner.kind, 'disabled');
 
@@ -299,8 +299,8 @@ test('a disabled signer stops checkpoints but never stops ingest', async () => {
   }).token;
   const headers = { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
 
-  const { ProofLog } = await import('@deedwrit/core');
-  const { RemoteSink } = await import('@deedwrit/proxy/remote');
+  const { ProofLog } = await import('@vouchwell/core');
+  const { RemoteSink } = await import('@vouchwell/proxy/remote');
   const logDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pw-nokey-'));
   const localLog = ProofLog.create(logDir);
   localLog.append({

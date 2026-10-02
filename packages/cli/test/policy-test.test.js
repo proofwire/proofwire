@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { Policy } from '@deedwrit/core';
+import { Policy } from '@vouchwell/core';
 import { replay, recordedVerdict } from '../src/policy-test.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -116,11 +116,11 @@ function pw(cwd, args, input) {
   return { code: res.status, stdout: res.stdout, stderr: res.stderr };
 }
 
-test('dw policy test replays a monitored log, and --fail-on-change gates CI on it', () => {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-ptest-'));
+test('vw policy test replays a monitored log, and --fail-on-change gates CI on it', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-ptest-'));
   const write = (/** @type {string} */ name, /** @type {object} */ doc) =>
     fs.writeFileSync(path.join(cwd, name), JSON.stringify({ version: 1, name, ...doc }));
-  write('deedwrit.policy.json', { rules: [{ id: 'no-refunds', match: { target: 'refund' }, then: 'deny' }] });
+  write('vouchwell.policy.json', { rules: [{ id: 'no-refunds', match: { target: 'refund' }, then: 'deny' }] });
   write('open.json', { rules: [] });
   assert.equal(pw(cwd, ['init']).code, 0);
 

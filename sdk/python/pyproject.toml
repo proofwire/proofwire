@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "deedwrit"
+name = "vouchwell"
 version = "0.5.0"
-description = "Tamper-evident receipts for AI agent actions. Python SDK, wire-compatible with the deedwrit CLI."
+description = "Tamper-evident receipts for AI agent actions. Python SDK, wire-compatible with the vouchwell CLI."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
@@ -36,15 +36,15 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/deedwrit/deedwrit"
-Source = "https://github.com/deedwrit/deedwrit/tree/main/sdk/python"
-Issues = "https://github.com/deedwrit/deedwrit/issues"
+Homepage = "https://github.com/vouchwell/vouchwell"
+Source = "https://github.com/vouchwell/vouchwell/tree/main/sdk/python"
+Issues = "https://github.com/vouchwell/vouchwell/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-deedwrit = ["py.typed"]
+vouchwell = ["py.typed"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

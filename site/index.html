@@ -6,9 +6,9 @@
      nowhere. Scripts only from this origin, and the only requests it may make are to it. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Deedwrit — tamper-evident receipts for AI agents</title>
+<title>Vouchwell — tamper-evident receipts for AI agents</title>
 <meta name="description" content="Every AI agent action, policy-gated before it runs and cryptographically provable afterwards. Open source, no dependencies, verifiable by someone who has every reason to distrust you.">
-<meta property="og:title" content="Deedwrit — your agent's audit log is a text file">
+<meta property="og:title" content="Vouchwell — your agent's audit log is a text file">
 <meta property="og:description" content="Policy-gated before it runs, cryptographically provable afterwards. Check a real log in your browser.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
@@ -276,7 +276,7 @@
 
 <header class="top">
   <div class="wrap bar">
-    <a class="mark" href="./">deed<em>writ</em></a>
+    <a class="mark" href="./">vouch<em>well</em></a>
     <nav aria-label="Sections">
       <a href="#verify">Verify</a>
       <a class="opt" href="#how">How it works</a>
@@ -285,7 +285,7 @@
       <a href="#limits">Limits</a>
       <a class="opt" href="#start">Start</a>
     </nav>
-    <a class="btn btn-ghost gh" href="https://github.com/deedwrit/deedwrit">GitHub</a>
+    <a class="btn btn-ghost gh" href="https://github.com/vouchwell/vouchwell">GitHub</a>
   </div>
 </header>
 
@@ -297,14 +297,14 @@
       <h1>Your agent's audit log is a text file.</h1>
       <p class="lede measure">
         It sits on a disk a dozen people can write to, and it is held by the one
-        party with a motive to change it. Deedwrit makes every AI agent action
+        party with a motive to change it. Vouchwell makes every AI agent action
         <strong>policy-gated before it runs</strong> and
         <strong>cryptographically provable afterwards</strong> — checkable by
         someone who has every reason to distrust you.
       </p>
       <div class="cta-row">
         <a class="btn btn-solid" href="#verify">Check a real log</a>
-        <a class="btn btn-ghost" href="https://github.com/deedwrit/deedwrit">Read the source</a>
+        <a class="btn btn-ghost" href="https://github.com/vouchwell/vouchwell">Read the source</a>
       </div>
       <p class="status">
         <span>pre-1.0</span>
@@ -317,7 +317,7 @@
 
     <div>
       <div class="term" id="verify-term">
-        <div class="term-bar"><span>dw verify</span><span style="margin-left:auto">one field changed</span></div>
+        <div class="term-bar"><span>vw verify</span><span style="margin-left:auto">one field changed</span></div>
 <pre><span style="color:var(--ink-3)">Audit · lg_7cedb89a73c2a8e6</span>
 <span style="color:var(--ink-3)">─────────────────────────────────</span>
   entries      4
@@ -357,7 +357,7 @@
   <div class="tool" aria-label="Evidence bundle verifier">
     <div class="unsupported" id="unsupported" hidden>
       Your browser cannot verify Ed25519 signatures yet, so this page will not guess.
-      Use the command line instead: <code class="inl">dw check bundle.json</code>.
+      Use the command line instead: <code class="inl">vw check bundle.json</code>.
     </div>
 
     <div class="tool-bar">
@@ -370,7 +370,7 @@
     </div>
 
     <label class="dim mono" for="bundle" style="display:block;padding:8px 14px 0;font-size:.7rem">Paste a bundle, or drop a <span style="font-style:normal">.bundle.json</span> file onto the box. It is parsed here and goes nowhere.</label>
-    <textarea id="bundle" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder='{ "kind": "deedwrit.bundle", … }'></textarea>
+    <textarea id="bundle" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder='{ "kind": "vouchwell.bundle", … }'></textarea>
 
     <div class="cheats">
       <span class="label">Try to cheat</span>
@@ -395,7 +395,7 @@
           <label for="trusted">Witness keys you trust</label>
           <textarea id="trusted" spellcheck="false" autocomplete="off" placeholder="pw1… &lt;public key&gt;&#10;pw1… &lt;public key&gt;"></textarea>
           <small>One per line, <span style="font-family:var(--mono)">kid publicKey</span>, from the witness operators — never from the bundle.</small>
-          <button class="btn-sm" type="button" id="pin-deedwrit" hidden style="margin-top:8px">Add Deedwrit's witness keys</button>
+          <button class="btn-sm" type="button" id="pin-vouchwell" hidden style="margin-top:8px">Add Vouchwell's witness keys</button>
         </div>
         <div>
           <label for="min-witnesses">Require at least</label>
@@ -433,7 +433,7 @@
     <div>
       <h3>The same check offline</h3>
       <p>Nothing here needs this page. With the CLI:</p>
-      <pre class="term" style="padding:12px 14px;font-size:.72rem;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere">dw check bundle.json \
+      <pre class="term" style="padding:12px 14px;font-size:.72rem;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere">vw check bundle.json \
   --witnesses 1 \
   --witness-keys witnesses.json</pre>
     </div>
@@ -448,7 +448,7 @@
   <div class="cols">
     <div>
       <p class="measure">
-        Deedwrit sits between your agent and any MCP server, speaking the same
+        Vouchwell sits between your agent and any MCP server, speaking the same
         protocol to both. Everything that isn't a tool call passes through
         untouched — which matters, because MCP gains methods faster than any
         proxy can track.
@@ -462,7 +462,7 @@
   "args": ["-y", "@acme/mcp-crm"] }
 
 <span style="color:var(--ink-3)">// after</span>
-{ "command": <span class="ok">"dw"</span>,
+{ "command": <span class="ok">"vw"</span>,
   "args": [<span class="ok">"proxy"</span>, "--namespace", "crm",
            <span class="ok">"--"</span>, "npx", "-y", "@acme/mcp-crm"] }</pre>
     </div>
@@ -496,7 +496,7 @@
       <p style="font-size:.95rem;color:var(--ink-2);margin:0"><strong>Budgets commit at decision time.</strong> Spend recorded on completion means three pipelined refunds all evaluate against an empty ledger, and every one passes a cap they collectively blow through.</p>
     </div>
     <div class="term">
-      <div class="term-bar"><span>deedwrit.policy.json</span></div>
+      <div class="term-bar"><span>vouchwell.policy.json</span></div>
 <pre>{
   "version": 1,
   "rules": [
@@ -527,12 +527,12 @@
       <p style="font-size:.95rem;color:var(--ink-2);margin:0">They're ordinary policy, so you can read and edit them. Combine any of them, then replay last week's recorded calls against the result to see exactly what it would have blocked, before it blocks anything.</p>
     </div>
     <div class="term">
-      <div class="term-bar"><span>dw policy template</span></div>
-<pre>$ dw policy template secrets destructive-sql \
-    --out deedwrit.policy.json
-<span class="ok">✓</span> Wrote deedwrit.policy.json: secrets, destructive-sql
+      <div class="term-bar"><span>vw policy template</span></div>
+<pre>$ vw policy template secrets destructive-sql \
+    --out vouchwell.policy.json
+<span class="ok">✓</span> Wrote vouchwell.policy.json: secrets, destructive-sql
 
-$ dw policy test deedwrit.policy.json
+$ vw policy test vouchwell.policy.json
   replayed        3 calls
   unchanged       2
   changed         1
@@ -582,7 +582,7 @@ $ dw policy test deedwrit.policy.json
       <p style="font-size:.97rem"><strong>And it happens without anyone remembering to.</strong> List your witnesses once, and every session ends with each of them signing. A witness restored from a backup catches up from a journal it keeps outside its database, rather than forgetting what it signed and vouching for a fork.</p>
       <div class="term">
         <div class="term-bar"><span>auditor</span></div>
-<pre>$ dw check evidence.json \
+<pre>$ vw check evidence.json \
     --witnesses 2 --witness-keys witnesses.json
 
 <span class="ok">✓ Verified.</span> Every receipt is signed and
@@ -594,7 +594,7 @@ $ dw policy test deedwrit.policy.json
       <p style="font-size:.97rem">A deletion request and an immutable audit trail are, on the face of it, two duties in direct conflict. Salted commitments dissolve it.</p>
       <p style="font-size:.97rem"><strong>Destroy the salts, keep the proof.</strong> Those payloads become permanently unopenable — by you, by a court, by whoever steals the directory in 2029 — while every signature, chain link and inclusion proof still verifies.</p>
       <div class="term">
-        <div class="term-bar"><span>dw shred --before 2026-01-01 --yes</span></div>
+        <div class="term-bar"><span>vw shred --before 2026-01-01 --yes</span></div>
 <pre><span class="ok">✓</span> shredded 1 payload commitment
 <span class="ok">✓</span> the audit trail still verifies
   end to end</pre>
@@ -623,19 +623,19 @@ $ dw policy test deedwrit.policy.json
     </div>
     <div class="term">
       <div class="term-bar"><span>from source</span></div>
-<pre>$ git clone https://github.com/deedwrit/deedwrit
-$ cd deedwrit &amp;&amp; npm install
+<pre>$ git clone https://github.com/vouchwell/vouchwell
+$ cd vouchwell &amp;&amp; npm install
 
 $ npm run hub -- bootstrap
 $ npm run hub -- serve
 
-$ dw remote add --url http://localhost:8787 \
+$ vw remote add --url http://localhost:8787 \
     --token &lt;agent token&gt;
-$ dw proxy --namespace crm -- npx -y @acme/mcp-crm
+$ vw proxy --namespace crm -- npx -y @acme/mcp-crm
 
-<span style="color:var(--ink-3)">deedwrit: policy default v1 (7991cca9) from http://localhost:8787</span>
+<span style="color:var(--ink-3)">vouchwell: policy default v1 (7991cca9) from http://localhost:8787</span>
 <span class="bad">blocked</span> ops.refund — budget refunds.daily would be exceeded
-<span style="color:var(--ink-3)">deedwrit · 11 receipts · 2 blocked · hub in sync</span></pre>
+<span style="color:var(--ink-3)">vouchwell · 11 receipts · 2 blocked · hub in sync</span></pre>
     </div>
   </div>
 
@@ -649,17 +649,17 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
   </div>
 
   <div class="wkeys" id="witness-keys">
-    <h3>Deedwrit's witness keys</h3>
+    <h3>Vouchwell's witness keys</h3>
     <p class="measure" id="witness-keys-status">Loading the published record…</p>
     <ul class="wkey-list" id="witness-key-list" hidden></ul>
     <p class="measure wkeys-note">
-      This page is served by Deedwrit, so it is not what makes these keys trustworthy. The
-      <a href="https://github.com/deedwrit/deedwrit/blob/main/witnesses/keys.json">record</a> is
+      This page is served by Vouchwell, so it is not what makes these keys trustworthy. The
+      <a href="https://github.com/vouchwell/vouchwell/blob/main/witnesses/keys.json">record</a> is
       append-only and every change is a public commit — its
-      <a href="https://github.com/deedwrit/deedwrit/commits/main/witnesses/keys.json">history</a>
+      <a href="https://github.com/vouchwell/vouchwell/commits/main/witnesses/keys.json">history</a>
       is what shows a key was never quietly swapped. Pin from a commit you trust, as the
-      <a href="https://github.com/deedwrit/deedwrit/blob/main/witnesses/README.md">record's README</a>
-      explains. And a Deedwrit witness is redundancy, not independence, for a log Deedwrit also hosts.
+      <a href="https://github.com/vouchwell/vouchwell/blob/main/witnesses/README.md">record's README</a>
+      explains. And a Vouchwell witness is redundancy, not independence, for a log Vouchwell also hosts.
     </p>
   </div>
 </section>
@@ -700,7 +700,7 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
         <li>1M receipts/mo, 1yr retention</li>
         <li>Slack approvals</li>
       </ul>
-      <a class="btn-sm" href="https://github.com/deedwrit/deedwrit/issues/new?labels=waitlist&amp;title=Waitlist%3A%20Team%20%28%2499%2Fmo%29&amp;body=Interested%20in%20the%20Team%20tier%3A%203%20hosted%20witnesses%2C%201M%20receipts%2Fmo%2C%201yr%20retention%2C%20Slack%20approvals.%0A%0AWhat%20you%27re%20running%2C%20roughly%20how%20many%20actions%2Fmo%2C%20and%20how%20you%27d%20like%20to%20be%20reached%3A%0A">Get notified</a>
+      <a class="btn-sm" href="https://github.com/vouchwell/vouchwell/issues/new?labels=waitlist&amp;title=Waitlist%3A%20Team%20%28%2499%2Fmo%29&amp;body=Interested%20in%20the%20Team%20tier%3A%203%20hosted%20witnesses%2C%201M%20receipts%2Fmo%2C%201yr%20retention%2C%20Slack%20approvals.%0A%0AWhat%20you%27re%20running%2C%20roughly%20how%20many%20actions%2Fmo%2C%20and%20how%20you%27d%20like%20to%20be%20reached%3A%0A">Get notified</a>
       <p class="soon">Not yet live — see below</p>
     </div>
     <div class="tier">
@@ -712,7 +712,7 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
         <li>25M receipts, 7yr retention</li>
         <li>AI Act / SOC 2 / ISO 42001 exports, SSO</li>
       </ul>
-      <a class="btn-sm" href="https://github.com/deedwrit/deedwrit/issues/new?labels=waitlist&amp;title=Waitlist%3A%20Business%20%28%24999%2Fmo%29&amp;body=Interested%20in%20the%20Business%20tier%3A%205%20witnesses%20across%20orgs%2C%2025M%20receipts%2C%207yr%20retention%2C%20compliance%20exports%2C%20SSO.%0A%0AWhat%20you%27re%20running%2C%20roughly%20how%20many%20actions%2Fmo%2C%20and%20how%20you%27d%20like%20to%20be%20reached%3A%0A">Get notified</a>
+      <a class="btn-sm" href="https://github.com/vouchwell/vouchwell/issues/new?labels=waitlist&amp;title=Waitlist%3A%20Business%20%28%24999%2Fmo%29&amp;body=Interested%20in%20the%20Business%20tier%3A%205%20witnesses%20across%20orgs%2C%2025M%20receipts%2C%207yr%20retention%2C%20compliance%20exports%2C%20SSO.%0A%0AWhat%20you%27re%20running%2C%20roughly%20how%20many%20actions%2Fmo%2C%20and%20how%20you%27d%20like%20to%20be%20reached%3A%0A">Get notified</a>
       <p class="soon">Not yet live — see below</p>
     </div>
     <div class="tier">
@@ -724,7 +724,7 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
         <li>Private witnesses, custom retention</li>
         <li>Audit support, SLA</li>
       </ul>
-      <a class="btn-sm" href="https://github.com/deedwrit/deedwrit/issues/new?labels=waitlist&amp;title=Waitlist%3A%20Enterprise&amp;body=Enterprise%20inquiry%3A%20BYOK%2FHSM%2C%20private%20witnesses%2C%20custom%20retention%2C%20audit%20support%2C%20SLA.%0A%0ACompany%2C%20rough%20scale%2C%20and%20how%20you%27d%20like%20to%20be%20reached%3A%0A">Talk to us</a>
+      <a class="btn-sm" href="https://github.com/vouchwell/vouchwell/issues/new?labels=waitlist&amp;title=Waitlist%3A%20Enterprise&amp;body=Enterprise%20inquiry%3A%20BYOK%2FHSM%2C%20private%20witnesses%2C%20custom%20retention%2C%20audit%20support%2C%20SLA.%0A%0ACompany%2C%20rough%20scale%2C%20and%20how%20you%27d%20like%20to%20be%20reached%3A%0A">Talk to us</a>
       <p class="soon">Not yet live — see below</p>
     </div>
     <div class="tier">
@@ -736,7 +736,7 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
         <li>A distribution channel and a node</li>
         <li>First movers set the terms</li>
       </ul>
-      <a class="btn-sm" href="https://github.com/deedwrit/deedwrit/issues/new?labels=waitlist&amp;title=Waitlist%3A%20Witness%20operator&amp;body=Interested%20in%20running%20an%20independent%20witness%20node%20%28revenue%20share%29.%20We%20are%20an%20audit%20firm%20%2F%20insurer%20%2F%20other%3A%0A%0AHow%20you%27d%20like%20to%20be%20reached%3A%0A">Talk to us</a>
+      <a class="btn-sm" href="https://github.com/vouchwell/vouchwell/issues/new?labels=waitlist&amp;title=Waitlist%3A%20Witness%20operator&amp;body=Interested%20in%20running%20an%20independent%20witness%20node%20%28revenue%20share%29.%20We%20are%20an%20audit%20firm%20%2F%20insurer%20%2F%20other%3A%0A%0AHow%20you%27d%20like%20to%20be%20reached%3A%0A">Talk to us</a>
       <p class="soon">Not yet live — see below</p>
     </div>
   </div>
@@ -748,7 +748,7 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
     real independent operators — not just more code — so they aren't live
     yet. <strong>Get notified</strong> opens a public GitHub issue (no account
     required to read it, one to post); if you'd rather not post publicly,
-    <a href="https://github.com/deedwrit/deedwrit/blob/main/SECURITY.md">SECURITY.md</a>
+    <a href="https://github.com/vouchwell/vouchwell/blob/main/SECURITY.md">SECURITY.md</a>
     has the private route.
   </p>
 </section>
@@ -761,7 +761,7 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
   <p class="lede measure" style="margin-bottom:26px">A security tool that overstates its guarantees is worse than none, because it buys confidence it hasn't earned.</p>
 
   <ul class="limits measure">
-    <li><strong>The cryptography has not been reviewed by anyone independent.</strong> It is checked against published RFC 6962 and RFC 8032 vectors rather than only against itself, and against a second implementation that shares none of its code — which is not the same thing. A <a href="https://github.com/deedwrit/deedwrit/blob/main/docs/AUDIT-BRIEF.md">review brief</a> is written and waiting.</li>
+    <li><strong>The cryptography has not been reviewed by anyone independent.</strong> It is checked against published RFC 6962 and RFC 8032 vectors rather than only against itself, and against a second implementation that shares none of its code — which is not the same thing. A <a href="https://github.com/vouchwell/vouchwell/blob/main/docs/AUDIT-BRIEF.md">review brief</a> is written and waiting.</li>
     <li><strong>It cannot prove an action it never saw.</strong> An agent with a second, unwrapped path to the same API leaves no receipt. This is the most likely real-world failure, and it is a deployment problem, not a cryptographic one.</li>
     <li><strong>It cannot stop someone with the signing key writing false receipts going forward.</strong> It can stop them rewriting the past, once a checkpoint has been witnessed. Keep the key in a KMS.</li>
     <li><strong>Witnesses are only as independent as you make them.</strong> Three witnesses on infrastructure you control are one witness.</li>
@@ -773,8 +773,8 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
     <summary>Known limits, in full</summary>
     <p class="measure" style="margin-top:12px;font-size:.95rem;color:var(--ink-2)">
       The full analysis lives in the repository:
-      the <a href="https://github.com/deedwrit/deedwrit/blob/main/docs/THREAT-MODEL.md">threat model</a> and
-      <a href="https://github.com/deedwrit/deedwrit/blob/main/SECURITY.md">how to report a vulnerability</a>.
+      the <a href="https://github.com/vouchwell/vouchwell/blob/main/docs/THREAT-MODEL.md">threat model</a> and
+      <a href="https://github.com/vouchwell/vouchwell/blob/main/SECURITY.md">how to report a vulnerability</a>.
     </p>
   </details>
 </section>
@@ -788,18 +788,18 @@ $ dw proxy --namespace crm -- npx -y @acme/mcp-crm
     <div>
       <div class="term" id="install-npm" hidden style="margin-bottom:18px">
         <div class="term-bar"><span>from npm</span><span style="margin-left:auto">v<span id="npm-version"></span></span></div>
-<pre>$ npm install -g deedwrit
-$ dw init
-$ dw proxy --namespace crm -- npx -y @acme/mcp-crm</pre>
+<pre>$ npm install -g vouchwell
+$ vw init
+$ vw proxy --namespace crm -- npx -y @acme/mcp-crm</pre>
       </div>
       <div class="term">
         <div class="term-bar"><span id="install-source-title">From source</span></div>
-<pre>$ git clone https://github.com/deedwrit/deedwrit
-$ cd deedwrit &amp;&amp; npm install
+<pre>$ git clone https://github.com/vouchwell/vouchwell
+$ cd vouchwell &amp;&amp; npm install
 
 $ npm run demo              <span style="color:var(--ink-3)"># attacks a real log four ways</span>
-$ npm run dw -- init
-$ npm run dw -- proxy --namespace crm -- npx -y @acme/mcp-crm</pre>
+$ npm run vw -- init
+$ npm run vw -- proxy --namespace crm -- npx -y @acme/mcp-crm</pre>
       </div>
     </div>
 
@@ -807,9 +807,9 @@ $ npm run dw -- proxy --namespace crm -- npx -y @acme/mcp-crm</pre>
       <p class="measure">Node 22.13 or newer for the hub; the core and the CLI run on Node 20.11. No dependencies to install — the whole thing is the standard library.</p>
       <p class="measure">The verifier, the format, the policy engine and the proxy are Apache-2.0 and stay that way. Evidence you can't check without a vendor's permission isn't evidence.</p>
       <div class="cta-row" style="margin-top:8px">
-        <a class="btn btn-solid" href="https://github.com/deedwrit/deedwrit">GitHub</a>
-        <a class="btn btn-ghost" href="https://github.com/deedwrit/deedwrit/blob/main/docs/THREAT-MODEL.md">Threat model</a>
-        <a class="btn btn-ghost" href="https://github.com/deedwrit/deedwrit/blob/main/docs/HUB.md">Run the hub</a>
+        <a class="btn btn-solid" href="https://github.com/vouchwell/vouchwell">GitHub</a>
+        <a class="btn btn-ghost" href="https://github.com/vouchwell/vouchwell/blob/main/docs/THREAT-MODEL.md">Threat model</a>
+        <a class="btn btn-ghost" href="https://github.com/vouchwell/vouchwell/blob/main/docs/HUB.md">Run the hub</a>
       </div>
     </div>
   </div>
@@ -819,25 +819,25 @@ $ npm run dw -- proxy --namespace crm -- npx -y @acme/mcp-crm</pre>
 <footer>
   <div class="wrap foot">
     <div>
-      <span class="mark" style="font-size:.95rem">deed<em>writ</em></span>
+      <span class="mark" style="font-size:.95rem">vouch<em>well</em></span>
       <p style="margin:8px 0 0;max-width:38ch">Tamper-evident receipts for AI agent actions. Pre-1.0: the format is versioned and will be migrated rather than broken.</p>
     </div>
     <div>
       <span class="label">Project</span>
       <ul>
-        <li><a href="https://github.com/deedwrit/deedwrit">Source</a></li>
-        <li><a href="https://github.com/deedwrit/deedwrit/issues">Issues</a></li>
-        <li><a href="https://github.com/deedwrit/deedwrit/blob/main/SECURITY.md">Security policy</a></li>
-        <li><a href="https://github.com/deedwrit/deedwrit/blob/main/evidence/README.md">How this was built</a></li>
+        <li><a href="https://github.com/vouchwell/vouchwell">Source</a></li>
+        <li><a href="https://github.com/vouchwell/vouchwell/issues">Issues</a></li>
+        <li><a href="https://github.com/vouchwell/vouchwell/blob/main/SECURITY.md">Security policy</a></li>
+        <li><a href="https://github.com/vouchwell/vouchwell/blob/main/evidence/README.md">How this was built</a></li>
       </ul>
     </div>
     <div>
       <span class="label">Docs</span>
       <ul>
-        <li><a href="https://github.com/deedwrit/deedwrit/blob/main/docs/THREAT-MODEL.md">Threat model</a></li>
-        <li><a href="https://github.com/deedwrit/deedwrit/blob/main/docs/AUDIT-BRIEF.md">Audit brief</a></li>
-        <li><a href="https://github.com/deedwrit/deedwrit/blob/main/docs/HUB.md">Hub guide</a></li>
-        <li><a href="https://github.com/deedwrit/deedwrit/blob/main/docs/CODING-AGENTS.md">Coding agents</a></li>
+        <li><a href="https://github.com/vouchwell/vouchwell/blob/main/docs/THREAT-MODEL.md">Threat model</a></li>
+        <li><a href="https://github.com/vouchwell/vouchwell/blob/main/docs/AUDIT-BRIEF.md">Audit brief</a></li>
+        <li><a href="https://github.com/vouchwell/vouchwell/blob/main/docs/HUB.md">Hub guide</a></li>
+        <li><a href="https://github.com/vouchwell/vouchwell/blob/main/docs/CODING-AGENTS.md">Coding agents</a></li>
       </ul>
     </div>
   </div>

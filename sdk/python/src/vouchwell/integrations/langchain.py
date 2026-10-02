@@ -1,9 +1,9 @@
 """Record, and check, every call a LangChain or LangGraph agent makes to its tools.
 
-    from deedwrit import ProofLog, Recorder
-    from deedwrit.integrations.langchain import record_tools
+    from vouchwell import ProofLog, Recorder
+    from vouchwell.integrations.langchain import record_tools
 
-    rec = Recorder(ProofLog.open(".deedwrit"), agent="support-bot", principal="ops@acme.com", decide=my_rules)
+    rec = Recorder(ProofLog.open(".vouchwell"), agent="support-bot", principal="ops@acme.com", decide=my_rules)
     tools = record_tools(rec, [search, refund])       # use these in place of the originals
     agent = create_react_agent(model, tools)
 
@@ -24,7 +24,7 @@ try:
     from langchain_core.tools import BaseTool, StructuredTool
 except ImportError as err:  # pragma: no cover - exercised only without the package
     raise ImportError(
-        "deedwrit.integrations.langchain needs langchain-core: pip install langchain-core"
+        "vouchwell.integrations.langchain needs langchain-core: pip install langchain-core"
     ) from err
 
 

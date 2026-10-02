@@ -2,13 +2,13 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { ProofLog, verifyBundle, Policy, verifyInclusion, unhex, generateIdentity, findUnfinished, adoptLegacyEnv } from '@deedwrit/core';
-import { McpProxy, auditPolicyMetrics } from '@deedwrit/proxy';
+import { ProofLog, verifyBundle, Policy, verifyInclusion, unhex, generateIdentity, findUnfinished, adoptLegacyEnv } from '@vouchwell/core';
+import { McpProxy, auditPolicyMetrics } from '@vouchwell/proxy';
 import { cmdPolicyTest } from './policy-test.js';
 import { cmdReport } from './report.js';
 import { cmdPolicyTemplates, cmdPolicyTemplate, templatePolicyText } from './policy-templates.js';
-import { RemoteSink, hubApprover, fetchPolicy } from '@deedwrit/proxy/remote';
-import { approverFrom } from '@deedwrit/proxy/approve';
+import { RemoteSink, hubApprover, fetchPolicy } from '@vouchwell/proxy/remote';
+import { approverFrom } from '@vouchwell/proxy/approve';
 import { c, out, err, ok, bad, warn, info, heading, kv, table, outcomeBadge, parseArgs } from './ui.js';
 import { witnessKeysFrom } from './witness-keys.js';
 import { LOG_DIR, CONFIG_FILE, POLICY_FILE } from './legacy-paths.js';
@@ -20,13 +20,13 @@ import {
 } from './remote-cmds.js';
 
 // Read from the package, not written here: a version typed into source is one
-// more place for a release to forget, and `dw --version` lying is worse than
+// more place for a release to forget, and `vw --version` lying is worse than
 // it saying nothing.
 const { version: VERSION } = createRequire(import.meta.url)('../package.json');
 // New projects get these names; one set up before the rename keeps its
 // proofwire.* files (see legacy-paths.js).
-const CONFIG = 'deedwrit.config.json';
-const POLICY = 'deedwrit.policy.json';
+const CONFIG = 'vouchwell.config.json';
+const POLICY = 'vouchwell.policy.json';
 
 /**
  * @param {any} args
@@ -101,7 +101,7 @@ const STARTER_POLICY = `{
 `;
 
 const STARTER_CONFIG = {
-  log: '.deedwrit',
+  log: '.vouchwell',
   policy: POLICY,
   actor: {
     agent: 'claude-opus-5',
@@ -158,20 +158,20 @@ function cmdInit(args) {
   writeIfAbsent(CONFIG, JSON.stringify(STARTER_CONFIG, null, 2) + '\n');
 
   const gitignore = '.gitignore';
-  const rules = ['.deedwrit/key.pem', '.deedwrit/salts.jsonl'];
+  const rules = ['.vouchwell/key.pem', '.vouchwell/salts.jsonl'];
   const existing = readIfPresent(gitignore);
   const missing = rules.filter((r) => !existing.includes(r));
   if (missing.length) {
     fs.appendFileSync(
       gitignore,
       (existing && !existing.endsWith('\n') ? '\n' : '') +
-        '\n# Deedwrit: the signing key and the commitment salts never get committed\n' +
+        '\n# Vouchwell: the signing key and the commitment salts never get committed\n' +
         missing.join('\n') +
         '\n',
     );
   }
 
-  heading('Deedwrit initialised');
+  heading('Vouchwell initialised');
   kv([
     ['log', log.logId],
     ['key', log.identity.kid],
@@ -181,14 +181,14 @@ function cmdInit(args) {
   ]);
   out('');
   if (args.template && !wrotePolicy) {
-    info(`--template was not applied: ${POLICY} already exists. ${c.cyan('dw policy template <ids> --out <file>')} writes one elsewhere.`);
+    info(`--template was not applied: ${POLICY} already exists. ${c.cyan('vw policy template <ids> --out <file>')} writes one elsewhere.`);
     out('');
   }
   info('Commit entries.jsonl and checkpoints.jsonl. Never commit key.pem or salts.jsonl.');
   out('');
   out(`  Next: wrap an MCP server so every call it makes gets a receipt.`);
   out('');
-  out(c.cyan('    dw proxy --namespace crm -- npx -y @acme/mcp-crm'));
+  out(c.cyan('    vw proxy --namespace crm -- npx -y @acme/mcp-crm'));
   out('');
   return 0;
 }
@@ -197,7 +197,7 @@ function cmdInit(args) {
 async function cmdProxy(args) {
   if (args.rest.length === 0) {
     bad('nothing to wrap. Put the MCP server command after `--`:');
-    out(c.cyan('  dw proxy --namespace crm -- npx -y @acme/mcp-crm'));
+    out(c.cyan('  vw proxy --namespace crm -- npx -y @acme/mcp-crm'));
     return 2;
   }
   const { dir, config } = loadConfig(args);
@@ -218,12 +218,12 @@ async function cmdProxy(args) {
       const active = await fetchPolicy({ url: remote.url, token: remote.token, slug });
       if (active) {
         policy = new Policy(active.policy);
-        err(c.grey(`deedwrit: policy ${slug} v${active.version} (${active.hash.slice(0, 8)}) from ${remote.url}`));
+        err(c.grey(`vouchwell: policy ${slug} v${active.version} (${active.hash.slice(0, 8)}) from ${remote.url}`));
       }
     } catch (e) {
       // Falling back to the local policy is right; falling back to *no* policy
       // would quietly turn enforcement off because a network call failed.
-      err(c.yellow(`deedwrit: could not fetch policy from the hub (${e.message}); using the local file`));
+      err(c.yellow(`vouchwell: could not fetch policy from the hub (${e.message}); using the local file`));
     }
   }
   if (!policy) policy = loadPolicy(config, args);
@@ -231,7 +231,7 @@ async function cmdProxy(args) {
   // A budget nobody can compute is worse than no budget: it reads as
   // protection in the policy document while enforcing nothing.
   for (const w of auditPolicyMetrics(policy, config.metrics ?? {})) {
-    err(c.yellow(`deedwrit: ${w}`));
+    err(c.yellow(`vouchwell: ${w}`));
   }
 
   // Monitor mode is chosen per machine, never by the hub: a policy pushed from
@@ -246,7 +246,7 @@ async function cmdProxy(args) {
       token: remote.token,
       log: logSlug,
       localLog: log,
-      onLog: (level, msg) => err(level === 'error' ? c.red(`deedwrit: ${msg}`) : c.grey(`deedwrit: ${msg}`)),
+      onLog: (level, msg) => err(level === 'error' ? c.red(`vouchwell: ${msg}`) : c.grey(`vouchwell: ${msg}`)),
     });
     if (await sink.connect()) sink.start();
   }
@@ -274,14 +274,14 @@ async function cmdProxy(args) {
   // nothing but protocol.
   err(
     c.grey(
-      `deedwrit ${VERSION} · log ${log.logId} · policy ${policy.name} ` +
+      `vouchwell ${VERSION} · log ${log.logId} · policy ${policy.name} ` +
         `(${policy.hash.slice(0, 8)}) · wrapping: ${args.rest.join(' ')}`,
     ),
   );
   if (monitor) {
     err(
       c.yellow(
-        'deedwrit: MONITOR MODE — nothing will be blocked. Every call is forwarded; ' +
+        'vouchwell: MONITOR MODE — nothing will be blocked. Every call is forwarded; ' +
           'what the policy would have stopped is recorded, not enforced. Use --enforce to gate.',
       ),
     );
@@ -297,7 +297,7 @@ async function cmdProxy(args) {
     try {
       proxy.finalize();
     } catch (e) {
-      err(`deedwrit: could not finalize the log: ${e.message}`);
+      err(`vouchwell: could not finalize the log: ${e.message}`);
     }
   };
 
@@ -314,16 +314,16 @@ async function cmdProxy(args) {
     for (const name of names) {
       const remote = remotes[name];
       if (!remote) {
-        err(c.yellow(`deedwrit: witness "${name}" is not a configured remote; dw remote add --name ${name} …`));
+        err(c.yellow(`vouchwell: witness "${name}" is not a configured remote; vw remote add --name ${name} …`));
         continue;
       }
       try {
         const res = await witnessWith(log, { name, ...remote });
-        err(c.grey(`deedwrit: witnessed by ${name} (${res.witness.kid}) at size ${res.checkpoint.body.size}`));
+        err(c.grey(`vouchwell: witnessed by ${name} (${res.witness.kid}) at size ${res.checkpoint.body.size}`));
       } catch (e) {
         const refusal = /** @type {any} */ (e);
-        err((refusal.alarming ? c.red : c.yellow)(`deedwrit: witness ${name} refused: ${refusal.message}`));
-        explainRefusal(refusal, log, (msg) => err(c.yellow(`deedwrit: ${msg}`)));
+        err((refusal.alarming ? c.red : c.yellow)(`vouchwell: witness ${name} refused: ${refusal.message}`));
+        explainRefusal(refusal, log, (msg) => err(c.yellow(`vouchwell: ${msg}`)));
       }
     }
   };
@@ -349,7 +349,7 @@ async function cmdProxy(args) {
   const s = proxy.stats;
   err(
     c.grey(
-      `deedwrit · ${log.size} receipts · ${s.forwarded} allowed · ${s.denied} blocked · ` +
+      `vouchwell · ${log.size} receipts · ${s.forwarded} allowed · ${s.denied} blocked · ` +
         `${s.approved}/${s.escalated} approvals · ` +
         (monitor ? `${s.wouldDeny + s.wouldEscalate} would have been stopped (monitor mode) · ` : '') +
         `root ${log.root.slice(0, 16)}…` +
@@ -430,7 +430,7 @@ function reportUnfinished(entries) {
       c.grey(String(u.seq)), u.ts, u.target, c.grey(u.principal), c.grey(u.session), c.yellow(u.why),
     ]),
   );
-  if (all.length > 20) out(c.grey(`  …and ${all.length - 20} more: dw log --unfinished`));
+  if (all.length > 20) out(c.grey(`  …and ${all.length - 20} more: vw log --unfinished`));
   out('');
   warn('Whether these happened is not in the log: check each with the system it called.');
   out('');
@@ -496,7 +496,7 @@ function cmdLog(args) {
 function cmdExport(args) {
   const { dir } = loadConfig(args);
   const log = ProofLog.open(dir, { readOnly: true });
-  const file = args._[1] ?? `deedwrit-${log.logId}-${Date.now()}.bundle.json`;
+  const file = args._[1] ?? `vouchwell-${log.logId}-${Date.now()}.bundle.json`;
 
   /** @type {((r: any) => boolean)|undefined} */
   let filter;
@@ -521,7 +521,7 @@ function cmdExport(args) {
   ]);
   out('');
   info('This bundle contains no payloads and no salts — it is safe to send.');
-  info(`The recipient verifies it with:  ${c.cyan(`dw check ${path.basename(file)}`)}`);
+  info(`The recipient verifies it with:  ${c.cyan(`vw check ${path.basename(file)}`)}`);
   out('');
   return 0;
 }
@@ -530,7 +530,7 @@ function cmdExport(args) {
 function cmdCheck(args) {
   const file = args._[1];
   if (!file) {
-    bad('which bundle? `dw check <file.bundle.json>`');
+    bad('which bundle? `vw check <file.bundle.json>`');
     return 2;
   }
   // Strict: `Number('abc')` is NaN, and a NaN minimum used to compare false
@@ -572,13 +572,13 @@ function cmdCheck(args) {
       out('');
       warn('This bundle carries witness signatures, but none were checked against keys you chose.');
       warn('The bundle\'s own keyring cannot vouch for its witnesses. Pin the ones you trust:');
-      warn(`  ${c.cyan('dw check <file> --witnesses N --witness-key <kid>=<publicKey>')}`);
+      warn(`  ${c.cyan('vw check <file> --witnesses N --witness-key <kid>=<publicKey>')}`);
     }
     if (bundle.partial) {
       out('');
       warn('This is a filtered export. Each entry shown is proven genuine, but the');
       warn('bundle cannot prove that nothing relevant was left out. Ask for a full');
-      warn(`export, or compare the root against a witness: ${c.cyan('dw check --root <root>')}`);
+      warn(`export, or compare the root against a witness: ${c.cyan('vw check --root <root>')}`);
     }
     out('');
     return 0;
@@ -597,7 +597,7 @@ function cmdProve(args) {
   const log = ProofLog.open(dir, { readOnly: true });
   const seq = Number(args._[1]);
   if (!Number.isInteger(seq)) {
-    bad('which entry? `dw prove <seq>`');
+    bad('which entry? `vw prove <seq>`');
     return 2;
   }
   const proof = log.proofFor(seq);
@@ -710,7 +710,7 @@ function cmdKeys(args) {
 
 /** @param {any} args */
 function cmdWitness(args) {
-  const dir = path.resolve(args.out ?? '.deedwrit-witness');
+  const dir = path.resolve(args.out ?? '.vouchwell-witness');
   if (args._[1] === 'keygen') {
     const { identity, privateKeyPem } = generateIdentity();
     fs.mkdirSync(dir, { recursive: true });
@@ -723,11 +723,11 @@ function cmdWitness(args) {
     kv([['kid', identity.kid], ['dir', dir]]);
     out('');
     info('Give the kid and public key to every log that should be witnessed:');
-    out(`  ${c.cyan(`dw trust ${identity.kid} ${identity.publicKey}`)}`);
+    out(`  ${c.cyan(`vw trust ${identity.kid} ${identity.publicKey}`)}`);
     out('');
     return 0;
   }
-  bad('usage: dw witness keygen [--out <dir>]');
+  bad('usage: vw witness keygen [--out <dir>]');
   return 2;
 }
 
@@ -736,7 +736,7 @@ function cmdTrust(args) {
   const { dir } = loadConfig(args);
   const [, kid, pub] = args._;
   if (!kid || !pub) {
-    bad('usage: dw trust <kid> <publicKey>');
+    bad('usage: vw trust <kid> <publicKey>');
     return 2;
   }
   const log = ProofLog.open(dir);
@@ -819,10 +819,10 @@ function cmdStats(args) {
 /** @param {any} args */
 async function cmdDash(args) {
   const { dir } = loadConfig(args);
-  const { serve } = await import('@deedwrit/dashboard');
+  const { serve } = await import('@vouchwell/dashboard');
   const port = Number(args.port ?? 7788);
   const url = await serve({ dir, port });
-  heading('Deedwrit dashboard');
+  heading('Vouchwell dashboard');
   kv([['url', c.cyan(url)], ['log', path.relative(process.cwd(), dir) || '.']]);
   out('');
   info('Ctrl-C to stop.');
@@ -831,52 +831,52 @@ async function cmdDash(args) {
 
 function cmdHelp() {
   out('');
-  out(`  ${c.bold('deedwrit')} ${c.grey(VERSION)} — tamper-evident receipts for AI agent actions`);
+  out(`  ${c.bold('vouchwell')} ${c.grey(VERSION)} — tamper-evident receipts for AI agent actions`);
   out('');
   out(`  ${c.bold('Setup')}`);
-  out(`    ${c.cyan('dw init')}                        create a log, a starter policy, and a config  ${c.grey('[--template a,b]')}`);
+  out(`    ${c.cyan('vw init')}                        create a log, a starter policy, and a config  ${c.grey('[--template a,b]')}`);
   out('');
   out(`  ${c.bold('Run')}`);
-  out(`    ${c.cyan('dw proxy -- <cmd...>')}           wrap an MCP server; enforce policy, write receipts`);
+  out(`    ${c.cyan('vw proxy -- <cmd...>')}           wrap an MCP server; enforce policy, write receipts`);
   out(`      ${c.grey('--namespace <ns>')}            prefix tool names in receipts`);
   out(`      ${c.grey('--principal <id>')}            who the agent is acting for`);
   out(`      ${c.grey('--approve tty|webhook|deny')}  how escalations get resolved`);
   out(`      ${c.grey('--no-remote')}                 record locally only, ignore the hub`);
   out(`      ${c.grey('--monitor')}                   block nothing; record what policy would block`);
   out(`      ${c.grey('--enforce')}                   gate even if the config says "monitor": true`);
-  out(`    ${c.cyan('dw hook install')}                record and gate Claude Code's own tools: shell, edits, reads  ${c.grey('[--user --local --monitor]')}`);
-  out(`    ${c.cyan('dw hook evidence [dir]')}         checkpoint, and write the log as a bundle to publish  ${c.grey('[default evidence/]')}`);
+  out(`    ${c.cyan('vw hook install')}                record and gate Claude Code's own tools: shell, edits, reads  ${c.grey('[--user --local --monitor]')}`);
+  out(`    ${c.cyan('vw hook evidence [dir]')}         checkpoint, and write the log as a bundle to publish  ${c.grey('[default evidence/]')}`);
   out('');
   out(`  ${c.bold('Inspect')}`);
-  out(`    ${c.cyan('dw log')}                         recent receipts  ${c.grey('[--tail N --denied --would-block --unfinished --target X --json]')}`);
-  out(`    ${c.cyan('dw stats')}                       totals, spend, busiest tools`);
-  out(`    ${c.cyan('dw policy templates')}            ready-made policies: secrets, destructive SQL, payments…`);
-  out(`    ${c.cyan('dw policy template <id...>')}     print or write a policy from templates  ${c.grey('[--out file --explain]')}`);
-  out(`    ${c.cyan('dw policy test [file]')}          replay the log against a policy  ${c.grey('[--since --fail-on-change --json]')}`);
-  out(`    ${c.cyan('dw dash')}                        browsable dashboard  ${c.grey('[--port 7788]')}`);
+  out(`    ${c.cyan('vw log')}                         recent receipts  ${c.grey('[--tail N --denied --would-block --unfinished --target X --json]')}`);
+  out(`    ${c.cyan('vw stats')}                       totals, spend, busiest tools`);
+  out(`    ${c.cyan('vw policy templates')}            ready-made policies: secrets, destructive SQL, payments…`);
+  out(`    ${c.cyan('vw policy template <id...>')}     print or write a policy from templates  ${c.grey('[--out file --explain]')}`);
+  out(`    ${c.cyan('vw policy test [file]')}          replay the log against a policy  ${c.grey('[--since --fail-on-change --json]')}`);
+  out(`    ${c.cyan('vw dash')}                        browsable dashboard  ${c.grey('[--port 7788]')}`);
   out('');
   out(`  ${c.bold('Prove')}`);
-  out(`    ${c.cyan('dw verify')}                      audit the local log end to end  ${c.grey('[--fail-on-unfinished]')}`);
-  out(`    ${c.cyan('dw prove <seq>')}                 inclusion proof for one receipt`);
-  out(`    ${c.cyan('dw export [file]')}               evidence bundle for a third party  ${c.grey('[--since --session]')}`);
-  out(`    ${c.cyan('dw check <file>')}                verify a bundle with nothing but itself`);
-  out(`    ${c.cyan('dw report')}                      evidence pack for auditors: AI Act, SOC 2  ${c.grey('[--since --until --out --framework]')}`);
+  out(`    ${c.cyan('vw verify')}                      audit the local log end to end  ${c.grey('[--fail-on-unfinished]')}`);
+  out(`    ${c.cyan('vw prove <seq>')}                 inclusion proof for one receipt`);
+  out(`    ${c.cyan('vw export [file]')}               evidence bundle for a third party  ${c.grey('[--since --session]')}`);
+  out(`    ${c.cyan('vw check <file>')}                verify a bundle with nothing but itself`);
+  out(`    ${c.cyan('vw report')}                      evidence pack for auditors: AI Act, SOC 2  ${c.grey('[--since --until --out --framework]')}`);
   out('');
-  out(`  ${c.bold('Hub')}   ${c.grey('connect to a Deedwrit hub for your team')}`);
-  out(`    ${c.cyan('dw remote add --url <hub> --token <key>')}   connect this machine ${c.grey('[--insecure for plain http]')}`);
-  out(`    ${c.cyan('dw push')}                        ship local receipts the hub is missing`);
-  out(`    ${c.cyan('dw remote-verify <log>')}         verify a hosted log from outside`);
-  out(`    ${c.cyan('dw policy push|pull|list')}       manage the org's shared policy`);
-  out(`    ${c.cyan('dw cosign')}                      have the hub's witness counter-sign`);
-  out(`    ${c.cyan('dw slack connect|status|test')}   approve escalations from Slack (admin key)`);
-  out(`    ${c.cyan('dw witnesses list|add|remove')}   outside witnesses for every hub checkpoint (admin key)`);
-  out(`    ${c.cyan('dw streams list|add|test')}       receipts and audit events to Splunk, Datadog, OTel, a webhook (admin key)`);
+  out(`  ${c.bold('Hub')}   ${c.grey('connect to a Vouchwell hub for your team')}`);
+  out(`    ${c.cyan('vw remote add --url <hub> --token <key>')}   connect this machine ${c.grey('[--insecure for plain http]')}`);
+  out(`    ${c.cyan('vw push')}                        ship local receipts the hub is missing`);
+  out(`    ${c.cyan('vw remote-verify <log>')}         verify a hosted log from outside`);
+  out(`    ${c.cyan('vw policy push|pull|list')}       manage the org's shared policy`);
+  out(`    ${c.cyan('vw cosign')}                      have the hub's witness counter-sign`);
+  out(`    ${c.cyan('vw slack connect|status|test')}   approve escalations from Slack (admin key)`);
+  out(`    ${c.cyan('vw witnesses list|add|remove')}   outside witnesses for every hub checkpoint (admin key)`);
+  out(`    ${c.cyan('vw streams list|add|test')}       receipts and audit events to Splunk, Datadog, OTel, a webhook (admin key)`);
   out('');
   out(`  ${c.bold('Govern')}`);
-  out(`    ${c.cyan('dw keys')}                        public keys to publish for verifiers`);
-  out(`    ${c.cyan('dw witness keygen')}              create an independent witness identity`);
-  out(`    ${c.cyan('dw trust <kid> <pubkey>')}        trust a witness or another signer`);
-  out(`    ${c.cyan('dw shred --before <date>')}       destroy payload commitments, keep the audit trail`);
+  out(`    ${c.cyan('vw keys')}                        public keys to publish for verifiers`);
+  out(`    ${c.cyan('vw witness keygen')}              create an independent witness identity`);
+  out(`    ${c.cyan('vw trust <kid> <pubkey>')}        trust a witness or another signer`);
+  out(`    ${c.cyan('vw shred --before <date>')}       destroy payload commitments, keep the audit trail`);
   out('');
   return 0;
 }
@@ -933,7 +933,7 @@ async function main() {
   const command = COMMANDS[name];
   if (!command) {
     bad(`unknown command "${name}"`);
-    out(`  try ${c.cyan('dw help')}`);
+    out(`  try ${c.cyan('vw help')}`);
     return 2;
   }
 
@@ -941,7 +941,7 @@ async function main() {
     return await command(args);
   } catch (e) {
     bad(/** @type {Error} */ (e).message);
-    if (process.env.DEEDWRIT_DEBUG) err(String(/** @type {Error} */ (e).stack));
+    if (process.env.VOUCHWELL_DEBUG) err(String(/** @type {Error} */ (e).stack));
     return 1;
   }
 }

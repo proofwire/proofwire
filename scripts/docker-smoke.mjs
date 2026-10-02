@@ -1,5 +1,5 @@
 // Drives a hub container the way a real client does: register a log, sign
-// and push receipts with @deedwrit/core directly (no CLI/proxy layer,
+// and push receipts with @vouchwell/core directly (no CLI/proxy layer,
 // which is unit-tested elsewhere), fetch the bundle back, and verify it. This
 // is what building the image is *for* — a `docker build` that succeeds proves
 // nothing about any of this on its own, as one earlier receipt shape found
@@ -9,7 +9,7 @@
 // run witness-only: the hub's checkpoint is co-signed there, the witness's
 // key is taken from the witness itself, and the result is verified with that
 // key pinned — the whole point of running a witness as a separate process.
-import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV, verifyBundle, verifyCheckpoint } from '@deedwrit/core';
+import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV, verifyBundle, verifyCheckpoint } from '@vouchwell/core';
 
 const HUB = process.env.HUB_URL ?? 'http://localhost:8787';
 const token = process.env.AGENT_TOKEN;
@@ -41,7 +41,7 @@ const receipts = [];
 for (let seq = 0; seq < 3; seq++) {
   const { body } = buildReceipt({
     log: log.slug, seq, prev,
-    actor: { agent: 'ci-smoke', runtime: 'ci-smoke/1', session: 'sess_ci', principal: 'ci@deedwrit.test' },
+    actor: { agent: 'ci-smoke', runtime: 'ci-smoke/1', session: 'sess_ci', principal: 'ci@vouchwell.test' },
     action: { kind: 'ops.query', target: `smoke.${seq}`, params: { n: seq } },
     decision: { outcome: 'allow', policy: 'p_ci', rules: [] },
     result: { status: 'ok', payload: { ok: true } },
@@ -77,8 +77,8 @@ if (WITNESS) {
   };
 
   console.log('witness: identify itself as witness-only, and publish only its own key');
-  const wk = await getJson(`${WITNESS}/.well-known/deedwrit`);
-  if (wk.json?.service !== 'deedwrit-witness') throw new Error(`witness is not in witness-only mode: ${JSON.stringify(wk.json)}`);
+  const wk = await getJson(`${WITNESS}/.well-known/vouchwell`);
+  if (wk.json?.service !== 'vouchwell-witness') throw new Error(`witness is not in witness-only mode: ${JSON.stringify(wk.json)}`);
   if ('hub' in wk.json) throw new Error('witness-only node advertised a hub key');
 
   console.log('witness: refuse everything a hub would answer');
@@ -89,7 +89,7 @@ if (WITNESS) {
 
   // A hub's checkpoints are signed with the hub's key, so that is the key the
   // witness binds this log to.
-  const hubKeys = (await getJson(`${HUB}/.well-known/deedwrit`)).json;
+  const hubKeys = (await getJson(`${HUB}/.well-known/vouchwell`)).json;
   const cosign = (cp, logPublicKey) => fetch(`${WITNESS}/v1/witness/cosign`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${witnessToken}` },

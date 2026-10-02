@@ -30,7 +30,7 @@ function make(seq, prev, over = {}) {
       prev,
       actor: {
         agent: 'claude-opus-5',
-        runtime: 'deedwrit-test/0.1.0',
+        runtime: 'vouchwell-test/0.1.0',
         session: 'sess_1',
         principal: 'ops@acme.test',
       },

@@ -35,7 +35,7 @@ import path from 'node:path';
 
 /**
  * Where the journal is, or null when there is none: an in-memory database,
- * or `witnessJournal: false` (DEEDWRIT_WITNESS_JOURNAL=off).
+ * or `witnessJournal: false` (VOUCHWELL_WITNESS_JOURNAL=off).
  *
  * @param {{ database?: string, witnessJournal?: string | false | null }} config
  * @returns {string | null}

@@ -19,7 +19,7 @@ const action = (i, ts) => ({
 });
 
 const fresh = () => {
-  const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-appender-')), '.deedwrit');
+  const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-appender-')), '.vouchwell');
   ProofLog.create(dir);
   return dir;
 };

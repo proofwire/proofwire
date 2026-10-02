@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, verifyCheckpoint, signCheckpoint, generateIdentity, witnessCheckpoint, MerkleTree, leafHash } from '@deedwrit/core';
+import { ProofLog, verifyCheckpoint, signCheckpoint, generateIdentity, witnessCheckpoint, MerkleTree, leafHash } from '@vouchwell/core';
 import { Hub, WITNESS_ONLY_ROUTES } from '../src/app.js';
 
 /**
@@ -31,8 +31,8 @@ function cli(args, env = {}) {
     encoding: 'utf8',
     env: {
       ...process.env,
-      DEEDWRIT_DB: database,
-      DEEDWRIT_WITNESS_ONLY: '1',
+      VOUCHWELL_DB: database,
+      VOUCHWELL_WITNESS_ONLY: '1',
       NODE_OPTIONS: '--no-warnings=ExperimentalWarning',
       ...env,
     },
@@ -103,7 +103,7 @@ test('witness-key hands a customer a working key, and the node serves the key it
   assert.equal(served.json.kid, acme.kid, 'the node serves a different key from the one the operator handed out');
   assert.equal(served.json.publicKey, acme.publicKey);
 
-  // `dw remote add` proves a credential through /v1/me before storing it.
+  // `vw remote add` proves a credential through /v1/me before storing it.
   const me = await api('GET', '/v1/me', { token: acme.token });
   assert.equal(me.status, 200);
   assert.deepEqual([...me.json.scopes].sort(), ['logs:read', 'witness:sign']);
@@ -140,9 +140,9 @@ test('every route a full hub serves, except the witness\'s own, is gone', async 
 });
 
 test('.well-known names the witness key and nothing that could be mistaken for it', async () => {
-  const res = await api('GET', '/.well-known/deedwrit');
+  const res = await api('GET', '/.well-known/vouchwell');
   assert.equal(res.status, 200);
-  assert.equal(res.json.service, 'deedwrit-witness');
+  assert.equal(res.json.service, 'vouchwell-witness');
   assert.equal('hub' in res.json, false, 'a witness-only node advertised a hub key');
   assert.equal(res.json.witness.kid, acme.kid);
   assert.ok(res.json.keys.length >= 1);
@@ -153,20 +153,20 @@ test('.well-known names the witness key and nothing that could be mistaken for i
 });
 
 test('identity, run on the host, prints the same witness key the node serves, and no hub key', async () => {
-  const res = cli(['identity', '--json'], { DEEDWRIT_PUBLIC_URL: 'https://witness1.example' });
+  const res = cli(['identity', '--json'], { VOUCHWELL_PUBLIC_URL: 'https://witness1.example' });
   assert.equal(res.status, 0, res.out);
   const printed = JSON.parse(res.out);
-  const served = (await api('GET', '/.well-known/deedwrit')).json;
+  const served = (await api('GET', '/.well-known/vouchwell')).json;
   assert.deepEqual(printed.witness, { kid: served.witness.kid, publicKey: served.witness.publicKey });
   assert.equal(printed.hub, null);
   assert.equal(printed.witnessOnly, true);
   assert.equal(printed.url, 'https://witness1.example');
 
   // The human form hands over the exact command that publishes the key.
-  const human = cli(['identity'], { DEEDWRIT_PUBLIC_URL: 'https://witness1.example' });
+  const human = cli(['identity'], { VOUCHWELL_PUBLIC_URL: 'https://witness1.example' });
   assert.ok(
     human.out.includes(
-      `witness-record.mjs add --operator Deedwrit --public-key ${served.witness.publicKey} --node https://witness1.example`,
+      `witness-record.mjs add --operator Vouchwell --public-key ${served.witness.publicKey} --node https://witness1.example`,
     ),
     human.out,
   );
@@ -194,7 +194,7 @@ test('it co-signs a real log\'s checkpoints, and an auditor pinning it can verif
   const v1 = verifyCheckpoint(witnessed1, log.keyring, trusted);
   assert.ok(v1.ok, v1.issues.join('; '));
 
-  // Growth has to be proven: the consistency proof from 3 to 5, as `dw cosign` sends it.
+  // Growth has to be proven: the consistency proof from 3 to 5, as `vw cosign` sends it.
   for (let i = 0; i < 2; i++) append();
   const second = log.checkpoint();
   const proof = log.tree.consistencyProof(first.body.size, second.body.size).map((b) => b.toString('hex'));

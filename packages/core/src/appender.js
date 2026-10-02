@@ -12,7 +12,7 @@ import { buildCheckpoint, signCheckpoint } from './checkpoint.js';
  *
  * `ProofLog.open` parses and hashes every receipt to rebuild the Merkle tree:
  * right for verifying, exporting and proving, and linear in the size of the
- * log. A writer that starts once per action, as `dw hook` does twice per tool
+ * log. A writer that starts once per action, as `vw hook` does twice per tool
  * call, cannot afford that: at 5,000 receipts it was 0.4 s each time, growing
  * without bound.
  *
@@ -27,7 +27,7 @@ import { buildCheckpoint, signCheckpoint } from './checkpoint.js';
  * must continue the chain. Anything else (a cache from another log, a file
  * that was truncated or rewritten, a writer that appended without updating
  * it) and the state is rebuilt from the whole file, exactly as `ProofLog.open`
- * would. The cache never decides what is true. `dw verify` does that, from
+ * would. The cache never decides what is true. `vw verify` does that, from
  * the entries alone.
  */
 

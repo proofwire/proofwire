@@ -2,7 +2,7 @@
 
 import pytest
 
-from deedwrit import DEFAULT_GRACE_MS, ProofLog, Recorder, entry_hash, find_unfinished
+from vouchwell import DEFAULT_GRACE_MS, ProofLog, Recorder, entry_hash, find_unfinished
 
 ACTOR = {"agent": "claude", "runtime": "test", "session": "sess_a", "principal": "ops@acme.test"}
 ALLOW = {"outcome": "allow", "policy": "p", "rules": []}

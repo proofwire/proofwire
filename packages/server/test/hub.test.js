@@ -12,7 +12,7 @@ import {
   unhex,
   canonicalize,
   signCheckpointWith,
-} from '@deedwrit/core';
+} from '@vouchwell/core';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 
@@ -110,7 +110,7 @@ class Agent {
       prev: this.prev,
       actor: {
         agent: 'claude-opus-5',
-        runtime: 'deedwrit-proxy/0.2.0',
+        runtime: 'vouchwell-proxy/0.2.0',
         session: over.session ?? 'sess_a',
         principal: over.principal ?? 'ops@acme.test',
       },
@@ -767,7 +767,7 @@ test('health and discovery need no credentials', async () => {
   assert.equal((await api('GET', '/health')).json.status, 'ok');
   assert.equal((await api('GET', '/ready')).json.status, 'ready');
 
-  const wk = (await api('GET', '/.well-known/deedwrit')).json;
+  const wk = (await api('GET', '/.well-known/vouchwell')).json;
   assert.equal(wk.hub.kid, hub.hubIdentity.kid);
   assert.equal(wk.witness.kid, hub.witnessIdentity.kid);
   assert.ok(!JSON.stringify(wk).includes('PRIVATE'), 'discovery must never expose a private key');
@@ -914,7 +914,7 @@ test('bearer-token writes are unaffected: no browser attaches those cross-site',
 test('HSTS is sent unless cookies are explicitly insecure', async () => {
   const res = await api('GET', '/health');
   const hsts = res.headers.get('strict-transport-security');
-  if (process.env.DEEDWRIT_INSECURE_COOKIES === '1') {
+  if (process.env.VOUCHWELL_INSECURE_COOKIES === '1') {
     assert.equal(hsts, null, 'a local HTTP hub must not pin the browser to HTTPS');
   } else {
     assert.match(hsts ?? '', /max-age=31536000/);

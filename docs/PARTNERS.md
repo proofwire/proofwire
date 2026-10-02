@@ -1,6 +1,6 @@
 # Design partners: the first month
 
-This is for a team trying Deedwrit on real agents with us. The whole plan
+This is for a team trying Vouchwell on real agents with us. The whole plan
 fits in four weeks, starts without blocking anything, and never sends us your
 data. Everything runs on your machines.
 
@@ -19,9 +19,9 @@ tries to verify a pack.
 ## Week 1: record, block nothing (15 minutes)
 
 ```bash
-npm install -g deedwrit
+npm install -g vouchwell
 cd your-agent-project
-dw init
+vw init
 ```
 
 Then change the one line in your agent's MCP configuration that launches a
@@ -34,7 +34,7 @@ tool server:
 becomes
 
 ```json
-"command": "dw", "args": ["proxy", "--monitor", "--namespace", "crm", "--", "npx", "-y", "@acme/mcp-crm"]
+"command": "vw", "args": ["proxy", "--monitor", "--namespace", "crm", "--", "npx", "-y", "@acme/mcp-crm"]
 ```
 
 `--monitor` means **nothing is blocked**: every call goes through exactly as
@@ -44,10 +44,10 @@ too, and what it *would* have stopped is recorded without being enforced.
 Check it's working:
 
 ```bash
-dw log                  # recent receipts
-dw stats                # totals, and what would have been stopped
-dw verify               # the log checks out end to end
-dw dash                 # a local, read-only dashboard
+vw log                  # recent receipts
+vw stats                # totals, and what would have been stopped
+vw verify               # the log checks out end to end
+vw dash                 # a local, read-only dashboard
 ```
 
 **Removing it** is the same one-line change in reverse. Nothing else in your
@@ -55,12 +55,12 @@ setup depends on it.
 
 ## Week 2: fit the policy to your traffic
 
-Edit `deedwrit.policy.json`: deny what should never happen, escalate what
+Edit `vouchwell.policy.json`: deny what should never happen, escalate what
 needs a person, and cap spend. Then test the new version against the week you
 just recorded:
 
 ```bash
-dw policy test deedwrit.policy.json
+vw policy test vouchwell.policy.json
 ```
 
 It lists every call whose outcome would change (`allow → deny`,
@@ -73,7 +73,7 @@ in CI and review policy changes like code.
 Drop `--monitor`. Calls the policy denies now return a refusal to the agent
 (which the model sees and can explain), and escalations wait for a person:
 
-- **In a terminal:** `"approval": { "mode": "tty" }` in `deedwrit.config.json`.
+- **In a terminal:** `"approval": { "mode": "tty" }` in `vouchwell.config.json`.
 - **In Slack**, with a hub: Approve and Deny buttons in a channel. See
   [SLACK.md](SLACK.md).
 - **By webhook** to your own system: `"mode": "webhook", "url": "https://…"`.
@@ -87,12 +87,12 @@ yours. [DEPLOY.md](DEPLOY.md) takes a server to HTTPS in about half an hour.
 ## Week 4: hand an auditor the evidence
 
 ```bash
-dw report --since 2026-09-01 --out evidence-september
+vw report --since 2026-09-01 --out evidence-september
 ```
 
 This writes a directory with a readable report, the verifiable bundle and
 checksums; see [EVIDENCE.md](EVIDENCE.md). Give it to someone who wasn't
-involved and ask them to verify it with `dw check`, without your help. Their
+involved and ask them to verify it with `vw check`, without your help. Their
 experience is the most useful feedback you can give us.
 
 ---
@@ -106,7 +106,7 @@ The only network traffic is to a hub or witness **you** configure.
 
 Five questions, answered however suits you:
 
-1. What did Deedwrit record or block this week that surprised you?
+1. What did Vouchwell record or block this week that surprised you?
 2. What did it get in the way of?
 3. What did you have to read the source to figure out?
 4. Did anyone besides the person who set it up look at a receipt, a report or
@@ -115,9 +115,9 @@ Five questions, answered however suits you:
 
 ## When something goes wrong
 
-- **The agent can't reach a tool:** run `dw log --denied`. It shows whether
+- **The agent can't reach a tool:** run `vw log --denied`. It shows whether
   the policy refused the call, and which rule.
-- **Something looks off with the log:** `dw verify` says exactly which receipt
+- **Something looks off with the log:** `vw verify` says exactly which receipt
   and why.
 - **Anything else:** open an issue, or for anything security-related use
   private vulnerability reporting ([SECURITY.md](../SECURITY.md)).

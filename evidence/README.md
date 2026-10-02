@@ -1,22 +1,22 @@
-# How Deedwrit was built
+# How Vouchwell was built
 
-Deedwrit makes AI agents accountable, and an AI agent built it. This folder
+Vouchwell makes AI agents accountable, and an AI agent built it. This folder
 holds the record of what that agent did.
 
 This repository's Claude Code hooks ([`.claude/settings.json`](../.claude/settings.json))
-run [`dw hook`](../docs/CODING-AGENTS.md) around every tool call an agent makes
+run [`vw hook`](../docs/CODING-AGENTS.md) around every tool call an agent makes
 while working here: every shell command, file read, edit and fetch. Each call
-is checked against [the project's policy](../.claude/deedwrit.policy.json)
+is checked against [the project's policy](../.claude/vouchwell.policy.json)
 before it runs and recorded as a signed, hash-chained receipt. Each file here
 is one log exported as an evidence bundle, named for the log.
 
 ## Check it yourself
 
 ```bash
-npx deedwrit check evidence/<file>.json
+npx vouchwell check evidence/<file>.json
 ```
 
-Or paste the file into the verifier on [the website](https://deedwrit.github.io/deedwrit/).
+Or paste the file into the verifier on [the website](https://vouchwell.github.io/vouchwell/).
 CI checks every bundle on every push.
 
 ## What a bundle proves
@@ -33,7 +33,7 @@ CI checks every bundle on every push.
 ## What it does not show
 
 - **What the calls touched.** These logs are recorded with previews off
-  (`"previews": "none"` in [the config](../.claude/deedwrit.config.json)). A
+  (`"previews": "none"` in [the config](../.claude/vouchwell.config.json)). A
   receipt holds a salted commitment to its arguments and output, never the
   command, file or content. So a public record cannot leak anything from the
   machine it was made on. The salts stay on that machine, so the commitments
@@ -52,7 +52,7 @@ CI checks every bundle on every push.
 
 Working in this repository with Claude Code records automatically. At the end
 of each session the hook writes the log to `evidence/<log id>.json`
-(`"evidence": "evidence"` in [the config](../.claude/deedwrit.config.json)).
+(`"evidence": "evidence"` in [the config](../.claude/vouchwell.config.json)).
 Commit that file with your work. To bring it up to date in the middle of a
 session, run:
 
@@ -60,5 +60,5 @@ session, run:
 npm run evidence            # checkpoint, then write evidence/<log id>.json
 ```
 
-The live log, its signing key and its salts stay in `.claude/deedwrit-log/`,
+The live log, its signing key and its salts stay in `.claude/vouchwell-log/`,
 which git ignores.

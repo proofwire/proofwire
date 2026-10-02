@@ -1,6 +1,6 @@
-# Deedwrit threat model
+# Vouchwell threat model
 
-What Deedwrit defends against, what it does not, and why each line is drawn
+What Vouchwell defends against, what it does not, and why each line is drawn
 where it is. A security tool that overstates its guarantees is worse than no
 tool, because it buys confidence it has not earned.
 
@@ -111,7 +111,7 @@ Specific controls:
 - **Escalation** routes to a human, who sees a *redacted* preview — approving
   in Slack must not paste a customer's card number into Slack.
 
-**Residual risk.** Deedwrit records and gates what passes through it. An agent
+**Residual risk.** Vouchwell records and gates what passes through it. An agent
 with a second, unwrapped path to the same API — a raw API key in its
 environment, an HTTP tool that is not proxied — leaves no receipt. **This is
 the most likely real-world failure**, and it is a deployment problem, not a
@@ -132,7 +132,7 @@ roots at the same size. An auditor who requires *k* witness signatures from
 witnesses **they** chose forces the operator to show everyone the same history.
 
 ```bash
-dw check evidence.json --witnesses 2 --witness-keys witnesses.json
+vw check evidence.json --witnesses 2 --witness-keys witnesses.json
 ```
 
 `witnesses.json` holds the witnesses' public keys **as their operators
@@ -166,7 +166,7 @@ brute-forced, and leaks exactly the data it pretends to protect. Salts are
 stored in a separate file, are never signed, and are never included in an
 export.
 
-`dw shred` destroys salts for matching entries. Afterwards those commitments
+`vw shred` destroys salts for matching entries. Afterwards those commitments
 cannot be opened by anyone — including the operator, including under legal
 compulsion — while every signature, chain link and inclusion proof continues to
 verify.
@@ -181,12 +181,12 @@ sufficient for proof.
 
 ## A7 — Network attacker
 
-Out of scope. Deedwrit proxies a local stdio transport. Transport security
+Out of scope. Vouchwell proxies a local stdio transport. Transport security
 between the tool server and whatever it talks to is that server's problem, and
 TLS's.
 
 The hub is a different matter: it is a network service, and its API keys
-travel over whatever URL the operator gives `dw remote add`. That command
+travel over whatever URL the operator gives `vw remote add`. That command
 refuses plain `http://` to anything but the local machine unless `--insecure`
 is passed, so a typo cannot quietly send a token across a network in the clear.
 
@@ -196,7 +196,7 @@ Not attacks on the evidence, but on the people and machines that handle it.
 
 | Attack | Mitigation |
 | ------ | ---------- |
-| **DNS rebinding against `dw dash`.** A web page points its own domain at `127.0.0.1` and reads the local dashboard's receipts as if same-origin. | The dashboard answers only to `Host: 127.0.0.1`, `localhost` or `[::1]` on its own port; any other name gets a 403 before anything is read. |
+| **DNS rebinding against `vw dash`.** A web page points its own domain at `127.0.0.1` and reads the local dashboard's receipts as if same-origin. | The dashboard answers only to `Host: 127.0.0.1`, `localhost` or `[::1]` on its own port; any other name gets a 403 before anything is read. |
 | **Script injection into the dashboard or console** via strings in receipts (tool names, reasons, principals). | Everything is escaped on output, and the dashboard's CSP allows only its own inline script, by SHA-256 hash, and no other script source. The hub console's CSP allows no script at all. Neither page can be framed. |
 | **Account discovery at hub sign-in** by timing: an unknown email used to return before the password hash ran. | Every attempt pays for one scrypt, known account or not, and the response is identical either way. |
 | **Credential stuffing** spread over many addresses, which a per-address limit never sees. | Failed sign-ins are also counted per account: ten, then one more every 90 seconds, from anywhere. A throttled account is refused before its password is checked, and an account that does not exist throttles identically. Password-reset requests share the strict sign-in limit. |
@@ -233,7 +233,7 @@ Tracked honestly rather than quietly:
    flagged when it contradicts its neighbours, but a uniformly wrong clock is
    not detectable from the log alone. RFC 3161 timestamping or witness
    countersignature times bound this externally.
-3. **Policy is only as good as it is written.** Deedwrit validates syntax
+3. **Policy is only as good as it is written.** Vouchwell validates syntax
    aggressively — a typo is a load error — but it cannot know that your deny
    rule has a gap in it. Policies deserve tests, like any other code.
 4. **No distributed log yet.** `0.1.0` is a single-writer local log. Multiple

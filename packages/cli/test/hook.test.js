@@ -5,15 +5,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, entryHash, verifyBundle, composePolicy } from '@deedwrit/core';
+import { ProofLog, entryHash, verifyBundle, composePolicy } from '@vouchwell/core';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BIN = path.resolve(HERE, '../src/bin.js');
 
 /** A project with the coding-agent and shell-safety templates as its policy. */
 function project() {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-hook-'));
-  fs.writeFileSync(path.join(cwd, 'deedwrit.policy.json'), JSON.stringify(composePolicy(['coding-agent', 'shell-safety'])));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-hook-'));
+  fs.writeFileSync(path.join(cwd, 'vouchwell.policy.json'), JSON.stringify(composePolicy(['coding-agent', 'shell-safety'])));
   return cwd;
 }
 
@@ -23,13 +23,13 @@ function project() {
  * @param {string} [input]
  * @param {Record<string, string>} [env]
  */
-function dw(cwd, args, input, env = {}) {
+function vw(cwd, args, input, env = {}) {
   const res = spawnSync(process.execPath, [BIN, ...args], {
     cwd,
     input,
     encoding: 'utf8',
     timeout: 20000,
-    env: { ...process.env, HOME: cwd, USERPROFILE: cwd, NO_COLOR: '1', DEEDWRIT_HOOK: '', ...env },
+    env: { ...process.env, HOME: cwd, USERPROFILE: cwd, NO_COLOR: '1', VOUCHWELL_HOOK: '', ...env },
   });
   return { code: res.status, stdout: res.stdout, stderr: res.stderr };
 }
@@ -38,10 +38,10 @@ function dw(cwd, args, input, env = {}) {
 const event = (name, fields) => JSON.stringify({ hook_event_name: name, session_id: 's1', cwd: '/repo', ...fields });
 
 /** @param {string} cwd @param {string} name @param {object} fields @param {string[]} [flags] */
-const fire = (cwd, name, fields, flags = []) => dw(cwd, ['hook', ...flags], event(name, fields));
+const fire = (cwd, name, fields, flags = []) => vw(cwd, ['hook', ...flags], event(name, fields));
 
 /** @param {string} cwd */
-const entries = (cwd) => ProofLog.open(path.join(cwd, '.deedwrit'), { readOnly: true }).entries;
+const entries = (cwd) => ProofLog.open(path.join(cwd, '.vouchwell'), { readOnly: true }).entries;
 
 /** @param {string} stdout */
 const decision = (stdout) => (stdout.trim() ? JSON.parse(stdout).hookSpecificOutput : null);
@@ -65,7 +65,7 @@ test('an allowed call gets an intent before it runs and an outcome linked to it 
   assert.equal(outcome.ref, entryHash(intent));
   assert.equal(outcome.result.status, 'ok');
   assert.equal(outcome.result.latencyMs, 42);
-  assert.equal(dw(cwd, ['verify']).code, 0);
+  assert.equal(vw(cwd, ['verify']).code, 0);
 });
 
 test('a refused call is denied to Claude Code and recorded once', () => {
@@ -110,15 +110,15 @@ test('a call that never reports back is closed as not run when the session ends,
   const [intent, outcome] = entries(cwd);
   assert.equal(outcome.ref, entryHash(intent));
   assert.equal(outcome.result.code, 'not_run');
-  const log = ProofLog.open(path.join(cwd, '.deedwrit'), { readOnly: true });
+  const log = ProofLog.open(path.join(cwd, '.vouchwell'), { readOnly: true });
   assert.equal(log.checkpoints().length, 1);
-  assert.equal(JSON.parse(fs.readFileSync(path.join(cwd, '.deedwrit', 'hook-pending.json'), 'utf8'))['e1'], undefined);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(cwd, '.vouchwell', 'hook-pending.json'), 'utf8'))['e1'], undefined);
 });
 
 test("another session's open calls are left for its own SessionEnd", () => {
   const cwd = project();
   fire(cwd, 'PreToolUse', BASH('npm test', 'mine'));
-  dw(cwd, ['hook'], JSON.stringify({ hook_event_name: 'SessionEnd', session_id: 'other', reason: 'exit' }));
+  vw(cwd, ['hook'], JSON.stringify({ hook_event_name: 'SessionEnd', session_id: 'other', reason: 'exit' }));
   assert.equal(entries(cwd).length, 1);
 });
 
@@ -153,7 +153,7 @@ test('tool arguments are previewed and tool output is not, by default; "none" ke
   assert.equal(outcome.result.payload.preview, undefined);
 
   const bare = project();
-  fs.writeFileSync(path.join(bare, 'deedwrit.config.json'), JSON.stringify({ hook: { previews: 'none', principal: 'maintainers' } }));
+  fs.writeFileSync(path.join(bare, 'vouchwell.config.json'), JSON.stringify({ hook: { previews: 'none', principal: 'maintainers' } }));
   fire(bare, 'PreToolUse', BASH('npm test', 'p2'));
   const [r] = entries(bare);
   assert.equal(r.action.params.preview, undefined);
@@ -165,21 +165,21 @@ test('parallel tool calls from one session, each its own process, keep one unbro
   const cwd = project();
   const n = 8;
   await Promise.all(Array.from({ length: n }, (_, i) => new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [BIN, 'hook'], { cwd, env: { ...process.env, HOME: cwd, NO_COLOR: '1', DEEDWRIT_HOOK: '' } });
+    const child = spawn(process.execPath, [BIN, 'hook'], { cwd, env: { ...process.env, HOME: cwd, NO_COLOR: '1', VOUCHWELL_HOOK: '' } });
     child.on('error', reject);
     child.on('close', resolve);
     child.stdin.end(event('PreToolUse', BASH(`echo ${i}`, `par${i}`)));
   })));
   assert.equal(entries(cwd).length, n);
-  const verify = dw(cwd, ['verify']);
+  const verify = vw(cwd, ['verify']);
   assert.equal(verify.code, 0, verify.stdout + verify.stderr);
-  assert.ok(!fs.existsSync(path.join(cwd, '.deedwrit', 'hook.lock')), 'the lock is released');
+  assert.ok(!fs.existsSync(path.join(cwd, '.vouchwell', 'hook.lock')), 'the lock is released');
 });
 
 test("a lock left by a writer that died is taken over; a live writer's is waited for", () => {
   const cwd = project();
   fire(cwd, 'PreToolUse', BASH('npm test'));
-  const lock = path.join(cwd, '.deedwrit', 'hook.lock');
+  const lock = path.join(cwd, '.vouchwell', 'hook.lock');
   const dead = spawnSync(process.execPath, ['-e', 'process.stdout.write(String(process.pid))'], { encoding: 'utf8' }).stdout;
   fs.writeFileSync(lock, dead);
   const res = fire(cwd, 'PostToolUse', { ...BASH('npm test'), tool_response: {} });
@@ -189,16 +189,16 @@ test("a lock left by a writer that died is taken over; a live writer's is waited
 
   // This test's own process is alive: the hook waits it out and gives up.
   fs.writeFileSync(lock, String(process.pid));
-  const held = dw(cwd, ['hook'], event('PreToolUse', BASH('npm test', 't2')), { DEEDWRIT_HOOK_LOCK_WAIT_MS: '300' });
+  const held = vw(cwd, ['hook'], event('PreToolUse', BASH('npm test', 't2')), { VOUCHWELL_HOOK_LOCK_WAIT_MS: '300' });
   assert.equal(decision(held.stdout).permissionDecision, 'deny', 'when enforcing, unrecordable means refused');
   assert.match(decision(held.stdout).permissionDecisionReason, /stayed locked/);
   fs.rmSync(lock);
 });
 
-test('when enforcing, a call that cannot be recorded is refused; DEEDWRIT_HOOK=off turns recording off', () => {
+test('when enforcing, a call that cannot be recorded is refused; VOUCHWELL_HOOK=off turns recording off', () => {
   const cwd = project();
   fire(cwd, 'PreToolUse', BASH('npm test'));
-  fs.writeFileSync(path.join(cwd, '.deedwrit', 'config.json'), '{ not json');
+  fs.writeFileSync(path.join(cwd, '.vouchwell', 'config.json'), '{ not json');
   const res = fire(cwd, 'PreToolUse', BASH('npm test', 't2'));
   assert.equal(decision(res.stdout).permissionDecision, 'deny');
   assert.match(decision(res.stdout).permissionDecisionReason, /could not record/);
@@ -207,16 +207,16 @@ test('when enforcing, a call that cannot be recorded is refused; DEEDWRIT_HOOK=o
   assert.equal(monitor.stdout, '', 'in monitor mode a broken log blocks nothing');
 
   const off = project();
-  const skipped = dw(off, ['hook'], event('PreToolUse', BASH('cat .env')), { DEEDWRIT_HOOK: 'off' });
+  const skipped = vw(off, ['hook'], event('PreToolUse', BASH('cat .env')), { VOUCHWELL_HOOK: 'off' });
   assert.equal(skipped.stdout, '');
-  assert.ok(!fs.existsSync(path.join(off, '.deedwrit')));
+  assert.ok(!fs.existsSync(path.join(off, '.vouchwell')));
 });
 
 test('events it does not handle, and input that is not an event, change nothing', () => {
   const cwd = project();
-  assert.equal(dw(cwd, ['hook'], event('Stop', {})).code, 0);
-  assert.equal(dw(cwd, ['hook'], 'not json').code, 2);
-  assert.ok(!fs.existsSync(path.join(cwd, '.deedwrit')));
+  assert.equal(vw(cwd, ['hook'], event('Stop', {})).code, 0);
+  assert.equal(vw(cwd, ['hook'], 'not json').code, 2);
+  assert.ok(!fs.existsSync(path.join(cwd, '.vouchwell')));
 });
 
 test('install adds the hooks beside existing ones, is idempotent, and uninstall removes only its own', () => {
@@ -226,40 +226,40 @@ test('install adds the hooks beside existing ones, is idempotent, and uninstall 
   const theirs = { type: 'command', command: '~/stop-check.sh' };
   fs.writeFileSync(file, JSON.stringify({ permissions: { allow: ['Read'] }, hooks: { Stop: [{ hooks: [theirs] }], PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'lint.sh' }] }] } }));
 
-  assert.equal(dw(cwd, ['hook', 'install']).code, 0);
-  assert.equal(dw(cwd, ['hook', 'install']).code, 0);
+  assert.equal(vw(cwd, ['hook', 'install']).code, 0);
+  assert.equal(vw(cwd, ['hook', 'install']).code, 0);
   const installed = JSON.parse(fs.readFileSync(file, 'utf8'));
   assert.deepEqual(installed.permissions, { allow: ['Read'] });
   assert.deepEqual(installed.hooks.Stop, [{ hooks: [theirs] }]);
   for (const name of ['PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'PermissionDenied', 'SessionEnd']) {
-    const ours = installed.hooks[name].flatMap((/** @type {any} */ g) => g.hooks).filter((/** @type {any} */ h) => h.command === 'dw hook');
+    const ours = installed.hooks[name].flatMap((/** @type {any} */ g) => g.hooks).filter((/** @type {any} */ h) => h.command === 'vw hook');
     assert.equal(ours.length, 1, `${name}: installed once, however many times install runs`);
   }
   assert.equal(installed.hooks.PreToolUse[0].hooks[0].command, 'lint.sh', 'their PreToolUse hook is kept, first');
   assert.equal(installed.hooks.PreToolUse[1].matcher, '*');
   assert.equal(installed.hooks.SessionEnd[0].matcher, undefined);
 
-  assert.equal(dw(cwd, ['hook', 'uninstall']).code, 0);
+  assert.equal(vw(cwd, ['hook', 'uninstall']).code, 0);
   const after = JSON.parse(fs.readFileSync(file, 'utf8'));
   assert.deepEqual(after.hooks, { Stop: [{ hooks: [theirs] }], PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'lint.sh' }] }] });
 
-  assert.equal(dw(cwd, ['hook', 'install', '--user', '--monitor']).code, 0);
+  assert.equal(vw(cwd, ['hook', 'install', '--user', '--monitor']).code, 0);
   const user = JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'settings.json'), 'utf8'));
   assert.ok(user.hooks.PostToolUse, '--user writes ~/.claude/settings.json (HOME is the project here)');
 
   const nowhere = project();
-  assert.equal(dw(nowhere, ['hook', 'uninstall']).code, 0);
+  assert.equal(vw(nowhere, ['hook', 'uninstall']).code, 0);
   assert.ok(!fs.existsSync(path.join(nowhere, '.claude')), 'uninstall creates nothing');
 
   fs.writeFileSync(file, '{ broken');
-  const refused = dw(cwd, ['hook', 'install']);
+  const refused = vw(cwd, ['hook', 'install']);
   assert.equal(refused.code, 1);
   assert.equal(fs.readFileSync(file, 'utf8'), '{ broken', 'a settings file it cannot read is left alone');
 });
 
 test('rate limits still count past calls, read back only as far as their window', () => {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-hook-'));
-  fs.writeFileSync(path.join(cwd, 'deedwrit.policy.json'), JSON.stringify({
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-hook-'));
+  fs.writeFileSync(path.join(cwd, 'vouchwell.policy.json'), JSON.stringify({
     version: 1, name: 'slow-down',
     rateLimits: [{ id: 'bash.burst', match: { target: 'claude-code.Bash' }, limit: 2, window: '1h', then: 'deny' }],
   }));
@@ -272,9 +272,9 @@ test('rate limits still count past calls, read back only as far as their window'
   assert.match(third.permissionDecisionReason, /bash\.burst|rate|limit/i);
 
   // Two intents written two hours ago no longer count against a 1h window.
-  const old = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-hook-'));
-  fs.copyFileSync(path.join(cwd, 'deedwrit.policy.json'), path.join(old, 'deedwrit.policy.json'));
-  const log = ProofLog.create(path.join(old, '.deedwrit'));
+  const old = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-hook-'));
+  fs.copyFileSync(path.join(cwd, 'vouchwell.policy.json'), path.join(old, 'vouchwell.policy.json'));
+  const log = ProofLog.create(path.join(old, '.vouchwell'));
   const twoHoursAgo = new Date(Date.now() - 2 * 3600_000).toISOString();
   for (let i = 0; i < 2; i++) {
     log.append({ actor: { agent: 'claude-code', session: 'cc_s1', principal: 'p' }, action: { kind: 'tool_call', target: 'claude-code.Bash', params: {} },
@@ -285,7 +285,7 @@ test('rate limits still count past calls, read back only as far as their window'
 
 test('with an evidence folder set, the session end writes the bundle there', () => {
   const cwd = project();
-  fs.writeFileSync(path.join(cwd, 'deedwrit.config.json'), JSON.stringify({ hook: { evidence: 'proof' } }));
+  fs.writeFileSync(path.join(cwd, 'vouchwell.config.json'), JSON.stringify({ hook: { evidence: 'proof' } }));
   fire(cwd, 'PreToolUse', BASH('npm test'));
   fire(cwd, 'PostToolUse', { ...BASH('npm test'), tool_response: {} });
   assert.ok(!fs.existsSync(path.join(cwd, 'proof')), 'written at the end of the session, not on every call');
@@ -306,15 +306,15 @@ test('evidence checkpoints the log and writes a bundle anyone can verify', () =>
   const cwd = project();
   fire(cwd, 'PreToolUse', BASH('npm test'));
   fire(cwd, 'PostToolUse', { ...BASH('npm test'), tool_response: { stdout: 'ok' } });
-  const res = dw(cwd, ['hook', 'evidence']);
+  const res = vw(cwd, ['hook', 'evidence']);
   assert.equal(res.code, 0, res.stderr);
   const [name] = fs.readdirSync(path.join(cwd, 'evidence'));
   const bundle = JSON.parse(fs.readFileSync(path.join(cwd, 'evidence', name), 'utf8'));
   assert.equal(name, `${bundle.log}.json`);
   assert.equal(bundle.entries.length, 2);
   assert.ok(verifyBundle(bundle).ok);
-  assert.equal(dw(cwd, ['check', path.join('evidence', name)]).code, 0);
+  assert.equal(vw(cwd, ['check', path.join('evidence', name)]).code, 0);
 
   const empty = project();
-  assert.equal(dw(empty, ['hook', 'evidence']).code, 1);
+  assert.equal(vw(empty, ['hook', 'evidence']).code, 1);
 });

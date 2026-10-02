@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createHmac } from 'node:crypto';
-import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV } from '@deedwrit/core';
+import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV } from '@vouchwell/core';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 
@@ -122,7 +122,7 @@ test('each destination gets receipts and audit events in its own format, without
     const hooks = at('/hooks/hook');
     assert.ok(hooks.length);
     for (const hook of hooks) {
-      const [, t, v1] = /** @type {RegExpMatchArray} */ (String(hook.headers['deedwrit-signature']).match(/^t=(\d+),v1=([0-9a-f]{64})$/));
+      const [, t, v1] = /** @type {RegExpMatchArray} */ (String(hook.headers['vouchwell-signature']).match(/^t=(\d+),v1=([0-9a-f]{64})$/));
       assert.equal(v1, createHmac('sha256', secret).update(`${t}.${hook.body}`).digest('hex'));
     }
     const events = hooks.flatMap((h) => JSON.parse(h.body).events);
@@ -138,15 +138,15 @@ test('each destination gets receipts and audit events in its own format, without
     const splunk = at('/services/collector/event');
     assert.ok(splunk.length && splunk.every((r) => r.headers.authorization === 'Splunk hec-token-1'));
     const hec = splunk.flatMap((r) => r.body.split('\n').map((l) => JSON.parse(l)));
-    assert.ok(hec.every((e) => e.source === 'deedwrit' && typeof e.time === 'number' && e.event.type));
-    assert.ok(hec.some((e) => e.sourcetype === 'deedwrit:receipt'));
+    assert.ok(hec.every((e) => e.source === 'vouchwell' && typeof e.time === 'number' && e.event.type));
+    assert.ok(hec.some((e) => e.sourcetype === 'vouchwell:receipt'));
 
     // Datadog: logs intake v2, a JSON array, key in the header.
     const dd = at('/api/v2/logs');
     assert.ok(dd.length && dd.every((r) => r.headers['dd-api-key'] === 'dd-key-1'));
     const logs = dd.flatMap((r) => JSON.parse(r.body));
     const denied = logs.find((/** @type {any} */ l) => l.outcome === 'deny');
-    assert.equal(denied.ddsource, 'deedwrit');
+    assert.equal(denied.ddsource, 'vouchwell');
     assert.equal(denied.status, 'warn');
     assert.match(denied.ddtags, /outcome:deny/);
     assert.equal(denied.message, 'deny tool_call stripe.refund by bot (payments#1)');
@@ -157,8 +157,8 @@ test('each destination gets receipts and audit events in its own format, without
     const records = otel.flatMap((r) => JSON.parse(r.body).resourceLogs[0].scopeLogs[0].logRecords);
     const warn = records.find((/** @type {any} */ r) => r.severityText === 'WARN');
     assert.match(warn.timeUnixNano, /^\d{19}$/);
-    assert.ok(warn.attributes.some((/** @type {any} */ a) => a.key === 'deedwrit.outcome' && a.value.stringValue === 'deny'));
-    assert.ok(warn.attributes.some((/** @type {any} */ a) => a.key === 'deedwrit.seq' && a.value.intValue === '1'));
+    assert.ok(warn.attributes.some((/** @type {any} */ a) => a.key === 'vouchwell.outcome' && a.value.stringValue === 'deny'));
+    assert.ok(warn.attributes.some((/** @type {any} */ a) => a.key === 'vouchwell.seq' && a.value.intValue === '1'));
 
     // Nothing sent twice once delivered.
     const before = seen.length;

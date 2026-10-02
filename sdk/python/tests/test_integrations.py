@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from deedwrit import ProofLog, Recorder, entry_hash, find_unfinished
+from vouchwell import ProofLog, Recorder, entry_hash, find_unfinished
 
 
 def recorder(tmp_path, decide=None):
@@ -26,7 +26,7 @@ def test_langchain_structured_tools_are_recorded_and_refusals_reach_the_model(tm
     pytest.importorskip("langchain_core")
     from langchain_core.tools import tool
 
-    from deedwrit.integrations.langchain import record_tools
+    from vouchwell.integrations.langchain import record_tools
 
     ran = []
 
@@ -47,7 +47,7 @@ def test_langchain_structured_tools_are_recorded_and_refusals_reach_the_model(tm
 
     assert wrapped_lookup.invoke({"order_id": "o_1"}) == "order o_1: shipped"
     reply = wrapped_refund.invoke({"order_id": "o_2", "amount": 45.0})
-    assert reply.startswith("Blocked by Deedwrit policy. refunds need a person")
+    assert reply.startswith("Blocked by Vouchwell policy. refunds need a person")
     assert ran == [], "a refused call must not run"
 
     intent, outcome, denied = rec.log.entries
@@ -61,7 +61,7 @@ def test_langchain_async_and_errors(tmp_path):
     pytest.importorskip("langchain_core")
     from langchain_core.tools import tool
 
-    from deedwrit.integrations.langchain import record_tool
+    from vouchwell.integrations.langchain import record_tool
 
     @tool
     async def fetch(url: str) -> str:
@@ -80,7 +80,7 @@ def test_langchain_single_input_tools(tmp_path):
     pytest.importorskip("langchain_core")
     from langchain_core.tools import Tool
 
-    from deedwrit.integrations.langchain import record_tool
+    from vouchwell.integrations.langchain import record_tool
 
     upper = Tool(name="upper", description="shout", func=lambda s: s.upper())
     rec = recorder(tmp_path)
@@ -95,7 +95,7 @@ def test_openai_agents_function_tools_are_recorded_and_refusals_reach_the_model(
     pytest.importorskip("agents")
     from agents import FunctionTool, WebSearchTool, function_tool
 
-    from deedwrit.integrations.openai_agents import record_tools
+    from vouchwell.integrations.openai_agents import record_tools
 
     ran = []
 
@@ -125,7 +125,7 @@ def test_openai_agents_function_tools_are_recorded_and_refusals_reach_the_model(
 
     assert asyncio.run(call(wrapped_lookup, {"order_id": "o_1"})) == "order o_1: shipped"
     reply = asyncio.run(call(wrapped_refund, {"order_id": "o_2", "amount": 45}))
-    assert reply.startswith("Blocked by Deedwrit policy.")
+    assert reply.startswith("Blocked by Vouchwell policy.")
     assert ran == []
 
     intent, outcome, denied = rec.log.entries

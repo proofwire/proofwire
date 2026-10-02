@@ -1,7 +1,7 @@
-"""Deedwrit for Python: tamper-evident receipts for what AI agents do.
+"""Vouchwell for Python: tamper-evident receipts for what AI agents do.
 
-Wire-compatible with the ``deedwrit`` npm packages: a log written here
-passes ``dw verify``, a bundle exported here passes ``dw check``, and logs
+Wire-compatible with the ``vouchwell`` npm packages: a log written here
+passes ``vw verify``, a bundle exported here passes ``vw check``, and logs
 and bundles written by the JavaScript side open and verify here.
 """
 

@@ -15,7 +15,7 @@ import {
   verifyInclusion,
   unhex,
   cosignWith,
-} from '@deedwrit/core';
+} from '@vouchwell/core';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 
@@ -225,9 +225,9 @@ test("the operator's cap bounds what an admin may choose", async () => {
   assert.equal(hub.store.retention(t.org).capDays, 20);
 });
 
-test('deedwrit-hub retention shows and sets it from the host', () => {
+test('vouchwell-hub retention shows and sets it from the host', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pw-retention-'));
-  const env = { ...process.env, DEEDWRIT_DB: path.join(dir, 'hub.db'), NODE_OPTIONS: '--no-warnings=ExperimentalWarning' };
+  const env = { ...process.env, VOUCHWELL_DB: path.join(dir, 'hub.db'), NODE_OPTIONS: '--no-warnings=ExperimentalWarning' };
   const run = (/** @type {string[]} */ args) => {
     const r = spawnSync(process.execPath, [BIN, ...args], { encoding: 'utf8', env });
     return { code: r.status, out: (r.stdout + r.stderr).replace(/\x1b\[[0-9;]*m/g, '') };
