@@ -43,14 +43,14 @@ jobs:
       - name: Test
         run: npm test
         env:
-          VOUCHWELL_ACCESS_LOG: 'off'
-          VOUCHWELL_INSECURE_COOKIES: '1'
+          DEEDWRIT_ACCESS_LOG: 'off'
+          DEEDWRIT_INSECURE_COOKIES: '1'
 
       - name: Demo
         run: npm run demo
 
   core-compat:
-    # @vouchwell/core claims Node >= 20.11 and has no dependencies, including
+    # @deedwrit/core claims Node >= 20.11 and has no dependencies, including
     # no node:sqlite. An engine range nothing exercises is a guess, so this
     # runs the core and proxy suites on the oldest version they claim.
     runs-on: ubuntu-latest
@@ -69,7 +69,7 @@ jobs:
   python-sdk:
     # The Python SDK against its own tests and, with Node present, against the
     # real CLI and core in both directions: a log Python wrote must pass
-    # `vw verify` and `vw check`, and one JavaScript wrote must verify in
+    # `dw verify` and `dw check`, and one JavaScript wrote must verify in
     # Python. 3.9 is the oldest version the package claims.
     runs-on: ${{ matrix.os }}
     strategy:
@@ -92,7 +92,7 @@ jobs:
         run: python -B -m pytest -q -p no:cacheprovider
 
   verify-own-log:
-    # Vouchwell's own repository keeps a Vouchwell log. If the project cannot
+    # Deedwrit's own repository keeps a Deedwrit log. If the project cannot
     # keep its own evidence intact, nothing else here is worth believing.
     runs-on: ubuntu-latest
     steps:
@@ -103,12 +103,12 @@ jobs:
       - run: npm install --no-audit --no-fund
       - name: Verify the committed log, if there is one
         run: |
-          if [ -d .vouchwell ]; then
+          if [ -d .deedwrit ]; then
             node packages/cli/src/bin.js verify
           else
             echo "no committed log yet — skipping"
           fi
-      - name: Verify the evidence of how Vouchwell was built
+      - name: Verify the evidence of how Deedwrit was built
         # One bundle per recorded log: every tool call an agent made working
         # on this repository (evidence/README.md). Each must verify on its own.
         run: |
@@ -146,16 +146,16 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
-      # For @vouchwell/core in scripts/docker-smoke.mjs — the runner talks to
+      # For @deedwrit/core in scripts/docker-smoke.mjs — the runner talks to
       # the container over HTTP; nothing from this install runs inside it.
       - run: npm install --no-audit --no-fund
 
       - name: Build the hub image
-        run: docker build -t vouchwell-hub .
+        run: docker build -t deedwrit-hub .
 
       - name: Run it
         run: |
-          docker run -d --name hub -p 8787:8787 vouchwell-hub serve
+          docker run -d --name hub -p 8787:8787 deedwrit-hub serve
           for i in $(seq 1 15); do
             status="$(docker inspect --format='{{.State.Health.Status}}' hub)"
             [ "$status" = healthy ] && exit 0
@@ -169,8 +169,8 @@ jobs:
           # bootstrap prints to stderr (console.error throughout bin.js), not
           # stdout — 2>&1 is load-bearing, not decoration.
           docker exec \
-            -e VOUCHWELL_ORG=CI -e VOUCHWELL_ORG_SLUG=ci \
-            -e VOUCHWELL_ADMIN_EMAIL=ci@vouchwell.test -e VOUCHWELL_ADMIN_PASSWORD=ci \
+            -e DEEDWRIT_ORG=CI -e DEEDWRIT_ORG_SLUG=ci \
+            -e DEEDWRIT_ADMIN_EMAIL=ci@deedwrit.test -e DEEDWRIT_ADMIN_PASSWORD=ci \
             hub node packages/server/src/bin.js bootstrap > bootstrap.out 2>&1
           echo "AGENT_TOKEN=$(grep '^  agent' bootstrap.out | grep -oE 'pwk_[A-Za-z0-9._-]+')" >> "$GITHUB_ENV"
           echo "AUDIT_TOKEN=$(grep '^  auditor' bootstrap.out | grep -oE 'pwk_[A-Za-z0-9._-]+')" >> "$GITHUB_ENV"
@@ -181,7 +181,7 @@ jobs:
           # The same image, the way docker-compose.yml runs its witness: a
           # separate process with its own database and key, answering nothing
           # but co-signing, its key and health checks.
-          docker run -d --name witness -p 8788:8787 -e VOUCHWELL_WITNESS_ONLY=1 vouchwell-hub serve
+          docker run -d --name witness -p 8788:8787 -e DEEDWRIT_WITNESS_ONLY=1 deedwrit-hub serve
           for i in $(seq 1 15); do
             status="$(docker inspect --format='{{.State.Health.Status}}' witness)"
             [ "$status" = healthy ] && break
@@ -200,7 +200,7 @@ jobs:
 
       - name: Read-only rootfs and non-root user, as docker-compose.yml runs it
         run: |
-          docker run --rm --read-only --user 100:101 --tmpfs /tmp --entrypoint node vouchwell-hub -e "
+          docker run --rm --read-only --user 100:101 --tmpfs /tmp --entrypoint node deedwrit-hub -e "
             const fs = require('fs');
             try { fs.writeFileSync('/app/should-fail', 'x'); process.exit(1); }
             catch (e) { if (e.code !== 'EROFS' && e.code !== 'EACCES') throw e; }
@@ -216,7 +216,7 @@ jobs:
   deploy-kit:
     # deploy/ run exactly as docs/DEPLOY.md tells an operator to run it, with
     # a self-signed certificate in place of a real domain. Then a customer's
-    # path through real TLS: key issued on the host, `vw remote add`, a
+    # path through real TLS: key issued on the host, `dw remote add`, a
     # co-signed checkpoint, and an auditor verifying it with the key that
     # `identity` printed on the host.
     runs-on: ubuntu-latest
@@ -237,9 +237,9 @@ jobs:
       - name: Configure and bring it up
         working-directory: deploy
         run: |
-          sed -i 's/^VOUCHWELL_DOMAIN=.*/VOUCHWELL_DOMAIN=localhost/; s/^VOUCHWELL_TLS=.*/VOUCHWELL_TLS=internal/' .env
+          sed -i 's/^DEEDWRIT_DOMAIN=.*/DEEDWRIT_DOMAIN=localhost/; s/^DEEDWRIT_TLS=.*/DEEDWRIT_TLS=internal/' .env
           ./setup.sh | tee setup.out
-          grep -q 'witness-record.mjs add --operator Vouchwell' setup.out
+          grep -q 'witness-record.mjs add --operator Deedwrit' setup.out
 
       - name: Only Caddy faces the network
         run: |
@@ -247,7 +247,7 @@ jobs:
           code="$(curl -s -o /dev/null -w '%{http_code}' http://localhost/health)"
           [ "$code" = 308 ] || { echo "::error::http gave $code, not a redirect"; exit 1; }
           # HTTPS reaches the witness, with the edge headers set.
-          curl -fsSk https://localhost/.well-known/vouchwell | grep -q '"vouchwell-witness"'
+          curl -fsSk https://localhost/.well-known/deedwrit | grep -q '"deedwrit-witness"'
           curl -sSk -D headers.txt -o /dev/null https://localhost/health
           grep -qi '^strict-transport-security:' headers.txt || { echo "::error::no HSTS"; cat headers.txt; exit 1; }
           if grep -qi '^server:' headers.txt; then echo "::error::Server header leaked"; cat headers.txt; exit 1; fi
@@ -285,7 +285,7 @@ jobs:
         run: |
           docker compose exec -T node test -s /journal/witness-journal.jsonl
           docker compose exec -T node grep -q '"t":"sign"' /journal/witness-journal.jsonl
-          docker volume inspect vouchwell_journal > /dev/null
+          docker volume inspect deedwrit_journal > /dev/null
 
       - name: Backups land on their volume, and keys survive a restart
         working-directory: deploy

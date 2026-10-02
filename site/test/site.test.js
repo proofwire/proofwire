@@ -2,7 +2,7 @@
 // implementation in verify.test.js; this file is about the page around it —
 // the properties that quietly rot: a link that stops resolving, a third-party
 // request slipping in, a root-absolute path that works locally and 404s once the
-// site is served from /vouchwell/.
+// site is served from /deedwrit/.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,7 +15,7 @@ const SITE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ROOT = path.resolve(SITE, '..');
 const read = (f) => readFileSync(path.join(SITE, f), 'utf8');
 
-const REPO = 'https://github.com/vouchwell/vouchwell';
+const REPO = 'https://github.com/deedwrit/deedwrit';
 const INDEX = read('index.html');
 const NOT_FOUND = read('404.html');
 const APP = read('app.js');
@@ -82,7 +82,7 @@ test('everything the page references is tracked by git, not merely present on th
   }
 });
 
-test('no root-absolute paths: they break the moment the site is served from /vouchwell/', () => {
+test('no root-absolute paths: they break the moment the site is served from /deedwrit/', () => {
   for (const [name, html] of [['index.html', INDEX], ['app.js', APP]]) {
     const rooted = [...attrs(html, 'href'), ...attrs(html, 'src')].filter((u) => u.startsWith('/') && !u.startsWith('//'));
     assert.deepEqual(rooted, [], `${name} has root-absolute references`);
@@ -91,7 +91,7 @@ test('no root-absolute paths: they break the moment the site is served from /vou
   // The 404 is served at whatever path was mistyped, so its one root-relative
   // link is rewritten by a script that knows whether this is a project site.
   assert.deepEqual(attrs(NOT_FOUND, 'href').filter((u) => u.startsWith('/')), ['/']);
-  assert.match(NOT_FOUND, /location\.pathname\.indexOf\('\/vouchwell\/'\)/);
+  assert.match(NOT_FOUND, /location\.pathname\.indexOf\('\/deedwrit\/'\)/);
 });
 
 test('in-page anchors point at ids that exist', () => {
@@ -166,7 +166,7 @@ test('untrusted text never reaches an HTML parser', () => {
 
 test('no reference to a domain that does not exist', () => {
   for (const [name, text] of [['index.html', INDEX], ['404.html', NOT_FOUND], ['app.js', APP], ['verify.js', VERIFY]]) {
-    assert.doesNotMatch(text, /vouchwell\.(dev|io|com|ai)\b/i, `${name} names a domain nobody owns`);
+    assert.doesNotMatch(text, /deedwrit\.(dev|io|com|ai)\b/i, `${name} names a domain nobody owns`);
   }
 });
 
@@ -239,7 +239,7 @@ test('paid tiers never look purchasable, since nothing is', () => {
     }
 
     assert.ok(
-      href.startsWith('https://github.com/vouchwell/vouchwell/issues/new?') && /[?&]labels=waitlist(?:&|$)/.test(href),
+      href.startsWith('https://github.com/deedwrit/deedwrit/issues/new?') && /[?&]labels=waitlist(?:&|$)/.test(href),
       `"${label}" (href="${href}") does not open a labelled waitlist issue`,
     );
     assert.doesNotMatch(label, /buy|purchase|subscribe|checkout|start (trial|now)/i, `"${label}" reads as purchasable`);
@@ -247,8 +247,8 @@ test('paid tiers never look purchasable, since nothing is', () => {
   }
 });
 
-test('the logo reads vouchwell in the header, the footer and the 404 page', () => {
+test('the logo reads deedwrit in the header, the footer and the 404 page', () => {
   const marks = (html) => [...html.matchAll(/class="mark"[^>]*>(.*?)<\/(?:a|span)>/g)].map((m) => m[1].replace(/<[^>]+>/g, ''));
-  assert.deepEqual(marks(INDEX), ['vouchwell', 'vouchwell']);
-  assert.deepEqual(marks(NOT_FOUND), ['vouchwell']);
+  assert.deepEqual(marks(INDEX), ['deedwrit', 'deedwrit']);
+  assert.deepEqual(marks(NOT_FOUND), ['deedwrit']);
 });

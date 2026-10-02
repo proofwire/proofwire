@@ -1,26 +1,26 @@
 {
   "version": 1,
-  "name": "vouchwell-development",
+  "name": "deedwrit-development",
   "templates": [
     "coding-agent",
     "shell-safety"
   ],
   "rules": [
     {
-      "id": "vouchwell-development.own-log",
+      "id": "deedwrit-development.own-log",
       "when": {
         "params.file_path": {
-          "matches": "(^|/)\\.claude/vouchwell-log(/|$)"
+          "matches": "(^|/)\\.claude/deedwrit-log(/|$)"
         }
       },
       "then": "deny",
       "reason": "the log recording this work is not for the agent to read or edit"
     },
     {
-      "id": "vouchwell-development.own-log-shell",
+      "id": "deedwrit-development.own-log-shell",
       "when": {
         "params.command": {
-          "matches": "vouchwell-log"
+          "matches": "deedwrit-log"
         }
       },
       "then": "deny",
@@ -97,10 +97,10 @@
       "reason": "deleting or moving files needs a person"
     },
     {
-      "id": "vouchwell-development.own-hooks",
+      "id": "deedwrit-development.own-hooks",
       "when": {
         "params.file_path": {
-          "matches": "(^|/)\\.claude/(settings|vouchwell\\.config|vouchwell\\.policy)\\.json$"
+          "matches": "(^|/)\\.claude/(settings|deedwrit\\.config|deedwrit\\.policy)\\.json$"
         }
       },
       "then": "escalate",

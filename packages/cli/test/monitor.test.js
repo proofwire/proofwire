@@ -19,9 +19,9 @@ const REFUND = JSON.stringify({
 
 /** A project directory with a policy that denies every refund. */
 function project() {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-cli-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-cli-'));
   fs.writeFileSync(
-    path.join(cwd, 'vouchwell.policy.json'),
+    path.join(cwd, 'deedwrit.policy.json'),
     JSON.stringify({
       version: 1,
       name: 'frozen',
@@ -42,7 +42,7 @@ function pw(cwd, args, input) {
     input,
     encoding: 'utf8',
     timeout: 20000,
-    // A private home: `vw` reads hub credentials from ~/.vouchwell, and a test
+    // A private home: `dw` reads hub credentials from ~/.deedwrit, and a test
     // must neither pick up the developer's real ones nor write beside them.
     env: { ...process.env, HOME: cwd, USERPROFILE: cwd, NO_COLOR: '1' },
   });
@@ -52,7 +52,7 @@ function pw(cwd, args, input) {
 /** @param {string} stdout */
 const replies = (stdout) => stdout.split('\n').filter(Boolean).map((l) => JSON.parse(l));
 
-test('vw proxy --monitor lets a call the policy denies through, loudly', () => {
+test('dw proxy --monitor lets a call the policy denies through, loudly', () => {
   const cwd = project();
   assert.equal(pw(cwd, ['init']).code, 0);
 
@@ -80,7 +80,7 @@ test('vw proxy --monitor lets a call the policy denies through, loudly', () => {
 test('"monitor": true in the config is honoured, and --enforce overrides it', () => {
   const cwd = project();
   assert.equal(pw(cwd, ['init']).code, 0);
-  const configFile = path.join(cwd, 'vouchwell.config.json');
+  const configFile = path.join(cwd, 'deedwrit.config.json');
   const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
   fs.writeFileSync(configFile, JSON.stringify({ ...config, monitor: true }));
 
@@ -92,7 +92,7 @@ test('"monitor": true in the config is honoured, and --enforce overrides it', ()
   assert.doesNotMatch(enforced.stderr, /MONITOR MODE/);
   const [reply] = replies(enforced.stdout);
   assert.equal(reply.result.isError, true);
-  assert.match(reply.result.content[0].text, /Blocked by Vouchwell policy/);
+  assert.match(reply.result.content[0].text, /Blocked by Deedwrit policy/);
 });
 
 test('without --monitor the same policy blocks', () => {

@@ -1,18 +1,18 @@
 {
-  "name": "@vouchwell/server",
+  "name": "@deedwrit/server",
   "version": "0.5.0",
   "type": "module",
-  "description": "Vouchwell hub — multi-tenant transparency log, policy registry, approvals, and witness service.",
+  "description": "Deedwrit hub — multi-tenant transparency log, policy registry, approvals, and witness service.",
   "license": "Apache-2.0",
   "author": "IdeaboticsAI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vouchwell/vouchwell.git",
+    "url": "git+https://github.com/deedwrit/deedwrit.git",
     "directory": "packages/server"
   },
-  "homepage": "https://github.com/vouchwell/vouchwell#readme",
+  "homepage": "https://github.com/deedwrit/deedwrit#readme",
   "bugs": {
-    "url": "https://github.com/vouchwell/vouchwell/issues"
+    "url": "https://github.com/deedwrit/deedwrit/issues"
   },
   "main": "./src/app.js",
   "exports": {
@@ -21,13 +21,13 @@
     "./auth": "./src/auth.js"
   },
   "bin": {
-    "vouchwell-hub": "./src/bin.js"
+    "deedwrit-hub": "./src/bin.js"
   },
   "files": [
     "src"
   ],
   "dependencies": {
-    "@vouchwell/core": "0.5.0"
+    "@deedwrit/core": "0.5.0"
   },
   "engines": {
     "node": ">=22.13"

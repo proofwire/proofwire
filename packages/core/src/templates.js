@@ -6,11 +6,11 @@ import { Policy } from './policy.js';
  * A first policy is the hardest one to write: an empty file blocks nothing,
  * and a hand-written one tends to miss the obvious. These are starting points
  * written in the ordinary policy language, so each one can be read, tested
- * against recorded traffic (`vw policy test`) and edited like any policy.
+ * against recorded traffic (`dw policy test`) and edited like any policy.
  *
  * Two things they cannot know are your tool names and your argument names.
  * They match the conventions MCP servers and agent frameworks mostly use
- * (`send_email`, `params.sql`, `params.command`); `vw policy test` against a
+ * (`send_email`, `params.sql`, `params.command`); `dw policy test` against a
  * week of monitor-mode traffic shows whether they fit yours before anything
  * is blocked.
  */
@@ -102,7 +102,7 @@ export const POLICY_TEMPLATES = deepFreeze([
     summary: 'Escalate INSERT, UPDATE, DELETE and MERGE to a person; reads run.',
     notes: [
       `Looks at ${SQL_FIELDS.join(', ')}.`,
-      'Needs an approver (vw proxy --approve, Slack, or the hub). Without one, an escalation is refused.',
+      'Needs an approver (dw proxy --approve, Slack, or the hub). Without one, an escalation is refused.',
     ],
     policy: {
       rules: SQL_FIELDS.map((field) => ({
@@ -118,7 +118,7 @@ export const POLICY_TEMPLATES = deepFreeze([
     title: 'Cap what an agent can spend',
     summary: 'Escalate any single payment or refund over $500, and anything past $2,000 a day per person the agent acts for.',
     notes: [
-      'Budgets add up metrics.amount_usd, which your config (vw proxy) or metrics function (Recorder) must extract, e.g. Stripe amounts in cents with scale 0.01. Without it these never fire, and vw proxy warns at startup.',
+      'Budgets add up metrics.amount_usd, which your config (dw proxy) or metrics function (Recorder) must extract, e.g. Stripe amounts in cents with scale 0.01. Without it these never fire, and dw proxy warns at startup.',
       'Tools are recognised by name: refund, payout, transfer, charge, payment, invoice.',
     ],
     policy: {
@@ -224,7 +224,7 @@ export const POLICY_TEMPLATES = deepFreeze([
     title: 'Guardrails for coding agents',
     summary: "Refuse reading or writing secret files and touching the agent's own audit log; a person approves skipping git hooks and shell commands that read secret files.",
     notes: [
-      "Written for Claude Code's tools as `vw hook` records them (Read, Edit, Write, Bash, …), which take `params.file_path` and `params.command`.",
+      "Written for Claude Code's tools as `dw hook` records them (Read, Edit, Write, Bash, …), which take `params.file_path` and `params.command`.",
       'Pair it with "shell-safety" for destructive commands and force-pushes, and "secrets" for credentials pasted into arguments.',
       'A pattern list, not a sandbox: a shell can reach a file by another name. What it does guarantee is a signed record of every attempt.',
     ],
@@ -238,13 +238,13 @@ export const POLICY_TEMPLATES = deepFreeze([
         },
         {
           id: 'coding-agent.audit-log',
-          when: { 'params.file_path': { matches: '(^|/)\\.(vouchwell|proofwire)(/|$)' } },
+          when: { 'params.file_path': { matches: '(^|/)\\.(deedwrit|vouchwell|proofwire)(/|$)' } },
           then: 'deny',
           reason: 'an agent does not edit or read its own audit log directly',
         },
         {
           id: 'coding-agent.audit-log-shell',
-          when: { 'params.command': { matches: '(^|[\\s/"\'=])\\.(vouchwell|proofwire)(/|\\s|$)' } },
+          when: { 'params.command': { matches: '(^|[\\s/"\'=])\\.(deedwrit|vouchwell|proofwire)(/|\\s|$)' } },
           then: 'deny',
           reason: 'an agent does not touch its own audit log from the shell',
         },

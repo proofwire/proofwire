@@ -2,10 +2,10 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, findUnfinished } from '@vouchwell/core';
+import { ProofLog, findUnfinished } from '@deedwrit/core';
 
 /**
- * A local, read-only dashboard over a Vouchwell log.
+ * A local, read-only dashboard over a Deedwrit log.
  *
  * Read-only and loopback-only, both deliberately. This process can see the
  * log directory, which on a live machine sits next to the signing key; binding
@@ -247,7 +247,7 @@ export function createServer(opts) {
     } catch (err) {
       // The detail goes to the terminal that started the dashboard, not to
       // whatever made the request: error text can carry file paths.
-      process.stderr.write(`vouchwell dashboard: ${/** @type {Error} */ (err).stack}\n`);
+      process.stderr.write(`deedwrit dashboard: ${/** @type {Error} */ (err).stack}\n`);
       return json(res, 500, { error: 'internal error' });
     }
   });

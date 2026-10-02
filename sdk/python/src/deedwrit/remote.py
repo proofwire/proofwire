@@ -1,4 +1,4 @@
-"""Ship a local log's receipts to a Vouchwell hub.
+"""Ship a local log's receipts to a Deedwrit hub.
 
 The local log stays the source of truth; the hub is a replica that verifies
 every receipt before storing it. ``push`` sends whatever the hub doesn't have

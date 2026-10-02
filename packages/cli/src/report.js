@@ -1,15 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { ProofLog, verifyBundle, findUnfinished } from '@vouchwell/core';
+import { ProofLog, verifyBundle, findUnfinished } from '@deedwrit/core';
 import { c, out, bad, warn, info, heading, kv } from './ui.js';
 import { witnessKeysFrom } from './witness-keys.js';
 
 /**
- * `vw report` — an evidence pack for an auditor or an assessor.
+ * `dw report` — an evidence pack for an auditor or an assessor.
  *
  * What goes in the pack is evidence, and the report around it is an index to
- * that evidence, not a verdict. Vouchwell can show what an agent did, what the
+ * that evidence, not a verdict. Deedwrit can show what an agent did, what the
  * policy decided, who approved what, and that none of it was altered. Whether
  * that satisfies a regulation or a control is an assessor's call, so the report
  * says "supports", never "complies", and its mapping to frameworks is
@@ -17,7 +17,7 @@ import { witnessKeysFrom } from './witness-keys.js';
  *
  * The pack, in one directory:
  *
- *   evidence.bundle.json   the signed receipts and proofs; `vw check` verifies it
+ *   evidence.bundle.json   the signed receipts and proofs; `dw check` verifies it
  *   report.html            for people: self-contained, no scripts, prints cleanly
  *   summary.json           the same facts, for tools
  *   SHA256SUMS             so a copy can be checked against the original
@@ -160,7 +160,7 @@ function unfinishedIn(entries, clock = {}, keep = () => true) {
  * @param {any} s  A summary.
  */
 export function frameworkMap(s) {
-  const integrity = 'Integrity section; evidence.bundle.json (verify with `vw check`)';
+  const integrity = 'Integrity section; evidence.bundle.json (verify with `dw check`)';
   return {
     'ai-act': {
       title: 'EU AI Act (Regulation (EU) 2024/1689)',
@@ -226,7 +226,7 @@ export function renderHtml(r) {
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
-<title>Vouchwell evidence report · ${h(r.log.id)}</title>
+<title>Deedwrit evidence report · ${h(r.log.id)}</title>
 <style>
   :root { --ink:#16181d; --ink2:#4a5060; --line:#dde1e8; --ok:#0f7b4f; --bad:#b42318; --hold:#9a6700; --bg:#fff; --panel:#f6f7f9; }
   * { box-sizing: border-box; }
@@ -263,7 +263,7 @@ export function renderHtml(r) {
     ? `Verified: all ${h(s.receipts)} receipts in this pack are signed, unaltered and part of this log.`
     : `Verification FAILED: ${h(r.integrity.issues.length)} problem(s). Do not rely on this pack.`}</p>
   <p class="note" style="margin:0">Don't take this page's word for it. Anyone can re-check the pack independently:
-  <code>vw check evidence.bundle.json${r.integrity.pinned ? ' --witnesses 1 --witness-keys &lt;keys&gt;' : ''}</code>,
+  <code>dw check evidence.bundle.json${r.integrity.pinned ? ' --witnesses 1 --witness-keys &lt;keys&gt;' : ''}</code>,
   then compare the root below with the one they hold.</p>
 </div>
 
@@ -334,7 +334,7 @@ ${selected.map((f) => `<h2>${h(f.title)}</h2>
 
 <h2>What this report does not show</h2>
 <ul class="note">
-  <li>Actions that did not pass through Vouchwell. It records what its proxy saw; a credential used around it leaves no receipt.</li>
+  <li>Actions that did not pass through Deedwrit. It records what its proxy saw; a credential used around it leaves no receipt.</li>
   <li>The contents of arguments and results. Receipts commit to them by hash, and the pack carries no payloads.</li>
   <li>Whether a decision was right. It shows what was decided, by what rule or person, and that the record is intact.</li>
   <li>Compliance. This is evidence for an assessment, not its conclusion.</li>
@@ -379,7 +379,7 @@ export function buildReport(opts) {
   return {
     bundle,
     report: {
-      kind: 'vouchwell.report',
+      kind: 'deedwrit.report',
       v: 1,
       generatedAt: new Date().toISOString(),
       generator: opts.generator,
@@ -439,10 +439,10 @@ export function cmdReport(args, where, version) {
     until: args.until,
     frameworks,
     trustedWitnesses,
-    generator: `vouchwell ${version}`,
+    generator: `deedwrit ${version}`,
   });
 
-  const outDir = path.resolve(String(args.out ?? `vouchwell-report-${log.logId}-${report.generatedAt.slice(0, 10)}`));
+  const outDir = path.resolve(String(args.out ?? `deedwrit-report-${log.logId}-${report.generatedAt.slice(0, 10)}`));
   fs.mkdirSync(outDir, { recursive: true });
   const write = (/** @type {string} */ name, /** @type {string} */ text) => fs.writeFileSync(path.join(outDir, name), text);
   write('evidence.bundle.json', JSON.stringify(bundle, null, 2) + '\n');
@@ -469,7 +469,7 @@ export function cmdReport(args, where, version) {
   info(`Open ${c.cyan(path.join(path.relative(process.cwd(), outDir) || '.', 'report.html'))}. Send the whole directory.`);
   if (!report.integrity.witnessSignatures) {
     warn('No witness has countersigned this log, so the pack proves consistency, not that history was never rewritten.');
-    warn(`Get a checkpoint witnessed first: ${c.cyan('vw cosign --remote <witness>')}`);
+    warn(`Get a checkpoint witnessed first: ${c.cyan('dw cosign --remote <witness>')}`);
   }
   out('');
   return report.integrity.ok ? 0 : 1;

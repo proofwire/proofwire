@@ -16,8 +16,8 @@ import { launchSpec } from '../packages/proxy/src/proxy.js';
  * the registry and skipped everything. This changes, together:
  *
  *   - "version" in the root package.json and each packages/<name>/package.json
- *   - every "@vouchwell/<name>" dependency pin between them
- *   - sdk/python/pyproject.toml and vouchwell/__init__.py
+ *   - every "@deedwrit/<name>" dependency pin between them
+ *   - sdk/python/pyproject.toml and deedwrit/__init__.py
  *   - CHANGELOG.md: the "Unreleased" section becomes "<version> — <date>",
  *     with a fresh empty "Unreleased" above it
  *   - package-lock.json, via npm, so the lockfile agrees
@@ -125,8 +125,8 @@ export function bumpFiles(root, version, date) {
   const pyproject = path.join(root, 'sdk/python/pyproject.toml');
   if (fs.existsSync(pyproject)) {
     editText(pyproject, /^version = "[^"]+"$/m, `version = "${version}"`);
-    editText(path.join(root, 'sdk/python/src/vouchwell/__init__.py'), /^__version__ = "[^"]+"$/m, `__version__ = "${version}"`);
-    files.push('sdk/python/pyproject.toml', 'sdk/python/src/vouchwell/__init__.py');
+    editText(path.join(root, 'sdk/python/src/deedwrit/__init__.py'), /^__version__ = "[^"]+"$/m, `__version__ = "${version}"`);
+    files.push('sdk/python/pyproject.toml', 'sdk/python/src/deedwrit/__init__.py');
   }
 
   fs.writeFileSync(changelog, log.replace(/^## Unreleased[ \t]*\r?\n/m, `## Unreleased\n\n## ${version} — ${date}\n`));
@@ -169,7 +169,7 @@ export function versionProblems(root) {
   const pyproject = path.join(root, 'sdk/python/pyproject.toml');
   if (fs.existsSync(pyproject)) {
     const py = /^version = "([^"]+)"$/m.exec(fs.readFileSync(pyproject, 'utf8'))?.[1];
-    const init = /^__version__ = "([^"]+)"$/m.exec(fs.readFileSync(path.join(root, 'sdk/python/src/vouchwell/__init__.py'), 'utf8'))?.[1];
+    const init = /^__version__ = "([^"]+)"$/m.exec(fs.readFileSync(path.join(root, 'sdk/python/src/deedwrit/__init__.py'), 'utf8'))?.[1];
     if (py !== version || init !== version) problems.push(`the Python SDK is at ${py} / ${init}, not ${version}`);
   }
   return { version, problems };

@@ -5,7 +5,7 @@ import { redact, hasSecrets } from '../src/redact.js';
 
 const ACTOR = {
   agent: 'claude-opus-5',
-  runtime: 'vouchwell-proxy/0.1.0',
+  runtime: 'deedwrit-proxy/0.1.0',
   session: 'sess_a',
   principal: 'ops@acme.test',
 };

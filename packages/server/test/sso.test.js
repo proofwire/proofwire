@@ -17,7 +17,7 @@ import { verifyIdToken, isPrivateAddress, fetchJson } from '../src/oidc.js';
 
 const idp = {
   issuer: '',
-  clientId: 'vouchwell-hub',
+  clientId: 'deedwrit-hub',
   clientSecret: 'idp-client-secret',
   /** @type {any} */ key: null,
   kid: 'k1',

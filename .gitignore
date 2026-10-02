@@ -2,15 +2,20 @@ node_modules/
 *.log
 .DS_Store
 
-# A Vouchwell log's signing key and commitment salts never get committed.
+# A Deedwrit log's signing key and commitment salts never get committed.
 # Entries and checkpoints are safe — and worth committing.
+**/.deedwrit/key.pem
+**/.deedwrit/salts.jsonl
+# What `dw hook` keeps between one event and the next. Local state, not evidence.
+**/.deedwrit/hook-pending.json
+**/.deedwrit/hook.lock
+# Where an appender left off: derived from the entries, rebuilt if it disagrees.
+**/.deedwrit/append-state.json
+.deedwrit-witness/
+# The same, under the project's earlier names. Still private.
 **/.vouchwell/key.pem
 **/.vouchwell/salts.jsonl
-# What `vw hook` keeps between one event and the next. Local state, not evidence.
-**/.vouchwell/hook-pending.json
-**/.vouchwell/hook.lock
 .vouchwell-witness/
-# The same, as named before the project was renamed Vouchwell. Still private.
 **/.proofwire/key.pem
 **/.proofwire/salts.jsonl
 .proofwire-witness/
@@ -35,12 +40,12 @@ credentials.json
 *.sqlite3
 
 # Local tooling. Except the project's Claude Code hooks, which record every
-# action an agent takes while working on Vouchwell (see evidence/README.md);
-# the log they write stays in .claude/vouchwell-log/, which is not committed.
+# action an agent takes while working on Deedwrit (see evidence/README.md);
+# the log they write stays in .claude/deedwrit-log/, which is not committed.
 .claude/*
 !.claude/settings.json
-!.claude/vouchwell.config.json
-!.claude/vouchwell.policy.json
+!.claude/deedwrit.config.json
+!.claude/deedwrit.policy.json
 
 # Python SDK
 .venv/

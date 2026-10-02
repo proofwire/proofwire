@@ -1,7 +1,7 @@
 /**
- * Vouchwell core — tamper-evident receipts for AI agent actions.
+ * Deedwrit core — tamper-evident receipts for AI agent actions.
  *
- * @see https://github.com/vouchwell/vouchwell#readme
+ * @see https://github.com/deedwrit/deedwrit#readme
  */
 
 export { canonicalize, canonicalBytes } from './canonical.js';
@@ -58,6 +58,7 @@ export {
   verifyCheckpoint,
 } from './checkpoint.js';
 export { ProofLog, verifyBundle, consistencyFor } from './log.js';
+export { LogAppender } from './appender.js';
 export { Policy, History, parseWindow, globMatch } from './policy.js';
 export { regexProblem } from './safe-regex.js';
 export { redact, hasSecrets, DEFAULT_DETECTORS } from './redact.js';

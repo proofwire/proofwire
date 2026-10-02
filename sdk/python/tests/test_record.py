@@ -5,7 +5,7 @@ import datetime
 
 import pytest
 
-from vouchwell import PolicyDenied, ProofLog, Recorder, entry_hash
+from deedwrit import PolicyDenied, ProofLog, Recorder, entry_hash
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def test_a_decorated_call_leaves_an_intent_then_a_linked_outcome(rec):
     assert "metrics" not in outcome["action"], "metrics are counted once, on the intent"
     assert outcome["ref"] == entry_hash(intent)
     assert outcome["result"]["status"] == "ok"
-    assert intent["actor"]["runtime"].startswith("vouchwell-python/")
+    assert intent["actor"]["runtime"].startswith("deedwrit-python/")
     # The arguments, defaults included, are committed to.
     assert rec.log.reveal(0, "params", {"order": "ord_1", "amount_cents": 500})
     assert rec.log.audit()["ok"]

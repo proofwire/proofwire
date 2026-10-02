@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV } from '@vouchwell/core';
+import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV } from '@deedwrit/core';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 
@@ -64,7 +64,7 @@ const rate = (n, ms) => Math.round(n / (ms / 1000)).toLocaleString();
 const mb = () => Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
 async function main() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-load-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-load-'));
   const dbFile = path.join(dir, 'hub.db');
 
   // A real file, not :memory:, so the numbers include fsync.
@@ -89,7 +89,7 @@ async function main() {
   const post = (p, body) => fetch(base + p, { method: 'POST', headers, body: JSON.stringify(body) });
 
   console.log('');
-  console.log(B('  Vouchwell hub — load profile'));
+  console.log(B('  Deedwrit hub — load profile'));
   console.log(DIM(`  ${process.version} · ${os.cpus()[0].model.trim()} · ${os.cpus().length} cores`));
   console.log(DIM('  ─────────────────────────────────────────────────────────────'));
 

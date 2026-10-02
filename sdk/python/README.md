@@ -1,30 +1,30 @@
-# vouchwell (Python)
+# deedwrit (Python)
 
 Tamper-evident receipts for what your AI agents do, from Python. This is the
-Python SDK for [Vouchwell](https://github.com/vouchwell/vouchwell), and it
-writes exactly the format the `vouchwell` CLI reads:
+Python SDK for [Deedwrit](https://github.com/deedwrit/deedwrit), and it
+writes exactly the format the `deedwrit` CLI reads:
 
-- a log written here passes `vw verify`;
-- a bundle exported here passes `vw check`;
+- a log written here passes `dw verify`;
+- a bundle exported here passes `dw check`;
 - logs and bundles written by the JavaScript side open and verify here.
 
 CI runs both directions against the real CLI on every commit.
 
 ```bash
-pip install "vouchwell @ git+https://github.com/vouchwell/vouchwell#subdirectory=sdk/python"
+pip install "deedwrit @ git+https://github.com/deedwrit/deedwrit#subdirectory=sdk/python"
 ```
 
 That installs straight from this repository. The package is not on PyPI yet;
-once it is, `pip install vouchwell` will do the same.
+once it is, `pip install deedwrit` will do the same.
 
 Python 3.9+. The one dependency is `cryptography`, for Ed25519.
 
 ## Record an agent's tool calls
 
 ```python
-from vouchwell import ProofLog, Recorder
+from deedwrit import ProofLog, Recorder
 
-log = ProofLog.open_or_create(".vouchwell")
+log = ProofLog.open_or_create(".deedwrit")
 rec = Recorder(log, agent="support-bot", principal="ops@acme.com", namespace="stripe")
 
 @rec.tool("refund", metrics=lambda order_id, amount_cents: {"amount_usd": amount_cents / 100})
@@ -71,8 +71,8 @@ An `escalate` outcome is a denial here, recorded as `policy:no-approver`,
 because nobody in the process can approve it.
 
 The full policy language (budgets, rate limits, escalation to a person, Slack
-approvals, monitor mode) lives in the `vw proxy` MCP proxy and in the
-JavaScript `Recorder` in `@vouchwell/core`. For an agent that uses MCP, wrap
+approvals, monitor mode) lives in the `dw proxy` MCP proxy and in the
+JavaScript `Recorder` in `@deedwrit/core`. For an agent that uses MCP, wrap
 its servers with the proxy instead. A Python port of the policy engine is
 planned.
 
@@ -84,10 +84,10 @@ never runs: the model is told why in the tool's reply, as the MCP proxy does,
 instead of the agent crashing.
 
 ```python
-from vouchwell.integrations.langchain import record_tools        # pip install "vouchwell[langchain]"
+from deedwrit.integrations.langchain import record_tools        # pip install "deedwrit[langchain]"
 agent = create_react_agent(model, record_tools(rec, [search, refund]))
 
-from vouchwell.integrations.openai_agents import record_tools    # pip install "vouchwell[openai-agents]"
+from deedwrit.integrations.openai_agents import record_tools    # pip install "deedwrit[openai-agents]"
 agent = Agent(name="Support", tools=record_tools(rec, [lookup_order, refund]))
 ```
 
@@ -101,7 +101,7 @@ Each call's intent is on disk before the tool runs. If the process is killed
 while a call is out, the intent has no outcome, and that is worth knowing:
 
 ```python
-from vouchwell import find_unfinished
+from deedwrit import find_unfinished
 
 found = find_unfinished(log.entries)
 for u in found["unfinished"]:
@@ -109,20 +109,20 @@ for u in found["unfinished"]:
 ```
 
 `inFlight` holds calls from the last five minutes that may still be running,
-and `abandoned` the ones a recorder gave up on while shutting down. `vw verify`
-reports the same list, and `vw verify --fail-on-unfinished` exits 3 when there
+and `abandoned` the ones a recorder gave up on while shutting down. `dw verify`
+reports the same list, and `dw verify --fail-on-unfinished` exits 3 when there
 is one.
 
 ## Hand over evidence
 
 ```python
 import json
-from vouchwell import verify_bundle
+from deedwrit import verify_bundle
 
 log.checkpoint()                                   # sign the current state
 open("evidence.json", "w").write(json.dumps(log.bundle()))
 
-# Anyone can verify it, here or with `vw check evidence.json`:
+# Anyone can verify it, here or with `dw check evidence.json`:
 verify_bundle(json.load(open("evidence.json")))
 # -> {"ok": True, "issues": [], "checked": 12}
 ```
@@ -134,15 +134,15 @@ bundle can't influence:
 verify_bundle(bundle, min_witnesses=1, trusted_witnesses={"pw1…": "<public key>"})
 ```
 
-`vw report` (from the npm CLI) turns a log written here into an evidence pack
+`dw report` (from the npm CLI) turns a log written here into an evidence pack
 for auditors.
 
 ## Ship to a hub
 
 ```python
-from vouchwell import push
+from deedwrit import push
 
-push(log, "https://hub.acme.com", token=os.environ["VOUCHWELL_TOKEN"], name="support-bot")
+push(log, "https://hub.acme.com", token=os.environ["DEEDWRIT_TOKEN"], name="support-bot")
 ```
 
 It sends whatever the hub doesn't have yet, and is safe to call again. Plain

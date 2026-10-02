@@ -16,9 +16,9 @@ import { fileURLToPath } from 'node:url';
 
 /** Paths that are secrets, local state or build output by their name alone. */
 const FORBIDDEN_PATHS = [
-  // Both the current names and the ones used before the rename from Proofwire.
-  [/(^|\/)\.(vouchwell|proofwire)\/(key\.pem|salts\.jsonl)$/, "a Vouchwell log's signing key or commitment salts"],
-  [/(^|\/)\.(vouchwell|proofwire)-witness\//, "a witness's private state"],
+  // The current names and the ones used under the project's earlier names.
+  [/(^|\/)\.(deedwrit|vouchwell|proofwire)\/(key\.pem|salts\.jsonl)$/, "a Deedwrit log's signing key or commitment salts"],
+  [/(^|\/)\.(deedwrit|vouchwell|proofwire)-witness\//, "a witness's private state"],
   [/\.(pem|key|p12|pfx)$/i, 'a private key or certificate bundle'],
   [/(^|\/)\.env(\..*)?$/, 'an environment file'],
   [/\.(db|db-wal|db-shm|sqlite|sqlite3)$/i, 'a database file'],

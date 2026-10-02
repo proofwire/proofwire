@@ -10,7 +10,7 @@ import { findUnfinished } from '../src/unfinished.js';
 import { Recorder, PolicyDenied, recordTools } from '../src/recorder.js';
 
 function log() {
-  return ProofLog.create(fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-recorder-')));
+  return ProofLog.create(fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-recorder-')));
 }
 
 /** @param {object} doc */
@@ -35,7 +35,7 @@ test('an allowed call gets an intent before it runs and a linked outcome after',
   assert.equal(intent.phase, 'intent');
   assert.equal(intent.action.target, 'crm.lookup');
   assert.equal(intent.decision.policy, 'none', 'with no policy, the receipt says so');
-  assert.match(intent.actor.runtime, /^vouchwell-js\//);
+  assert.match(intent.actor.runtime, /^deedwrit-js\//);
   assert.equal(outcome.phase, 'outcome');
   assert.equal(outcome.ref, entryHash(intent));
   assert.equal(outcome.result.status, 'ok');

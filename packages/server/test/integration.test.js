@@ -5,10 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, Policy, verifyBundle, signCheckpoint } from '@vouchwell/core';
-import { McpProxy } from '@vouchwell/proxy';
-import { LineFramer } from '@vouchwell/proxy/jsonrpc';
-import { RemoteSink, hubApprover, fetchPolicy } from '@vouchwell/proxy/remote';
+import { ProofLog, Policy, verifyBundle, signCheckpoint } from '@deedwrit/core';
+import { McpProxy } from '@deedwrit/proxy';
+import { LineFramer } from '@deedwrit/proxy/jsonrpc';
+import { RemoteSink, hubApprover, fetchPolicy } from '@deedwrit/proxy/remote';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 
@@ -66,7 +66,7 @@ const hdrs = (token) => ({ authorization: `Bearer ${token}`, 'content-type': 'ap
  * @param {object} opts
  */
 async function session(opts) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-e2e-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-e2e-'));
   const localLog = ProofLog.create(dir);
 
   const sink = new RemoteSink({
@@ -205,7 +205,7 @@ test('an auditor verifies the hosted log without touching the agent', async () =
 });
 
 test('the agent keeps working and keeps recording while the hub is unreachable', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-offline-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-offline-'));
   const localLog = ProofLog.create(dir);
 
   const sink = new RemoteSink({
@@ -230,7 +230,7 @@ test('the agent keeps working and keeps recording while the hub is unreachable',
 });
 
 test('a backlog ships when the hub comes back, in order, and the roots agree', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-backlog-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-backlog-'));
   const localLog = ProofLog.create(dir);
 
   for (let i = 0; i < 25; i++) {
@@ -255,7 +255,7 @@ test('a backlog ships when the hub comes back, in order, and the roots agree', a
 });
 
 test('a duplicate flush after a lost response does not corrupt the log', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-dup-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-dup-'));
   const localLog = ProofLog.create(dir);
   for (let i = 0; i < 5; i++) {
     localLog.append({
@@ -350,12 +350,12 @@ test('an escalation nobody answers is denied, never approved by default', async 
 
   const reply = run.replies.get(1);
   assert.equal(reply.result.isError, true, 'an unanswered escalation must not run');
-  assert.match(reply.result.content[0].text, /Blocked by Vouchwell policy/);
+  assert.match(reply.result.content[0].text, /Blocked by Deedwrit policy/);
   assert.equal(run.localLog.entries[0].decision.outcome, 'deny');
 });
 
 test('a hub that refuses permanently stops shipping and says so, keeping the local log', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-refused-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-refused-'));
   const localLog = ProofLog.create(dir);
   localLog.append({
     actor: { agent: 'a', runtime: 'r', session: 's', principal: 'p' },

@@ -10,14 +10,14 @@ import {
   canonicalize as coreCanonicalize,
   generateIdentity,
   cosign,
-} from '@vouchwell/core';
+} from '@deedwrit/core';
 import * as web from '../verify.js';
 
 /**
  * The browser verifier against the Node one.
  *
  * `site/verify.js` is a second implementation that shares no code with
- * @vouchwell/core. Two implementations that disagree on any input mean one of
+ * @deedwrit/core. Two implementations that disagree on any input mean one of
  * them is wrong, so nearly everything here is a differential test: run both
  * over the same bundle and require the same verdict.
  *
@@ -354,10 +354,10 @@ test('a real filtered export verifies in both, and lying about its head does not
 
 test('hostile shapes never throw and never verify', async () => {
   const shapes = [
-    undefined, null, 0, 1, 'x', true, [], [1, 2], {}, { kind: 'vouchwell.bundle' },
-    { kind: 'vouchwell.bundle', v: 1 },
-    { kind: 'vouchwell.bundle', v: 1, root: 'zz' },
-    { kind: 'vouchwell.bundle', v: 1, root: 5 },
+    undefined, null, 0, 1, 'x', true, [], [1, 2], {}, { kind: 'deedwrit.bundle' },
+    { kind: 'deedwrit.bundle', v: 1 },
+    { kind: 'deedwrit.bundle', v: 1, root: 'zz' },
+    { kind: 'deedwrit.bundle', v: 1, root: 5 },
     { ...clone(SAMPLE), entries: 'not-an-array' },
     { ...clone(SAMPLE), entries: 5 },
     { ...clone(SAMPLE), entries: [null, 3, 'x', [], {}] },

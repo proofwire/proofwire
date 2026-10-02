@@ -2,13 +2,13 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ProofLog, History, entryHash, canonicalize } from '@vouchwell/core';
+import { ProofLog, LogAppender, History, parseWindow, entryHash, canonicalize } from '@deedwrit/core';
 import { c, out, err, ok, bad, info, heading, kv } from './ui.js';
 
 /**
- * `vw hook`: record, and gate, what a coding agent does with its own tools.
+ * `dw hook`: record, and gate, what a coding agent does with its own tools.
  *
- * `vw proxy` sees an agent's MCP servers. A coding agent does most of its work
+ * `dw proxy` sees an agent's MCP servers. A coding agent does most of its work
  * with built-in tools instead: it runs shell commands, reads and edits files,
  * fetches pages. Claude Code runs a command before and after every one of
  * those (its hooks), and this is that command. Claude Code writes one JSON
@@ -70,14 +70,14 @@ export async function cmdHook(args, deps) {
 export function handleEvent(args, deps, text) {
   // For the person at the keyboard, never the agent: the agent's shell
   // cannot change the environment Claude Code starts hooks with.
-  if (process.env.VOUCHWELL_HOOK === 'off') return 0;
+  if (process.env.DEEDWRIT_HOOK === 'off') return 0;
 
   /** @type {any} */
   let event;
   try {
     event = JSON.parse(text);
   } catch {
-    err('vouchwell hook: expected one JSON event on stdin, from a Claude Code hook');
+    err('deedwrit hook: expected one JSON event on stdin, from a Claude Code hook');
     return 2;
   }
   const name = event?.hook_event_name;
@@ -96,12 +96,14 @@ export function handleEvent(args, deps, text) {
         monitor,
         actor: {
           agent: args.agent ?? settings.agent ?? 'claude-code',
-          runtime: `vouchwell-hook/${deps.version}`,
+          runtime: `deedwrit-hook/${deps.version}`,
           session: `cc_${event.session_id ?? 'unknown'}`,
           principal: args.principal ?? settings.principal ?? config.actor?.principal ?? 'unknown',
         },
         namespace: args.namespace ?? settings.namespace ?? 'claude-code',
         previews: previewsFor(args.previews ?? settings.previews ?? 'params'),
+        // Where SessionEnd writes the log as a bundle, if anywhere.
+        evidence: typeof (args.evidence ?? settings.evidence) === 'string' ? (args.evidence ?? settings.evidence) : null,
       };
       if (name === 'PreToolUse') return pre(ctx, event, deps.loadPolicy(config, args));
       if (name === 'SessionEnd') return sessionEnd(ctx);
@@ -112,11 +114,11 @@ export function handleEvent(args, deps, text) {
     // Refuse what cannot be recorded, when enforcing: a gate that opens
     // whenever the log is unwritable is not one. Everything else carries on.
     if (name === 'PreToolUse' && !monitor) {
-      respond('deny', `Vouchwell could not record this call, so it is refused: ${message}. ` +
-        'Fix the log, or start Claude Code with VOUCHWELL_HOOK=off to turn recording off.');
+      respond('deny', `Deedwrit could not record this call, so it is refused: ${message}. ` +
+        'Fix the log, or start Claude Code with DEEDWRIT_HOOK=off to turn recording off.');
       return 0;
     }
-    err(`vouchwell hook: ${message}`);
+    err(`deedwrit hook: ${message}`);
     return 0;
   }
 }
@@ -131,7 +133,7 @@ function pre(ctx, event, policy) {
   const params = event.tool_input ?? {};
   let decision = policy.decide(
     { kind: 'tool_call', target, params, metrics: {}, actor: ctx.actor },
-    new History([...ctx.log.entries]),
+    new History(ctx.log.recent(historyWindow(policy))),
   );
   if (ctx.monitor) decision = monitored(decision);
 
@@ -140,7 +142,7 @@ function pre(ctx, event, policy) {
 
   if (decision.outcome === 'deny') {
     append(ctx, { target, params, decision, result: null, phase: 'atomic' });
-    respond('deny', `Refused by Vouchwell policy: ${decision.reason}`);
+    respond('deny', `Refused by Deedwrit policy: ${decision.reason}`);
     return 0;
   }
   if (decision.outcome === 'escalate') {
@@ -148,7 +150,7 @@ function pre(ctx, event, policy) {
     // are written once it is known whether the call ran.
     pending[key] = { session: ctx.actor.session, target, decision, asked: true, at: new Date().toISOString() };
     writePending(ctx.dir, pending);
-    respond('ask', `Vouchwell policy asks for a person: ${decision.reason}`);
+    respond('ask', `Deedwrit policy asks for a person: ${decision.reason}`);
     return 0;
   }
   const intent = append(ctx, { target, params, decision, result: null, phase: 'intent' });
@@ -243,7 +245,9 @@ function sessionEnd(ctx) {
     delete pending[key];
   }
   writePending(ctx.dir, pending);
-  if (ctx.log.size > 0) ctx.log.checkpoint();
+  if (ctx.log.size === 0) return 0;
+  ctx.log.checkpoint();
+  if (ctx.evidence) writeEvidence(ctx.dir, path.resolve(ctx.evidence));
   return 0;
 }
 
@@ -257,7 +261,7 @@ function settingsPath(args) {
 
 /** @param {any} args */
 function hookCommand(args) {
-  return typeof args.command === 'string' ? args.command : `vw hook${args.monitor === true ? ' --monitor' : ''}`;
+  return typeof args.command === 'string' ? args.command : `dw hook${args.monitor === true ? ' --monitor' : ''}`;
 }
 
 /** @param {string} file */
@@ -309,9 +313,9 @@ function install(args) {
   info('It takes effect in the next Claude Code session.');
   out('');
   out(`  ${c.bold('Next')}`);
-  out(`    ${c.cyan('vw policy template coding-agent shell-safety secrets --out vouchwell.policy.json')}`);
+  out(`    ${c.cyan('dw policy template coding-agent shell-safety secrets --out deedwrit.policy.json')}`);
   out(`      ${c.grey('a starting policy for a coding agent')}`);
-  out(`    ${c.cyan('vw log')}   ${c.grey('what the agent did')}      ${c.cyan('vw hook evidence')}   ${c.grey('a bundle to share')}`);
+  out(`    ${c.cyan('dw log')}   ${c.grey('what the agent did')}      ${c.cyan('dw hook evidence')}   ${c.grey('a bundle to share')}`);
   out('');
   return 0;
 }
@@ -345,14 +349,10 @@ function evidence(args, deps) {
   const { dir } = deps.loadConfig(args);
   const outDir = path.resolve(args._[2] ?? 'evidence');
   const { file, bundle } = withLock(dir, () => {
-    const log = ProofLog.open(dir);
+    const log = LogAppender.open(dir);
     if (log.size === 0) throw new Error('the log is empty: nothing to put in a bundle yet');
     log.checkpoint();
-    const bundle = log.bundle();
-    fs.mkdirSync(outDir, { recursive: true });
-    const file = path.join(outDir, `${log.logId}.json`);
-    fs.writeFileSync(file, JSON.stringify(bundle, null, 2) + '\n');
-    return { file, bundle };
+    return writeEvidence(dir, outDir);
   });
   heading('Evidence written');
   kv([
@@ -362,12 +362,43 @@ function evidence(args, deps) {
   ]);
   out('');
   info('No payloads and no salts: safe to publish. Anyone can check it with');
-  info(`  ${c.cyan(`vw check ${path.relative(process.cwd(), file)}`)}`);
+  info(`  ${c.cyan(`dw check ${path.relative(process.cwd(), file)}`)}`);
   out('');
   return 0;
 }
 
 // ─────────────────────────────────────────────────────────────── helpers ──
+
+/**
+ * Write the log, as of its last checkpoint, as `<outDir>/<log id>.json`.
+ * The one step here that reads the whole log: it proves every receipt.
+ *
+ * @param {string} dir
+ * @param {string} outDir
+ */
+function writeEvidence(dir, outDir) {
+  const log = ProofLog.open(dir, { readOnly: true });
+  const bundle = log.bundle();
+  fs.mkdirSync(outDir, { recursive: true });
+  const file = path.join(outDir, `${log.logId}.json`);
+  fs.writeFileSync(file, JSON.stringify(bundle, null, 2) + '\n');
+  return { file, bundle };
+}
+
+/**
+ * How far back the policy looks: its longest budget or rate-limit window,
+ * with the defaults it applies itself. Nothing older can change a decision,
+ * so nothing older is read.
+ *
+ * @param {any} policy
+ */
+function historyWindow(policy) {
+  const windows = [
+    ...(policy.budgets ?? []).map((/** @type {any} */ b) => parseWindow(b.window ?? '24h')),
+    ...(policy.rateLimits ?? []).map((/** @type {any} */ r) => parseWindow(r.window ?? '1h')),
+  ];
+  return windows.length ? Math.max(...windows) : 0;
+}
 
 /** @param {'deny'|'ask'} decision @param {string} reason */
 function respond(decision, reason) {
@@ -434,10 +465,10 @@ function callKey(event) {
 function openOrCreate(dir) {
   // Opened or created in one step each, never "check, then act": the hook
   // lock is held, but a log is a directory anyone can write to.
-  if (readIfPresent(path.join(dir, 'config.json')) !== null) return ProofLog.open(dir);
+  if (readIfPresent(path.join(dir, 'config.json')) !== null) return LogAppender.open(dir);
   const log = ProofLog.create(dir);
-  err(`vouchwell hook: started a new log at ${dir} (${log.logId})`);
-  return log;
+  err(`deedwrit hook: started a new log at ${dir} (${log.logId})`);
+  return LogAppender.open(dir);
 }
 
 /** @param {string} dir @returns {Record<string, any>} */
@@ -496,7 +527,7 @@ function holderAlive(text) {
 export function withLock(dir, fn) {
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, LOCK);
-  const waitMs = Number(process.env.VOUCHWELL_HOOK_LOCK_WAIT_MS) || 15_000;
+  const waitMs = Number(process.env.DEEDWRIT_HOOK_LOCK_WAIT_MS) || 15_000;
   const deadline = Date.now() + waitMs;
   const nap = new Int32Array(new SharedArrayBuffer(4));
   for (;;) {

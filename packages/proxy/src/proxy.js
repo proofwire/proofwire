@@ -4,7 +4,7 @@ import path from 'node:path';
 import { EventEmitter } from 'node:events';
 import { createRequire } from 'node:module';
 import { LineFramer, encode, isRequest, isResponse, toolRefusal } from './jsonrpc.js';
-import { History, redact, entryHash, globMatch } from '@vouchwell/core';
+import { History, redact, entryHash, globMatch } from '@deedwrit/core';
 
 /**
  * A transparent MCP proxy that enforces policy and writes receipts.
@@ -13,7 +13,7 @@ import { History, redact, entryHash, globMatch } from '@vouchwell/core';
  * both, so adopting it is a change to one line of configuration:
  *
  *     "command": "npx", "args": ["-y", "@acme/mcp-crm"]
- *     "command": "vw",  "args": ["proxy", "--", "npx", "-y", "@acme/mcp-crm"]
+ *     "command": "dw",  "args": ["proxy", "--", "npx", "-y", "@acme/mcp-crm"]
  *
  * Everything that is not a `tools/call` is forwarded untouched. That matters
  * more than it sounds: MCP gains methods faster than any proxy can track, and
@@ -22,7 +22,7 @@ import { History, redact, entryHash, globMatch } from '@vouchwell/core';
 
 // Stamped into every receipt's actor.runtime, so it must name the version that
 // actually produced the receipt — read from the package, never typed here.
-const RUNTIME = `vouchwell-proxy/${createRequire(import.meta.url)('../package.json').version}`;
+const RUNTIME = `deedwrit-proxy/${createRequire(import.meta.url)('../package.json').version}`;
 
 /**
  * Pull a dotted path out of an object.
@@ -80,7 +80,7 @@ export function extractMetrics(config, target, params) {
  * This is the same failure the policy loader refuses to allow for a typo'd
  * operator, and it deserves the same treatment.
  *
- * @param {import('@vouchwell/core').Policy} policy
+ * @param {import('@deedwrit/core').Policy} policy
  * @param {Record<string, any>} metricsConfig
  * @returns {string[]} Human-readable warnings; empty when the policy is wired up.
  */
@@ -217,8 +217,8 @@ export function launchSpec(command, args, platform = process.platform, which = (
 
 /**
  * @typedef {object} ProxyOptions
- * @property {import('@vouchwell/core').ProofLog} log
- * @property {import('@vouchwell/core').Policy} policy
+ * @property {import('@deedwrit/core').ProofLog} log
+ * @property {import('@deedwrit/core').Policy} policy
  * @property {{ agent: string, session: string, principal: string }} actor
  * @property {(req: any) => Promise<{approved: boolean, by: string, note?: string}>} approver
  * @property {string} command
@@ -292,7 +292,7 @@ export class McpProxy extends EventEmitter {
           this.emit('error', err);
           if (isRequest(message)) {
             stdout.write(
-              encode(toolRefusal(/** @type {any} */ (message).id, `Vouchwell internal error: ${err.message}`)),
+              encode(toolRefusal(/** @type {any} */ (message).id, `Deedwrit internal error: ${err.message}`)),
             );
           }
         });
@@ -321,7 +321,7 @@ export class McpProxy extends EventEmitter {
         resolve(code ?? 0);
       });
       child.on('error', (err) => {
-        stderr.write(`vouchwell: could not start "${this.opts.command}": ${err.message}\n`);
+        stderr.write(`deedwrit: could not start "${this.opts.command}": ${err.message}\n`);
         this.emit('error', err);
         resolve(127);
       });
@@ -349,7 +349,7 @@ export class McpProxy extends EventEmitter {
       this.history,
     );
 
-    /** @type {import('@vouchwell/core').Decision['approval']} */
+    /** @type {import('@deedwrit/core').Decision['approval']} */
     let approval;
 
     if (this.monitor) {
@@ -392,7 +392,7 @@ export class McpProxy extends EventEmitter {
         encode(
           toolRefusal(
             message.id,
-            `Blocked by Vouchwell policy. ${decision.reason}\n` +
+            `Blocked by Deedwrit policy. ${decision.reason}\n` +
               `Rules: ${decision.rules.join(', ') || 'none'}\n` +
               `This refusal is recorded as receipt ${receipt.seq} in log ${receipt.log}.`,
           ),
@@ -451,7 +451,7 @@ export class McpProxy extends EventEmitter {
    * Escalations are not sent to the approver. Asking a human to approve
    * something that is going to run whatever they answer is theatre.
    *
-   * @param {import('@vouchwell/core').PolicyDecision} decision
+   * @param {import('@deedwrit/core').PolicyDecision} decision
    * @param {string} target
    */
   _monitor(decision, target) {
@@ -503,7 +503,7 @@ export class McpProxy extends EventEmitter {
 
   /**
    * @param {object} args
-   * @returns {import('@vouchwell/core').Receipt}
+   * @returns {import('@deedwrit/core').Receipt}
    */
   _record(args) {
     const receipt = this.log.append({

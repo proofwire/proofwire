@@ -10,7 +10,7 @@ import { Hub } from '../../server/src/app.js';
 import { Auth } from '../../server/src/auth.js';
 
 /**
- * `vw witnesses` and `vw streams`: an admin configuring a hub's outside
+ * `dw witnesses` and `dw streams`: an admin configuring a hub's outside
  * witnesses and event streams from the command line.
  */
 
@@ -52,7 +52,7 @@ before(async () => {
   await new Promise((r) => sink.listen(0, '127.0.0.1', () => r(null)));
   sinkUrl = `http://127.0.0.1:${/** @type {any} */ (sink.address()).port}`;
 
-  cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-integrations-cli-'));
+  cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-integrations-cli-'));
   assert.equal((await pw(['init'])).code, 0);
   const added = await pw(['remote', 'add', '--url', hubUrl, '--token', admin, '--insecure']);
   assert.equal(added.code, 0, added.out);
@@ -84,8 +84,8 @@ function pw(args, env = {}) {
   });
 }
 
-test('vw witnesses add, list and remove; the token comes from the environment', async () => {
-  const add = await pw(['witnesses', 'add', 'notary', '--url', witnessUrl], { VOUCHWELL_WITNESS_TOKEN: witnessToken });
+test('dw witnesses add, list and remove; the token comes from the environment', async () => {
+  const add = await pw(['witnesses', 'add', 'notary', '--url', witnessUrl], { DEEDWRIT_WITNESS_TOKEN: witnessToken });
   assert.equal(add.code, 0, add.out);
   assert.match(add.out, new RegExp(witness.witnessSigner.kid));
 
@@ -98,12 +98,12 @@ test('vw witnesses add, list and remove; the token comes from the environment', 
   assert.match((await pw(['witnesses', 'list'])).out, /none/);
 });
 
-test('vw streams add, test, list and remove; a generated webhook secret is shown once', async () => {
+test('dw streams add, test, list and remove; a generated webhook secret is shown once', async () => {
   const add = await pw(['streams', 'add', 'soc', '--type', 'webhook', '--url', `${sinkUrl}/in`, '--receipts', 'blocked']);
   assert.equal(add.code, 0, add.out);
   assert.match(add.out, /whsec_[A-Za-z0-9_-]+/);
 
-  const splunk = await pw(['streams', 'add', 'splunk', '--type', 'splunk', '--url', sinkUrl], { VOUCHWELL_STREAM_TOKEN: 'hec-1' });
+  const splunk = await pw(['streams', 'add', 'splunk', '--type', 'splunk', '--url', sinkUrl], { DEEDWRIT_STREAM_TOKEN: 'hec-1' });
   assert.equal(splunk.code, 0, splunk.out);
   assert.ok(!splunk.out.includes('whsec_'));
 

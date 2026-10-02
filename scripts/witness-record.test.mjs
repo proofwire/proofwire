@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateIdentity } from '@vouchwell/core';
+import { generateIdentity } from '@deedwrit/core';
 import { validate, appendOnly, check, RECORD } from './witness-record.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -15,7 +15,7 @@ const SCRIPT = path.join(REPO, 'scripts/witness-record.mjs');
 function entry(over = {}) {
   const { kid, publicKey } = generateIdentity().identity;
   return {
-    kid, publicKey, operator: 'Vouchwell', node: 'https://witness1.example',
+    kid, publicKey, operator: 'Deedwrit', node: 'https://witness1.example',
     addedAt: '2026-09-23', retiredAt: null, revokedAt: null, note: null, ...over,
   };
 }
@@ -104,7 +104,7 @@ test('the history check catches a removal that was committed, and an uncommitted
     assert.equal(r.status, 0, r.stderr);
   };
   git('init', '-q');
-  git('config', 'user.email', 'test@vouchwell.test');
+  git('config', 'user.email', 'test@deedwrit.test');
   git('config', 'user.name', 'test');
   fs.mkdirSync(path.join(dir, 'witnesses'));
   const write = (record) => fs.writeFileSync(path.join(dir, RECORD), `${JSON.stringify(record, null, 2)}\n`);
@@ -126,7 +126,7 @@ test('the history check catches a removal that was committed, and an uncommitted
   // Uncommitted edits are held to the same rules.
   const clean = fs.mkdtempSync(path.join(os.tmpdir(), 'pw-record-'));
   spawnSync('git', ['init', '-q'], { cwd: clean });
-  spawnSync('git', ['config', 'user.email', 'test@vouchwell.test'], { cwd: clean });
+  spawnSync('git', ['config', 'user.email', 'test@deedwrit.test'], { cwd: clean });
   spawnSync('git', ['config', 'user.name', 'test'], { cwd: clean });
   fs.mkdirSync(path.join(clean, 'witnesses'));
   fs.writeFileSync(path.join(clean, RECORD), `${JSON.stringify([a], null, 2)}\n`);
@@ -143,22 +143,22 @@ test('the command line adds, retires and revokes, and refuses what the rules ref
   fs.writeFileSync(path.join(dir, RECORD), '[]\n');
   const cli = (...args) => {
     const r = spawnSync(process.execPath, [SCRIPT, ...args], {
-      encoding: 'utf8', env: { ...process.env, VOUCHWELL_RECORD_ROOT: dir },
+      encoding: 'utf8', env: { ...process.env, DEEDWRIT_RECORD_ROOT: dir },
     });
     return { status: r.status, out: r.stdout + r.stderr };
   };
   const read = () => JSON.parse(fs.readFileSync(path.join(dir, RECORD), 'utf8'));
   const { kid, publicKey } = generateIdentity().identity;
 
-  assert.equal(cli('add', '--operator', 'Vouchwell').status, 2, 'add without a key');
-  assert.equal(cli('add', '--operator', 'Vouchwell', '--public-key', 'nope').status, 1, 'add with a bad key');
-  assert.equal(cli('add', '--operator', 'Vouchwell', '--public-key', publicKey, '--node', 'https://w1.example', '--date', '2026-09-23').status, 0);
+  assert.equal(cli('add', '--operator', 'Deedwrit').status, 2, 'add without a key');
+  assert.equal(cli('add', '--operator', 'Deedwrit', '--public-key', 'nope').status, 1, 'add with a bad key');
+  assert.equal(cli('add', '--operator', 'Deedwrit', '--public-key', publicKey, '--node', 'https://w1.example', '--date', '2026-09-23').status, 0);
   assert.deepEqual(read(), [{
-    kid, publicKey, operator: 'Vouchwell', node: 'https://w1.example',
+    kid, publicKey, operator: 'Deedwrit', node: 'https://w1.example',
     addedAt: '2026-09-23', retiredAt: null, revokedAt: null, note: null,
   }]);
   // The same key twice is refused, and the file is left as it was.
-  assert.equal(cli('add', '--operator', 'Vouchwell', '--public-key', publicKey).status, 1);
+  assert.equal(cli('add', '--operator', 'Deedwrit', '--public-key', publicKey).status, 1);
   assert.equal(read().length, 1);
 
   assert.equal(cli('retire', kid, '--date', '2026-10-01').status, 0);
@@ -169,7 +169,7 @@ test('the command line adds, retires and revokes, and refuses what the rules ref
   assert.equal(cli('check').status, 0);
 });
 
-test('vw check never pins a revoked key from the record, and still pins a retired one', async () => {
+test('dw check never pins a revoked key from the record, and still pins a retired one', async () => {
   const { witnessKeysFrom } = await import('../packages/cli/src/witness-keys.js');
   const live = entry();
   const retired = entry({ retiredAt: '2026-10-01' });
@@ -182,6 +182,6 @@ test('vw check never pins a revoked key from the record, and still pins a retire
   assert.equal(pinned[revoked.kid], undefined);
 
   // The empty published record pins nothing — and says so by returning nothing,
-  // which `vw check --witnesses N` then refuses rather than counting anything.
+  // which `dw check --witnesses N` then refuses rather than counting anything.
   assert.equal(witnessKeysFrom({ 'witness-keys': path.join(REPO, RECORD) }), undefined);
 });

@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ProofLog, generateIdentity, cosign, verifyBundle, entryHash } from '@vouchwell/core';
+import { ProofLog, generateIdentity, cosign, verifyBundle, entryHash } from '@deedwrit/core';
 import { summarise, frameworkMap, renderHtml } from '../src/report.js';
 
 const BIN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../src/bin.js');
@@ -18,7 +18,7 @@ const actor = (principal = 'ops@acme.test') => ({ agent: 'claude-opus-5', runtim
  * days so a date filter has something to cut.
  */
 function fixtureLog() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-report-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'deedwrit-report-'));
   const log = ProofLog.create(dir);
   const add = (/** @type {any} */ a) => log.append(a);
   const allow = { outcome: 'allow', policy: 'p1', rules: [] };
@@ -105,12 +105,12 @@ test('the framework mapping says "supports", never that anything complies', () =
   assert.match(text, /CC7\.2/);
 });
 
-test('vw report writes a pack an auditor can verify on their own, with checksums', () => {
+test('dw report writes a pack an auditor can verify on their own, with checksums', () => {
   const { dir, log } = fixtureLog();
   // A witness countersigns the latest checkpoint; the auditor pins it.
   const cp = log.checkpoint();
   const witness = generateIdentity().identity;
-  // As `vw cosign` does: keep the witness's key with the log, then its signature.
+  // As `dw cosign` does: keep the witness's key with the log, then its signature.
   log.trustKey(witness.kid, witness.publicKey);
   log.addSignature(cp.body.size, cosign(cp, witness).sigs.find((x) => x.role === 'witness'));
 

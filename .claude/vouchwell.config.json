@@ -1,8 +1,0 @@
-{
-  "log": ".claude/vouchwell-log",
-  "policy": ".claude/vouchwell.policy.json",
-  "hook": {
-    "principal": "vouchwell-maintainers",
-    "previews": "none"
-  }
-}

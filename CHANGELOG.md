@@ -1,14 +1,27 @@
 # Changelog
 
-All five packages — `vouchwell` and `@vouchwell/{core,proxy,dashboard,server}`,
+All five packages — `deedwrit` and `@deedwrit/{core,proxy,dashboard,server}`,
 up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same version.
 
 ## Unreleased
 
 ### Added
 
-- **`vw hook`: record and gate Claude Code's own tools.** Claude Code runs
-  `vw hook` before and after every tool call: shell commands, file reads and
+- **`dw hook` stays fast however large the log grows.** Every hook call used
+  to read and hash the whole log, which took 0.5 s at 5,000 receipts, twice
+  per tool call. It now reads only two things:
+  - where the last call left off, kept in `append-state.json` and rebuilt
+    from the entries whenever the two disagree;
+  - the receipts inside the policy's longest window.
+
+  That is about 100 ms per call at any size. The new `LogAppender` in core
+  does this for any writer that starts once per action.
+- **Evidence written at the end of every session.** With `"evidence": "<folder>"`
+  in the hook settings, the session end writes the log there as a
+  checkpointed bundle. This repository uses it, so its evidence no longer
+  depends on someone remembering `npm run evidence`.
+- **`dw hook`: record and gate Claude Code's own tools.** Claude Code runs
+  `dw hook` before and after every tool call: shell commands, file reads and
   edits, fetches. Before a call, the policy decides:
   - refused calls are denied in Claude Code, with the reason;
   - escalations are put to the person at the keyboard;
@@ -20,9 +33,9 @@ up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same ver
   checkpointed.
   - Parallel tool calls keep one unbroken chain.
   - When enforcing, a call that cannot be recorded is refused.
-    `VOUCHWELL_HOOK=off` turns it off.
-  - `vw hook install` and `vw hook uninstall` edit Claude Code's settings
-    without touching other hooks. `vw hook evidence` writes a checkpointed
+    `DEEDWRIT_HOOK=off` turns it off.
+  - `dw hook install` and `dw hook uninstall` edit Claude Code's settings
+    without touching other hooks. `dw hook evidence` writes a checkpointed
     bundle to publish.
   - See `docs/CODING-AGENTS.md`.
 - **The `coding-agent` policy template** refuses reading or writing secret
@@ -30,10 +43,10 @@ up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same ver
   that name a secret file and `--no-verify`.
 - **Receipts can leave out their previews** (`previews: { params, result }` on
   `ProofLog.append`), keeping only the commitments, for logs that will be
-  published. `vw hook` has a `previews` setting: `params` (the default),
+  published. `dw hook` has a `previews` setting: `params` (the default),
   `all` or `none`.
 - **This repository records its own development.** Its Claude Code hooks
-  record every tool call an agent makes working on Vouchwell, and publish the
+  record every tool call an agent makes working on Deedwrit, and publish the
   logs in `evidence/` with previews off. CI verifies every bundle on every
   push.
 
@@ -49,35 +62,41 @@ up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same ver
 
 ### Changed
 
-- **The logo says Vouchwell everywhere.** It is written in two coloured
+- **The logo says Deedwrit everywhere.** It is written in two coloured
   halves, so the rename missed it: the website header, footer and 404 page,
   the local dashboard and the hub console still read "proofwire". A test now
   fails if a split old logo comes back.
-- **Renamed from Proofwire to Vouchwell.** Another developer tools company was
+- **Renamed from Proofwire to Deedwrit.** Another developer tools company was
   already using "Proofwire" for an API sold to AI-agent developers, and had been
-  since before this project's first release. New names: npm `vouchwell` and
-  `@vouchwell/{core,proxy,dashboard,server}`, PyPI `vouchwell` (import
-  `vouchwell`), the `vouchwell` and `vw` commands (was `pw`), `vouchwell-hub`,
-  `VOUCHWELL_*` settings, `.vouchwell/`, `vouchwell.config.json`,
-  `vouchwell.policy.json`, `~/.vouchwell/`, `/.well-known/vouchwell`, the
-  `vouchwell-signature` webhook header and `vouchwell.bundle` evidence.
+  since before this project's first release. Deedwrit — a written record of
+  deeds — was clear on npm, PyPI, crates.io and every common domain. For a few
+  days `main` used "Vouchwell"; it was never published, and everything it wrote
+  is accepted alongside the Proofwire names below. New names: npm `deedwrit` and
+  `@deedwrit/{core,proxy,dashboard,server}`, PyPI `deedwrit` (import
+  `deedwrit`), the `deedwrit` and `dw` commands (was `pw`), `deedwrit-hub`,
+  `DEEDWRIT_*` settings, `.deedwrit/`, `deedwrit.config.json`,
+  `deedwrit.policy.json`, `~/.deedwrit/`, `/.well-known/deedwrit`, the
+  `deedwrit-signature` webhook header and `deedwrit.bundle` evidence.
   **Nothing existing breaks:**
-  - evidence bundles labelled `proofwire.bundle` verify in the CLI, the Python
+  - evidence bundles labelled `proofwire.bundle` or `vouchwell.bundle` verify in the CLI, the Python
     SDK and the website (the label was never signed; nothing inside changes);
-  - the CLI finds a `.proofwire/` log, `proofwire.*.json` files and
-    `~/.proofwire/credentials.json` when those are what exist;
-  - every `PROOFWIRE_*` setting is read as its `VOUCHWELL_*` name, with a
+  - the CLI finds a `.proofwire/` or `.vouchwell/` log, `proofwire.*.json` or
+    `vouchwell.*.json` files and `~/.proofwire/` or `~/.vouchwell/` credentials
+    when those are what exist;
+  - every `PROOFWIRE_*` and `VOUCHWELL_*` setting is read as its `DEEDWRIT_*` name, with a
     one-line notice, in the CLI, the hub and the deploy kit;
-  - a hub keeps using its `proofwire.db` (including the Docker image's
-    `/data/proofwire.db`) rather than starting an empty `vouchwell.db`, and
-    still answers at `/.well-known/proofwire`;
+  - a hub keeps using its `proofwire.db` or `vouchwell.db` (including the
+    Docker image's `/data/proofwire.db`) rather than starting an empty
+    `deedwrit.db`, and still answers at `/.well-known/proofwire` and
+    `/.well-known/vouchwell`;
   - Slack messages posted before the rename still approve and deny correctly
     (an old Approve button would otherwise have counted as a denial);
-  - the deploy kit refuses to start a server that has `proofwire_*` volumes on
-    new empty ones, and says to set `COMPOSE_PROJECT_NAME=proofwire`.
+  - the deploy kit refuses to start a server that has `proofwire_*` or
+    `vouchwell_*` volumes on new empty ones, and says which
+    `COMPOSE_PROJECT_NAME` to set.
   Key ids (`pw1…`) and API tokens (`pwk_…`) keep their prefixes: they are
   identifiers of existing keys, not branding. The webhook signature header is
-  now `vouchwell-signature` (streaming shipped in 0.5.0, the day before).
+  now `deedwrit-signature` (streaming shipped in 0.5.0, the day before).
 
 ## 0.5.0 — 2026-09-28
 

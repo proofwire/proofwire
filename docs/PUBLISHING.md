@@ -8,10 +8,14 @@ Two paths. The second is the one to use once it is set up.
 
 Up to 0.5.0 the project was **Proofwire**: npm packages `proofwire` and
 `@proof_wire/*`, the `pw` command, and the GitHub organisation `proofwire`.
-It was renamed because another developer tools company was already using the
-name. Those releases stay on npm as they are; the next release is the first
-under the new names, and the old packages get a deprecation notice pointing
-here (see "After the rename" below).
+It was renamed **Deedwrit** because another developer tools company was
+already using the name. Those releases stay on npm as they are; the next
+release is the first under the new names, and the old packages get a
+deprecation notice pointing here (see "After the rename" below).
+
+For a few days in between, `main` used the name **Vouchwell**. Nothing was
+published under it; files, settings and evidence it wrote are read like the
+Proofwire ones.
 
 ## What is already done
 
@@ -19,7 +23,8 @@ here (see "After the rename" below).
   so the link in [`SECURITY.md`](../SECURITY.md) works.
 - 0.2.0, 0.3.0 and 0.5.0 were published under the old names, from tagged
   commits, each with a GitHub release carrying its `CHANGELOG.md` section.
-- The website is live at <https://vouchwell.github.io/vouchwell/>. It is static files in `site/`, deployed by
+- The website is live: at <https://proofwire.github.io/proofwire/> until the
+  organisation is renamed, then at <https://deedwrit.github.io/deedwrit/>. It is static files in `site/`, deployed by
   `.github/workflows/pages.yml`; the site's own tests gate the deploy and
   `site/test/` is not published.
 - CI runs the full suite on Linux, macOS and Windows, on Node 22 LTS and 24,
@@ -56,7 +61,7 @@ Then publish and tag:
 npm login                       # opens a browser
 npm run release:dry             # the preflight, publishing nothing
 npm run release                 # asks for a 2FA code per package
-git tag -a v0.4.1 -m "Vouchwell 0.4.1" && git push origin v0.4.1
+git tag -a v0.4.1 -m "Deedwrit 0.4.1" && git push origin v0.4.1
 ```
 
 The preflight refuses to publish a version that is already on npm, a
@@ -72,14 +77,14 @@ the tag first and it fails, saying what isn't published yet.
 
 ### First time only: create the scope
 
-The four `@vouchwell/*` packages need an npm org to live in. It is free for
+The four `@deedwrit/*` packages need an npm org to live in. It is free for
 public packages:
 
-**https://www.npmjs.com/org/create** → name it `vouchwell`.
+**https://www.npmjs.com/org/create** → name it `deedwrit`.
 
 Without it those four fail to publish, and it is not optional for the CLI
-either: the unscoped `vouchwell` package depends on `@vouchwell/core` and
-`@vouchwell/proxy`, so a CLI published without them installs nowhere.
+either: the unscoped `deedwrit` package depends on `@deedwrit/core` and
+`@deedwrit/proxy`, so a CLI published without them installs nowhere.
 
 ### What the script does
 
@@ -112,7 +117,7 @@ credential sits on a laptop.
 ### Setup, once
 
 1. On npm: **Access Tokens → Generate New Token → Granular Access Token**.
-   Scope it to the `vouchwell` packages and the `@vouchwell` org, with
+   Scope it to the `deedwrit` packages and the `@deedwrit` org, with
    *Read and write*. Set an expiry.
 2. On GitHub: **Settings → Secrets and variables → Actions → New repository
    secret**, named `NPM_TOKEN`.
@@ -122,11 +127,11 @@ credential sits on a laptop.
 ```bash
 npm run bump -- 0.4.1
 git commit -am "Release 0.4.1"
-git tag -a v0.4.1 -m "Vouchwell 0.4.1"
+git tag -a v0.4.1 -m "Deedwrit 0.4.1"
 git push && git push --tags
 ```
 
-(Not `npm version --workspaces`: it leaves the internal `@vouchwell/*` pins at
+(Not `npm version --workspaces`: it leaves the internal `@deedwrit/*` pins at
 the old version, so the new CLI would install the old core.)
 
 The tag triggers `.github/workflows/release.yml`, which re-runs the full suite
@@ -141,15 +146,15 @@ Try it first with **Actions → Release → Run workflow → dry run: true**.
 ## After the first publish
 
 ```bash
-npx vouchwell@latest --version
-npm view vouchwell
+npx deedwrit@latest --version
+npm view deedwrit
 ```
 
 Then the things that are not automatable and are worth doing deliberately:
 
 - [ ] Check the site noticed. The Pages workflow reruns when Release finishes
       and writes the version into `site/release.json`, which reveals the install
-      line on the page. It does so only if `npm view vouchwell repository.url`
+      line on the page. It does so only if `npm view deedwrit repository.url`
       points at this repository: the CLI's name is unscoped, so without that
       check anyone who registered it first would be advertised here. Done for 0.2.0.
 - [ ] Enable **2FA on the npm account**. A compromised publish account on a
@@ -164,17 +169,17 @@ Then the things that are not automatable and are worth doing deliberately:
 
 ## The website's address
 
-The repository is `github.com/vouchwell/vouchwell` and the site is at
-<https://vouchwell.github.io/vouchwell/>. Every path on the site is relative, so
+The repository is `github.com/deedwrit/deedwrit` and the site is at
+<https://deedwrit.github.io/deedwrit/>. Every path on the site is relative, so
 it works under any prefix or at a root; moving it changes where it is served
 from, not the site.
 
-The bare hostname, <https://vouchwell.github.io/>, is served by a separate
-one-file repository, `vouchwell/vouchwell.github.io`, that does nothing but
-redirect to `/vouchwell/`. GitHub serves a hostname's root only from a repository
+The bare hostname, <https://deedwrit.github.io/>, is served by a separate
+one-file repository, `deedwrit/deedwrit.github.io`, that does nothing but
+redirect to `/deedwrit/`. GitHub serves a hostname's root only from a repository
 of exactly that name, and keeping the site's source in one place is worth more
 than one fewer path segment. If you would rather the site *be* at the root,
-rename this repository to `vouchwell.github.io` (that name then appears in every
+rename this repository to `deedwrit.github.io` (that name then appears in every
 source link) and delete the redirect repository.
 
 The repository was transferred from a personal account, which left three things
@@ -196,43 +201,47 @@ needs to change.
 
 Once, in this order. Each is an account action, so none can be done from CI.
 
-1. **GitHub.** Rename the organisation `proofwire` to `vouchwell`
+0. **Claim the name.** Check <https://github.com/deedwrit> is free (GitHub
+   could not be searched when the name was chosen), register `deedwrit.com`,
+   and have a trademark search run before announcing it.
+1. **GitHub.** Rename the organisation `proofwire` to `deedwrit`
    (Settings → Rename organization), then the repository `proofwire` to
-   `vouchwell`, and `proofwire.github.io` to `vouchwell.github.io`. GitHub
+   `deedwrit`, and `proofwire.github.io` to `deedwrit.github.io`. GitHub
    redirects the old repository URLs, so existing clones and links keep
-   working; the website moves to <https://vouchwell.github.io/vouchwell/>.
-2. **npm.** Create the org `vouchwell` (https://www.npmjs.com/org/create), so
-   the `@vouchwell/*` packages have somewhere to publish.
+   working; the website moves to <https://deedwrit.github.io/deedwrit/>.
+2. **npm.** Create the org `deedwrit` (https://www.npmjs.com/org/create), so
+   the `@deedwrit/*` packages have somewhere to publish.
 3. **Release.** Bump to the next version and publish as in Path 1 or 2. It is
-   the first release of `vouchwell` and `@vouchwell/*`.
+   the first release of `deedwrit` and `@deedwrit/*`.
 4. **Point the old packages at the new ones**, so anyone installing them is
    told where the project went. The old versions stay installable:
 
    ```bash
-   npm deprecate proofwire "Renamed to vouchwell: npm i -g vouchwell"
+   npm deprecate proofwire "Renamed to deedwrit: npm i -g deedwrit"
    for p in core proxy dashboard server; do
-     npm deprecate "@proof_wire/$p" "Renamed to @vouchwell/$p"
+     npm deprecate "@proof_wire/$p" "Renamed to @deedwrit/$p"
    done
    ```
-5. **PyPI.** Publish `vouchwell` (below). The old name was never published
+5. **PyPI.** Publish `deedwrit` (below). The old name was never published
    there, so there is nothing to deprecate.
 
 Existing users need to change nothing to keep working: the CLI still finds a
 `.proofwire/` log and `proofwire.*.json` files, `~/.proofwire` credentials and
 `PROOFWIRE_*` settings; the hub keeps using a `proofwire.db` and still answers
 at `/.well-known/proofwire`; and bundles labelled `proofwire.bundle` verify.
+The same holds for anything written under the interim name, Vouchwell.
 
 ## The Python SDK (PyPI)
 
-The Python package lives in `sdk/python`. It's published as **`vouchwell`**
-and imported as `vouchwell`, the same name as on npm.
+The Python package lives in `sdk/python`. It's published as **`deedwrit`**
+and imported as `deedwrit`, the same name as on npm.
 
 **Once:** create an account at <https://pypi.org>, turn on two-factor
 authentication, and create an API token scoped to all projects. After the first
-upload, replace it with one scoped to `vouchwell` only.
+upload, replace it with one scoped to `deedwrit` only.
 
 **Each release**, from the repository root, with the version in
-`sdk/python/pyproject.toml` and `sdk/python/src/vouchwell/__init__.py`
+`sdk/python/pyproject.toml` and `sdk/python/src/deedwrit/__init__.py`
 matching the npm release:
 
 ```bash
@@ -246,8 +255,8 @@ python -m twine upload dist/*        # asks for the token; username __token__
 Check it installs cleanly:
 
 ```bash
-python -m venv /tmp/pwcheck && /tmp/pwcheck/bin/pip install vouchwell
-/tmp/pwcheck/bin/python -c "import vouchwell; print(vouchwell.__version__)"
+python -m venv /tmp/pwcheck && /tmp/pwcheck/bin/pip install deedwrit
+/tmp/pwcheck/bin/python -c "import deedwrit; print(deedwrit.__version__)"
 ```
 
 ## Versioning

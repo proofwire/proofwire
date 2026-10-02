@@ -4,12 +4,12 @@ import { c, out, ok, bad, warn, info, heading, table } from './ui.js';
 /**
  * Admin commands for two of the hub's per-organisation integrations:
  *
- *   vw witnesses list|add|remove   outside witnesses for every hub checkpoint
- *   vw streams list|add|remove|test|flush   receipts and audit events to a SIEM
+ *   dw witnesses list|add|remove   outside witnesses for every hub checkpoint
+ *   dw streams list|add|remove|test|flush   receipts and audit events to a SIEM
  *
  * Tokens and secrets can come from the environment rather than the command
- * line, where they would land in shell history: VOUCHWELL_WITNESS_TOKEN,
- * VOUCHWELL_STREAM_TOKEN, VOUCHWELL_STREAM_SECRET, VOUCHWELL_STREAM_HEADERS
+ * line, where they would land in shell history: DEEDWRIT_WITNESS_TOKEN,
+ * DEEDWRIT_STREAM_TOKEN, DEEDWRIT_STREAM_SECRET, DEEDWRIT_STREAM_HEADERS
  * (a JSON object).
  */
 
@@ -39,7 +39,7 @@ export async function cmdWitnesses(args) {
       if (!witnesses.length) {
         out(`  ${c.grey('none: checkpoints carry only the hub\'s own signature')}`);
         out('');
-        info(`add one with ${c.cyan('vw witnesses add <name> --url <witness> --token <key it issued you>')}`);
+        info(`add one with ${c.cyan('dw witnesses add <name> --url <witness> --token <key it issued you>')}`);
         out('');
         return 0;
       }
@@ -49,9 +49,9 @@ export async function cmdWitnesses(args) {
     }
     if (action === 'add') {
       const name = args._[2];
-      const token = args.token ?? process.env.VOUCHWELL_WITNESS_TOKEN;
+      const token = args.token ?? process.env.DEEDWRIT_WITNESS_TOKEN;
       if (!name || !args.url || !token) {
-        bad('usage: vw witnesses add <name> --url <witness> --token <key>   (or VOUCHWELL_WITNESS_TOKEN)');
+        bad('usage: dw witnesses add <name> --url <witness> --token <key>   (or DEEDWRIT_WITNESS_TOKEN)');
         return 2;
       }
       const { witnesses } = await call('GET', '');
@@ -64,13 +64,13 @@ export async function cmdWitnesses(args) {
       const added = res.witnesses.find((/** @type {any} */ w) => w.name === name);
       ok(`${name} answers as ${added?.kid ?? '?'}; every new checkpoint goes to it for co-signing.`);
       info('Auditors should pin that key from the witness operator, not from this hub:');
-      out(`    ${c.cyan(`vw check bundle.json --witnesses ${res.witnesses.length} --witness-key <kid>=<publicKey>`)}`);
+      out(`    ${c.cyan(`dw check bundle.json --witnesses ${res.witnesses.length} --witness-key <kid>=<publicKey>`)}`);
       return 0;
     }
     if (action === 'remove') {
       const name = args._[2];
       if (!name) {
-        bad('usage: vw witnesses remove <name>');
+        bad('usage: dw witnesses remove <name>');
         return 2;
       }
       const { witnesses } = await call('GET', '');
@@ -102,7 +102,7 @@ export async function cmdStreams(args) {
       if (!destinations.length) {
         out(`  ${c.grey('none')}`);
         out('');
-        info(`add one with ${c.cyan('vw streams add <name> --type webhook|splunk|datadog|otlp --url <url>')}`);
+        info(`add one with ${c.cyan('dw streams add <name> --type webhook|splunk|datadog|otlp --url <url>')}`);
         out('');
         return 0;
       }
@@ -123,7 +123,7 @@ export async function cmdStreams(args) {
     if (action === 'add') {
       const name = args._[2];
       if (!name || !args.type) {
-        bad('usage: vw streams add <name> --type webhook|splunk|datadog|otlp --url <url>');
+        bad('usage: dw streams add <name> --type webhook|splunk|datadog|otlp --url <url>');
         info('  [--token <HEC token or Datadog key>] [--secret <webhook secret>] [--header "name=value"]');
         info('  [--receipts all|blocked|none] [--no-audit] [--backfill]');
         return 2;
@@ -131,9 +131,9 @@ export async function cmdStreams(args) {
       /** @type {any} */
       const body = { type: String(args.type), receipts: args.receipts ?? 'all', audit: !args['no-audit'] };
       if (args.url) body.url = String(args.url);
-      const token = args.token ?? process.env.VOUCHWELL_STREAM_TOKEN;
+      const token = args.token ?? process.env.DEEDWRIT_STREAM_TOKEN;
       if (token) body.token = String(token);
-      const secret = args.secret ?? process.env.VOUCHWELL_STREAM_SECRET;
+      const secret = args.secret ?? process.env.DEEDWRIT_STREAM_SECRET;
       if (secret) body.secret = String(secret);
       if (args.header) {
         const h = String(args.header);
@@ -143,25 +143,25 @@ export async function cmdStreams(args) {
           return 2;
         }
         body.headers = { [h.slice(0, eq)]: h.slice(eq + 1) };
-      } else if (process.env.VOUCHWELL_STREAM_HEADERS) {
-        body.headers = JSON.parse(process.env.VOUCHWELL_STREAM_HEADERS);
+      } else if (process.env.DEEDWRIT_STREAM_HEADERS) {
+        body.headers = JSON.parse(process.env.DEEDWRIT_STREAM_HEADERS);
       }
       if (args.backfill) body.backfill = true;
       const res = await call('PUT', `/${encodeURIComponent(name)}`, body);
       ok(`${name} added: new ${body.receipts === 'none' ? '' : 'receipts and '}events go to it within a second.`);
       if (res.secrets?.[name]) {
         out('');
-        warn('Webhook signing secret, shown once. Verify each delivery\'s vouchwell-signature header with it:');
+        warn('Webhook signing secret, shown once. Verify each delivery\'s deedwrit-signature header with it:');
         out(`    ${c.bold(res.secrets[name])}`);
       }
       out('');
-      info(`check it with ${c.cyan('vw streams test')}`);
+      info(`check it with ${c.cyan('dw streams test')}`);
       return 0;
     }
     if (action === 'remove') {
       const name = args._[2];
       if (!name) {
-        bad('usage: vw streams remove <name>');
+        bad('usage: dw streams remove <name>');
         return 2;
       }
       await call('DELETE', `/${encodeURIComponent(name)}`);

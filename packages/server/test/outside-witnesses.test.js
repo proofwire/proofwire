@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV, verifyBundle } from '@vouchwell/core';
+import { generateIdentity, buildReceipt, signReceipt, entryHash, GENESIS_PREV, verifyBundle } from '@deedwrit/core';
 import { Hub } from '../src/app.js';
 import { Auth } from '../src/auth.js';
 

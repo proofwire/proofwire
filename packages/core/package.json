@@ -1,5 +1,5 @@
 {
-  "name": "@vouchwell/core",
+  "name": "@deedwrit/core",
   "version": "0.5.0",
   "type": "module",
   "description": "Signed, hash-chained, Merkle-anchored receipts for AI agent actions.",
@@ -7,12 +7,12 @@
   "author": "IdeaboticsAI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vouchwell/vouchwell.git",
+    "url": "git+https://github.com/deedwrit/deedwrit.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/vouchwell/vouchwell#readme",
+  "homepage": "https://github.com/deedwrit/deedwrit#readme",
   "bugs": {
-    "url": "https://github.com/vouchwell/vouchwell/issues"
+    "url": "https://github.com/deedwrit/deedwrit/issues"
   },
   "keywords": [
     "ai-agents",

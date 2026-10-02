@@ -1,6 +1,6 @@
-# Deploying a Vouchwell node
+# Deploying a Deedwrit node
 
-This takes one Linux server from nothing to a Vouchwell node serving HTTPS on
+This takes one Linux server from nothing to a Deedwrit node serving HTTPS on
 your own domain: a witness-only node by default. The same kit runs a full hub
 by changing one setting.
 
@@ -70,8 +70,8 @@ docker compose version
 ## 4. Get the code at a release
 
 ```bash
-git clone https://github.com/vouchwell/vouchwell.git /opt/vouchwell
-cd /opt/vouchwell
+git clone https://github.com/deedwrit/deedwrit.git /opt/deedwrit
+cd /opt/deedwrit
 git checkout v0.4.0      # the latest release tag, not main
 ```
 
@@ -80,9 +80,9 @@ The kit needs 0.4.0 or later: `identity`, which prints the keys, arrived then.
 ## 5. Configure and start
 
 ```bash
-cd /opt/vouchwell/deploy
+cd /opt/deedwrit/deploy
 ./setup.sh               # first run creates .env and stops
-nano .env                # set VOUCHWELL_DOMAIN and VOUCHWELL_TLS
+nano .env                # set DEEDWRIT_DOMAIN and DEEDWRIT_TLS
 ./setup.sh               # builds, starts, waits for HTTPS, prints the keys
 ```
 
@@ -90,10 +90,10 @@ In `.env`:
 
 | Setting | What to put |
 | --- | --- |
-| `VOUCHWELL_DOMAIN` | The hostname from step 1, e.g. `witness1.yourdomain.com` |
-| `VOUCHWELL_TLS` | An email address for Let's Encrypt expiry notices. Or `internal` for a self-signed certificate, to test before DNS is ready. |
-| `VOUCHWELL_WITNESS_ONLY` | `1` for a witness node (the default). `0` for a full hub. |
-| `VOUCHWELL_JOURNAL_DIR` | Recommended: an absolute path on a separate disk for the witness journal (below). Unset, it gets its own Docker volume on the same disk as the database. |
+| `DEEDWRIT_DOMAIN` | The hostname from step 1, e.g. `witness1.yourdomain.com` |
+| `DEEDWRIT_TLS` | An email address for Let's Encrypt expiry notices. Or `internal` for a self-signed certificate, to test before DNS is ready. |
+| `DEEDWRIT_WITNESS_ONLY` | `1` for a witness node (the default). `0` for a full hub. |
+| `DEEDWRIT_JOURNAL_DIR` | Recommended: an absolute path on a separate disk for the witness journal (below). Unset, it gets its own Docker volume on the same disk as the database. |
 
 ### Give the witness journal its own disk
 
@@ -112,7 +112,7 @@ sudo mkdir -p /mnt/journal && sudo mount /dev/sdb /mnt/journal
 echo '/dev/sdb /mnt/journal ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
 ```
 
-Then set `VOUCHWELL_JOURNAL_DIR=/mnt/journal/vouchwell` in `.env` and run
+Then set `DEEDWRIT_JOURNAL_DIR=/mnt/journal/deedwrit` in `.env` and run
 `./setup.sh`. Run as root, it creates the directory owned by the node's user;
 otherwise it prints the one `sudo` command to run. It warns if the directory is
 on the same disk as Docker's volumes after all.
@@ -128,13 +128,13 @@ pointing here yet, or ports 80/443 blocked.
 Check it from your own machine:
 
 ```bash
-curl https://witness1.yourdomain.com/.well-known/vouchwell
+curl https://witness1.yourdomain.com/.well-known/deedwrit
 ```
 
 ## 6. Publish the witness key
 
 Auditors pin a witness by its public key, so the key has to be published
-somewhere the node itself can't change. For Vouchwell's own nodes, that's
+somewhere the node itself can't change. For Deedwrit's own nodes, that's
 [`witnesses/keys.json`](../witnesses/keys.json) in this repository. Take the key
 from the **server**, not from the node's HTTP API:
 
@@ -146,7 +146,7 @@ It prints the command to run from a checkout of the repo on your own machine.
 Commit the change on its own, and push:
 
 ```bash
-node scripts/witness-record.mjs add --operator Vouchwell --public-key <key> --node https://witness1.yourdomain.com
+node scripts/witness-record.mjs add --operator Deedwrit --public-key <key> --node https://witness1.yourdomain.com
 git commit -am "Publish witness1's key" && git push
 ```
 
@@ -161,18 +161,18 @@ docker compose exec node node packages/server/src/bin.js witness-key "Acme Corp"
 It prints a token (shown once) and the commands the customer runs:
 
 ```bash
-vw remote add --name witness --url https://witness1.yourdomain.com --token <token>
-vw cosign --remote witness
+dw remote add --name witness --url https://witness1.yourdomain.com --token <token>
+dw cosign --remote witness
 ```
 
 Send the token over a private channel. Send the witness's public key separately,
 or point them at `witnesses/keys.json`.
 
-**For a full hub** (`VOUCHWELL_WITNESS_ONLY=0`), create the first organization
+**For a full hub** (`DEEDWRIT_WITNESS_ONLY=0`), create the first organization
 and admin instead, once:
 
 ```bash
-docker compose exec -e VOUCHWELL_ORG="Acme" -e VOUCHWELL_ADMIN_EMAIL=you@acme.com \
+docker compose exec -e DEEDWRIT_ORG="Acme" -e DEEDWRIT_ADMIN_EMAIL=you@acme.com \
   node node packages/server/src/bin.js bootstrap
 ```
 
@@ -185,16 +185,16 @@ It prints an admin password (change it after first sign-in at
 
 ### Backups
 
-The node snapshots its database every `VOUCHWELL_BACKUP_HOURS` (default 6) into
-its `backups` volume and keeps the last `VOUCHWELL_BACKUP_KEEP` (default 28).
+The node snapshots its database every `DEEDWRIT_BACKUP_HOURS` (default 6) into
+its `backups` volume and keeps the last `DEEDWRIT_BACKUP_KEEP` (default 28).
 Each one is verified when written. **Copy them off the server**; a backup on the
 same disk doesn't survive losing the disk:
 
 ```bash
 # On the server, e.g. from cron every 6 hours:
-cd /opt/vouchwell/deploy
-docker compose cp node:/backups /var/backups/vouchwell
-# then ship /var/backups/vouchwell elsewhere: rsync, rclone to object storage, etc.
+cd /opt/deedwrit/deploy
+docker compose cp node:/backups /var/backups/deedwrit
+# then ship /var/backups/deedwrit elsewhere: rsync, rclone to object storage, etc.
 ```
 
 Backups hold the database only, never the witness journal: that is the point
@@ -207,7 +207,7 @@ sign a fork of a history it already vouched for.
 ### Upgrades
 
 ```bash
-cd /opt/vouchwell
+cd /opt/deedwrit
 git fetch --tags
 git checkout v0.5.0      # the new release
 deploy/setup.sh
@@ -257,12 +257,12 @@ fails if the database stops answering.
   updates as pull requests.
 - **Logs rotate** at 10 MB × 5 files per container, so they can't fill the disk.
 - **The witness journal has its own volume**, `journal`, or the directory in
-  `VOUCHWELL_JOURNAL_DIR`, apart from the database's.
+  `DEEDWRIT_JOURNAL_DIR`, apart from the database's.
 
 ### What it doesn't do yet
 
 - **Signing keys live in the node's database**, the default `local` signer. For
-  a paid service, move them to a KMS with `VOUCHWELL_SIGNER`; see
+  a paid service, move them to a KMS with `DEEDWRIT_SIGNER`; see
   [HUB.md → Keys](HUB.md#keys). That's a cost and a vendor decision.
 - **One node is one point of failure.** The Team tier promises three
   witnesses; that means three servers, ideally with three providers.
