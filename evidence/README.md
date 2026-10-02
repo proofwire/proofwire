@@ -50,12 +50,15 @@ CI checks every bundle on every push.
 
 ## Adding to it
 
-Working in this repository with Claude Code records automatically. Before you
-push, write the log out:
+Working in this repository with Claude Code records automatically. At the end
+of each session the hook writes the log to `evidence/<log id>.json`
+(`"evidence": "evidence"` in [the config](../.claude/vouchwell.config.json)).
+Commit that file with your work. To bring it up to date in the middle of a
+session, run:
 
 ```bash
 npm run evidence            # checkpoint, then write evidence/<log id>.json
 ```
 
-Commit the file it writes. The live log, its signing key and its salts stay in
-`.claude/vouchwell-log/`, which git ignores.
+The live log, its signing key and its salts stay in `.claude/vouchwell-log/`,
+which git ignores.

@@ -63,7 +63,8 @@ In `vouchwell.config.json`:
   "hook": {
     "principal": "you@example.com",
     "previews": "params",
-    "monitor": false
+    "monitor": false,
+    "evidence": "evidence"
   }
 }
 ```
@@ -79,6 +80,10 @@ In `vouchwell.config.json`:
 - **`principal`** is who the agent works for. Defaults to `actor.principal`.
 - **`monitor`**: `true` records what the policy would block without blocking
   it. `--enforce` on the command overrides it.
+- **`evidence`**: a folder. At the end of every session the log is written
+  there as `<log id>.json`, a checkpointed bundle, so publishing it is just
+  committing that file. Leave it out to write bundles only when you run
+  `vw hook evidence`.
 
 `vw hook install` flags:
 - `--user` writes to `~/.claude/settings.json`, so the hooks apply in every project.
@@ -106,6 +111,14 @@ The bundle holds no payloads and no salts.
 - **Parallel tool calls keep one chain.** Claude Code runs the hooks of
   parallel calls at the same time. Each takes a lock on the log first, so the
   chain never forks.
+- **A large log does not slow the agent down.** A hook call reads only what
+  it needs:
+  - where the last call left off, from `append-state.json` beside the log;
+  - the receipts inside the policy's longest budget or rate-limit window.
+
+  On a 5,000-receipt log a call takes about 100 ms, the same as on an empty
+  one. Reading the whole log took 0.5 s. The state file is rebuilt from the
+  entries whenever it disagrees with them, and `vw verify` never uses it.
 - **A hook sees what Claude Code reports, and nothing else.** A tool that runs
   outside Claude Code's tool calls is not recorded. A subprocess started by a
   recorded shell command is recorded only as that command.

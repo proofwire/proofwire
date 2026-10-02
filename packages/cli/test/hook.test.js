@@ -257,6 +257,51 @@ test('install adds the hooks beside existing ones, is idempotent, and uninstall 
   assert.equal(fs.readFileSync(file, 'utf8'), '{ broken', 'a settings file it cannot read is left alone');
 });
 
+test('rate limits still count past calls, read back only as far as their window', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-hook-'));
+  fs.writeFileSync(path.join(cwd, 'vouchwell.policy.json'), JSON.stringify({
+    version: 1, name: 'slow-down',
+    rateLimits: [{ id: 'bash.burst', match: { target: 'claude-code.Bash' }, limit: 2, window: '1h', then: 'deny' }],
+  }));
+  for (const id of ['r1', 'r2']) {
+    assert.equal(decision(fire(cwd, 'PreToolUse', BASH('ls', id)).stdout), null);
+    fire(cwd, 'PostToolUse', { ...BASH('ls', id), tool_response: {} });
+  }
+  const third = decision(fire(cwd, 'PreToolUse', BASH('ls', 'r3')).stdout);
+  assert.equal(third.permissionDecision, 'deny');
+  assert.match(third.permissionDecisionReason, /bash\.burst|rate|limit/i);
+
+  // Two intents written two hours ago no longer count against a 1h window.
+  const old = fs.mkdtempSync(path.join(os.tmpdir(), 'vouchwell-hook-'));
+  fs.copyFileSync(path.join(cwd, 'vouchwell.policy.json'), path.join(old, 'vouchwell.policy.json'));
+  const log = ProofLog.create(path.join(old, '.vouchwell'));
+  const twoHoursAgo = new Date(Date.now() - 2 * 3600_000).toISOString();
+  for (let i = 0; i < 2; i++) {
+    log.append({ actor: { agent: 'claude-code', session: 'cc_s1', principal: 'p' }, action: { kind: 'tool_call', target: 'claude-code.Bash', params: {} },
+      decision: { outcome: 'allow', policy: 'p', rules: [] }, result: null, phase: 'intent', ts: twoHoursAgo });
+  }
+  assert.equal(decision(fire(old, 'PreToolUse', BASH('ls', 'r4')).stdout), null);
+});
+
+test('with an evidence folder set, the session end writes the bundle there', () => {
+  const cwd = project();
+  fs.writeFileSync(path.join(cwd, 'vouchwell.config.json'), JSON.stringify({ hook: { evidence: 'proof' } }));
+  fire(cwd, 'PreToolUse', BASH('npm test'));
+  fire(cwd, 'PostToolUse', { ...BASH('npm test'), tool_response: {} });
+  assert.ok(!fs.existsSync(path.join(cwd, 'proof')), 'written at the end of the session, not on every call');
+  fire(cwd, 'SessionEnd', { reason: 'exit' });
+  const [name] = fs.readdirSync(path.join(cwd, 'proof'));
+  const bundle = JSON.parse(fs.readFileSync(path.join(cwd, 'proof', name), 'utf8'));
+  assert.equal(bundle.entries.length, 2);
+  assert.equal(bundle.checkpoints.length, 1, 'the checkpoint the session end just made is in it');
+  assert.ok(verifyBundle(bundle).ok);
+
+  const without = project();
+  fire(without, 'PreToolUse', BASH('npm test'));
+  fire(without, 'SessionEnd', { reason: 'exit' });
+  assert.ok(!fs.existsSync(path.join(without, 'evidence')), 'nothing is written unless asked for');
+});
+
 test('evidence checkpoints the log and writes a bundle anyone can verify', () => {
   const cwd = project();
   fire(cwd, 'PreToolUse', BASH('npm test'));

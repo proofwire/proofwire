@@ -9,6 +9,8 @@ node_modules/
 # What `vw hook` keeps between one event and the next. Local state, not evidence.
 **/.vouchwell/hook-pending.json
 **/.vouchwell/hook.lock
+# Where an appender left off: derived from the entries, rebuilt if it disagrees.
+**/.vouchwell/append-state.json
 .vouchwell-witness/
 # The same, as named before the project was renamed Vouchwell. Still private.
 **/.proofwire/key.pem

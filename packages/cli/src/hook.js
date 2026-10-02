@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ProofLog, History, entryHash, canonicalize } from '@vouchwell/core';
+import { ProofLog, LogAppender, History, parseWindow, entryHash, canonicalize } from '@vouchwell/core';
 import { c, out, err, ok, bad, info, heading, kv } from './ui.js';
 
 /**
@@ -102,6 +102,8 @@ export function handleEvent(args, deps, text) {
         },
         namespace: args.namespace ?? settings.namespace ?? 'claude-code',
         previews: previewsFor(args.previews ?? settings.previews ?? 'params'),
+        // Where SessionEnd writes the log as a bundle, if anywhere.
+        evidence: typeof (args.evidence ?? settings.evidence) === 'string' ? (args.evidence ?? settings.evidence) : null,
       };
       if (name === 'PreToolUse') return pre(ctx, event, deps.loadPolicy(config, args));
       if (name === 'SessionEnd') return sessionEnd(ctx);
@@ -131,7 +133,7 @@ function pre(ctx, event, policy) {
   const params = event.tool_input ?? {};
   let decision = policy.decide(
     { kind: 'tool_call', target, params, metrics: {}, actor: ctx.actor },
-    new History([...ctx.log.entries]),
+    new History(ctx.log.recent(historyWindow(policy))),
   );
   if (ctx.monitor) decision = monitored(decision);
 
@@ -243,7 +245,9 @@ function sessionEnd(ctx) {
     delete pending[key];
   }
   writePending(ctx.dir, pending);
-  if (ctx.log.size > 0) ctx.log.checkpoint();
+  if (ctx.log.size === 0) return 0;
+  ctx.log.checkpoint();
+  if (ctx.evidence) writeEvidence(ctx.dir, path.resolve(ctx.evidence));
   return 0;
 }
 
@@ -345,14 +349,10 @@ function evidence(args, deps) {
   const { dir } = deps.loadConfig(args);
   const outDir = path.resolve(args._[2] ?? 'evidence');
   const { file, bundle } = withLock(dir, () => {
-    const log = ProofLog.open(dir);
+    const log = LogAppender.open(dir);
     if (log.size === 0) throw new Error('the log is empty: nothing to put in a bundle yet');
     log.checkpoint();
-    const bundle = log.bundle();
-    fs.mkdirSync(outDir, { recursive: true });
-    const file = path.join(outDir, `${log.logId}.json`);
-    fs.writeFileSync(file, JSON.stringify(bundle, null, 2) + '\n');
-    return { file, bundle };
+    return writeEvidence(dir, outDir);
   });
   heading('Evidence written');
   kv([
@@ -368,6 +368,37 @@ function evidence(args, deps) {
 }
 
 // ─────────────────────────────────────────────────────────────── helpers ──
+
+/**
+ * Write the log, as of its last checkpoint, as `<outDir>/<log id>.json`.
+ * The one step here that reads the whole log: it proves every receipt.
+ *
+ * @param {string} dir
+ * @param {string} outDir
+ */
+function writeEvidence(dir, outDir) {
+  const log = ProofLog.open(dir, { readOnly: true });
+  const bundle = log.bundle();
+  fs.mkdirSync(outDir, { recursive: true });
+  const file = path.join(outDir, `${log.logId}.json`);
+  fs.writeFileSync(file, JSON.stringify(bundle, null, 2) + '\n');
+  return { file, bundle };
+}
+
+/**
+ * How far back the policy looks: its longest budget or rate-limit window,
+ * with the defaults it applies itself. Nothing older can change a decision,
+ * so nothing older is read.
+ *
+ * @param {any} policy
+ */
+function historyWindow(policy) {
+  const windows = [
+    ...(policy.budgets ?? []).map((/** @type {any} */ b) => parseWindow(b.window ?? '24h')),
+    ...(policy.rateLimits ?? []).map((/** @type {any} */ r) => parseWindow(r.window ?? '1h')),
+  ];
+  return windows.length ? Math.max(...windows) : 0;
+}
 
 /** @param {'deny'|'ask'} decision @param {string} reason */
 function respond(decision, reason) {
@@ -434,10 +465,10 @@ function callKey(event) {
 function openOrCreate(dir) {
   // Opened or created in one step each, never "check, then act": the hook
   // lock is held, but a log is a directory anyone can write to.
-  if (readIfPresent(path.join(dir, 'config.json')) !== null) return ProofLog.open(dir);
+  if (readIfPresent(path.join(dir, 'config.json')) !== null) return LogAppender.open(dir);
   const log = ProofLog.create(dir);
   err(`vouchwell hook: started a new log at ${dir} (${log.logId})`);
-  return log;
+  return LogAppender.open(dir);
 }
 
 /** @param {string} dir @returns {Record<string, any>} */

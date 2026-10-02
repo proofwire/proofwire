@@ -3,6 +3,7 @@
   "policy": ".claude/vouchwell.policy.json",
   "hook": {
     "principal": "vouchwell-maintainers",
-    "previews": "none"
+    "previews": "none",
+    "evidence": "evidence"
   }
 }

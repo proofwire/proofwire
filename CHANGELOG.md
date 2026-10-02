@@ -7,6 +7,19 @@ up to 0.5.0 `proofwire` and `@proof_wire/*` — release together at the same ver
 
 ### Added
 
+- **`vw hook` stays fast however large the log grows.** Every hook call used
+  to read and hash the whole log, which took 0.5 s at 5,000 receipts, twice
+  per tool call. It now reads only two things:
+  - where the last call left off, kept in `append-state.json` and rebuilt
+    from the entries whenever the two disagree;
+  - the receipts inside the policy's longest window.
+
+  That is about 100 ms per call at any size. The new `LogAppender` in core
+  does this for any writer that starts once per action.
+- **Evidence written at the end of every session.** With `"evidence": "<folder>"`
+  in the hook settings, the session end writes the log there as a
+  checkpointed bundle. This repository uses it, so its evidence no longer
+  depends on someone remembering `npm run evidence`.
 - **`vw hook`: record and gate Claude Code's own tools.** Claude Code runs
   `vw hook` before and after every tool call: shell commands, file reads and
   edits, fetches. Before a call, the policy decides:
